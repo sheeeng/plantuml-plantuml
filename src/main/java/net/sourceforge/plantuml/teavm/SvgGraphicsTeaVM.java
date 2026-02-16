@@ -59,6 +59,7 @@ public class SvgGraphicsTeaVM {
 //	private String fillColor = "#000000";
 //	private String strokeColor = "#000000";
 //	private double strokeWidth = 1.0;
+//	private double[] strokeDasharray = null;
 //
 //	public SvgGraphicsTeaVM(int width, int height) {
 //		this.document = HTMLDocument.current();
@@ -97,6 +98,12 @@ public class SvgGraphicsTeaVM {
 //
 //	public void setStrokeWidth(double width) {
 //		this.strokeWidth = width;
+//		this.strokeDasharray = null;
+//	}
+//
+//	public void setStrokeWidth(double width, double[] dasharray) {
+//		this.strokeWidth = width;
+//		this.strokeDasharray = dasharray;
 //	}
 //
 //	public void drawRectangle(double x, double y, double width, double height) {
@@ -169,22 +176,35 @@ public class SvgGraphicsTeaVM {
 //	}
 //
 //	public void drawText(String text, double x, double y, String fontFamily, int fontSize) {
-//		drawText(text, x, y, fontFamily, fontSize, "normal", "normal");
+//		drawText(text, x, y, fontFamily, fontSize, null, null, null);
 //	}
 //
 //	public void drawText(String text, double x, double y, String fontFamily, int fontSize, String fontWeight,
-//			String fontStyle) {
+//			String fontStyle, String textDecoration) {
 //		Element textElem = createSvgElement("text");
 //		textElem.setAttribute("x", format(x));
 //		textElem.setAttribute("y", format(y));
-//		textElem.setAttribute("font-family", fontFamily);
 //		textElem.setAttribute("font-size", String.valueOf(fontSize));
 //		textElem.setAttribute("fill", fillColor);
-//		if (!"normal".equals(fontWeight)) {
+//		// Preserve whitespace (multiple spaces, tabs, etc.)
+//		textElem.setAttribute("xml:space", "preserve");
+//		textElem.setAttribute("style", "white-space: pre");
+//		if (fontWeight != null) {
 //			textElem.setAttribute("font-weight", fontWeight);
 //		}
-//		if (!"normal".equals(fontStyle)) {
+//		if (fontStyle != null) {
 //			textElem.setAttribute("font-style", fontStyle);
+//		}
+//		if (textDecoration != null) {
+//			textElem.setAttribute("text-decoration", textDecoration);
+//		}
+//		if (fontFamily != null) {
+//			textElem.setAttribute("font-family", fontFamily);
+//
+//			// For monospace fonts, replace spaces with non-breaking spaces
+//			// to ensure consistent character width
+//			// if (fontFamily.equalsIgnoreCase("monospace") || fontFamily.equalsIgnoreCase("courier"))
+//			//	text = text.replace(' ', (char) 160);
 //		}
 //		textElem.setTextContent(text);
 //		mainGroup.appendChild(textElem);
@@ -233,12 +253,13 @@ public class SvgGraphicsTeaVM {
 //	private void applyStrokeStyle(Element element) {
 //		element.setAttribute("stroke", strokeColor);
 //		element.setAttribute("stroke-width", format(strokeWidth));
+//		if (strokeDasharray != null && strokeDasharray.length >= 2)
+//			element.setAttribute("stroke-dasharray", format(strokeDasharray[0]) + "," + format(strokeDasharray[1]));
 //	}
 //
 //	private String format(double value) {
-//		if (value == (int) value) {
+//		if (value == (int) value)
 //			return String.valueOf((int) value);
-//		}
 //		return String.format("%.2f", value).replace(',', '.');
 //	}
 //
@@ -363,6 +384,123 @@ public class SvgGraphicsTeaVM {
 //					+ "  m.fontBoundingBoxDescent || fontSize * 0.2" + "];")
 //	public static native double[] getDetailedTextMetrics(String text, String fontFamily, int fontSize,
 //			String fontWeight);
+//
+//	// ========================================================================
+//	// Centered character drawing
+//	// ========================================================================
+//
+//	/**
+//	 * Draws a single character centered at the specified position.
+//	 * Uses SVG text-anchor and dominant-baseline for centering.
+//	 * 
+//	 * @param c          The character to draw
+//	 * @param x          Center X position
+//	 * @param y          Center Y position
+//	 * @param fontFamily Font family
+//	 * @param fontSize   Font size in pixels
+//	 */
+//	public void drawCenteredCharacter(char c, double x, double y, String fontFamily, int fontSize) {
+//		Element textElem = createSvgElement("text");
+//		textElem.setAttribute("x", format(x));
+//		textElem.setAttribute("y", format(y));
+//		textElem.setAttribute("font-family", fontFamily);
+//		textElem.setAttribute("font-size", String.valueOf(fontSize));
+//		textElem.setAttribute("fill", fillColor);
+//		// Center horizontally
+//		textElem.setAttribute("text-anchor", "middle");
+//		// Center vertically (dominant-baseline: central centers on x-height)
+//		textElem.setAttribute("dominant-baseline", "central");
+//		textElem.setTextContent(String.valueOf(c));
+//		mainGroup.appendChild(textElem);
+//	}
+//
+//	// ========================================================================
+//	// Image drawing
+//	// ========================================================================
+//
+//	/**
+//	 * Draws an image at the specified position using a data URL.
+//	 * The image is embedded directly in the SVG as a base64-encoded PNG.
+//	 * 
+//	 * @param dataUrl PNG data URL (data:image/png;base64,...)
+//	 * @param x       X position
+//	 * @param y       Y position
+//	 * @param width   Image width
+//	 * @param height  Image height
+//	 */
+//	public void drawImage(String dataUrl, double x, double y, int width, int height) {
+//		Element image = createSvgElement("image");
+//		image.setAttribute("x", format(x));
+//		image.setAttribute("y", format(y));
+//		image.setAttribute("width", String.valueOf(width));
+//		image.setAttribute("height", String.valueOf(height));
+//		// Use href for SVG 2.0 compatibility (xlink:href is deprecated)
+//		image.setAttribute("href", dataUrl);
+//		// Also set xlink:href for older browser compatibility
+//		setXlinkHref(image, dataUrl);
+//		mainGroup.appendChild(image);
+//	}
+//
+//	@JSBody(params = { "element", "href" }, script = "element.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', href);")
+//	private static native void setXlinkHref(Element element, String href);
+//
+//	// ========================================================================
+//	// SVG image embedding
+//	// ========================================================================
+//
+//	/**
+//	 * Embeds an SVG image at the specified position.
+//	 * The SVG content is parsed and inserted as a nested SVG element.
+//	 * 
+//	 * @param image UImageSvg containing the SVG data
+//	 * @param x     X position
+//	 * @param y     Y position
+//	 */
+//	public void drawSvgImage(net.sourceforge.plantuml.klimt.shape.UImageSvg image, double x, double y) {
+//		final double svgScale = image.getScale();
+//		String svg = image.getSvg(false);
+//
+//		// Handle scaling if needed
+//		if (svgScale != 1) {
+//			svg = wrapWithScaleTransform(svg, svgScale);
+//		}
+//
+//		// Create a group to position the embedded SVG
+//		Element wrapper = createSvgElement("g");
+//		wrapper.setAttribute("transform", "translate(" + format(x) + "," + format(y) + ")");
+//
+//		// Parse and insert the SVG content
+//		insertSvgContent(wrapper, svg);
+//
+//		mainGroup.appendChild(wrapper);
+//	}
+//
+//	/**
+//	 * Wraps SVG content with a scale transform.
+//	 */
+//	private String wrapWithScaleTransform(String svg, double scale) {
+//		String svg2 = svg.replace('\n', ' ').replace('\r', ' ');
+//		if (!svg2.contains("<g ") && !svg2.contains("<g>")) {
+//			svg = svg.replaceFirst("\\<svg\\>", "<svg><g>");
+//			svg = svg.replaceFirst("\\</svg\\>", "</g></svg>");
+//		}
+//		final String factor = format(scale);
+//		svg = svg.replaceFirst("\\<g\\b", "<g transform=\"scale(" + factor + "," + factor + ")\" ");
+//		return svg;
+//	}
+//
+//	/**
+//	 * Parses SVG string and inserts its content into the parent element.
+//	 */
+//	@JSBody(params = { "parent", "svgContent" }, script = 
+//		"var parser = new DOMParser();" +
+//		"var doc = parser.parseFromString(svgContent, 'image/svg+xml');" +
+//		"var svgElem = doc.documentElement;" +
+//		"if (svgElem && svgElem.tagName.toLowerCase() === 'svg') {" +
+//		"  var imported = document.importNode(svgElem, true);" +
+//		"  parent.appendChild(imported);" +
+//		"}")
+//	private static native void insertSvgContent(Element parent, String svgContent);
 	
 	// ::done
 

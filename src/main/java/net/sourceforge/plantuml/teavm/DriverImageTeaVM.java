@@ -37,25 +37,37 @@ package net.sourceforge.plantuml.teavm;
 
 import net.sourceforge.plantuml.klimt.ClipContainer;
 import net.sourceforge.plantuml.klimt.UParam;
+import net.sourceforge.plantuml.klimt.awt.PortableImage;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.drawing.UDriver;
-import net.sourceforge.plantuml.klimt.shape.ULine;
+import net.sourceforge.plantuml.klimt.shape.UImage;
 
-public class DriverLineTeaVM implements UDriver<ULine, SvgGraphicsTeaVM> {
+/**
+ * TeaVM driver for rendering images in SVG.
+ * Converts PortableImage to PNG data URL using browser's canvas API,
+ * then embeds as an SVG image element.
+ */
+public class DriverImageTeaVM implements UDriver<UImage, SvgGraphicsTeaVM> {
 
 	private final ClipContainer clipContainer;
 
-	public DriverLineTeaVM(ClipContainer clipContainer) {
+	public DriverImageTeaVM(ClipContainer clipContainer) {
 		this.clipContainer = clipContainer;
 	}
 
 	@Override
-	public void draw(ULine line, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
+	public void draw(UImage shape, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
 		// ::uncomment when __TEAVM__
-//		DriverRectangleTeaVM.applyStrokeColor(svg, mapper, param);
-//		svg.setStrokeWidth(param.getStroke().getThickness(), param.getStroke().getDasharraySvg());
-//
-//		svg.drawLine(x, y, x + line.getDX(), y + line.getDY());
+//		final PortableImage image = shape.getImage(1.0);
+//		final int width = image.getWidth();
+//		final int height = image.getHeight();
+//		
+//		// Convert image to PNG data URL via canvas
+//		final String dataUrl = image.toPngDataUrl();
+//		
+//		// Draw as embedded image in SVG
+//		svg.drawImage(dataUrl, x, y, width, height);
 		// ::done
+
 	}
 }

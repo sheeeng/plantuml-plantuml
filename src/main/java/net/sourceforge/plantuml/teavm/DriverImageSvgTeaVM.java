@@ -35,27 +35,22 @@
  */
 package net.sourceforge.plantuml.teavm;
 
-import net.sourceforge.plantuml.klimt.ClipContainer;
 import net.sourceforge.plantuml.klimt.UParam;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.drawing.UDriver;
-import net.sourceforge.plantuml.klimt.shape.ULine;
+import net.sourceforge.plantuml.klimt.shape.UImageSvg;
 
-public class DriverLineTeaVM implements UDriver<ULine, SvgGraphicsTeaVM> {
-
-	private final ClipContainer clipContainer;
-
-	public DriverLineTeaVM(ClipContainer clipContainer) {
-		this.clipContainer = clipContainer;
-	}
+/**
+ * TeaVM driver for rendering embedded SVG images.
+ * Embeds SVG content directly into the output SVG.
+ */
+public class DriverImageSvgTeaVM implements UDriver<UImageSvg, SvgGraphicsTeaVM> {
 
 	@Override
-	public void draw(ULine line, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
+	public void draw(UImageSvg image, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
 		// ::uncomment when __TEAVM__
-//		DriverRectangleTeaVM.applyStrokeColor(svg, mapper, param);
-//		svg.setStrokeWidth(param.getStroke().getThickness(), param.getStroke().getDasharraySvg());
-//
-//		svg.drawLine(x, y, x + line.getDX(), y + line.getDY());
+		// svg.drawSvgImage(image, x, y);
 		// ::done
+
 	}
 }

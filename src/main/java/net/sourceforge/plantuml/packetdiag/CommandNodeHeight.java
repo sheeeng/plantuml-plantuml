@@ -2,7 +2,7 @@
  * PlantUML : a free UML diagram generator
  * ========================================================================
  *
- * (C) Copyright 2009-2024, Arnaud Roques
+ * (C) Copyright 2009-2026, Arnaud Roques
  *
  * Project Info:  https://plantuml.com
  * 
@@ -29,44 +29,46 @@
  * USA.
  *
  *
- * Original Author:  Arnaud Roques
- * 
+ * Original Author:  kolulu23
  *
+ * 
  */
-package net.sourceforge.plantuml.command;
+package net.sourceforge.plantuml.packetdiag;
 
-import net.sourceforge.plantuml.TitledDiagram;
-import net.sourceforge.plantuml.emoji.SvgNanoParser;
+import net.sourceforge.plantuml.command.CommandExecutionResult;
+import net.sourceforge.plantuml.command.ParserPass;
+import net.sourceforge.plantuml.command.SingleLineCommand2;
+import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.utils.LineLocation;
 
-public class CommandSpriteSvg extends SingleLineCommand2<TitledDiagram> {
+public class CommandNodeHeight extends SingleLineCommand2<PacketDiagram> {
 
-	public static final CommandSpriteSvg ME = new CommandSpriteSvg();
-
-	private CommandSpriteSvg() {
+	public CommandNodeHeight() {
 		super(getRegexConcat());
 	}
 
-	private static IRegex getRegexConcat() {
-		return RegexConcat.build(CommandSpriteSvg.class.getName(), RegexLeaf.start(), //
-				new RegexLeaf("sprite"), //
-				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf("\\$?"), //
-				new RegexLeaf(1, "NAME", "([-%pLN_]+)"), //
-				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf(1, "SVG", "(\\<svg\\b.*\\</svg\\>)"), RegexLeaf.end());
+	static IRegex getRegexConcat() {
+		return RegexConcat.build(CommandNodeHeight.class.getName(), RegexLeaf.start(), //
+						new RegexLeaf("node_height"), //
+						RegexLeaf.spaceZeroOrMore(), //
+						new RegexLeaf("="), //
+						RegexLeaf.spaceZeroOrMore(), //
+						new RegexLeaf(1, "HEIGHT", "(\\d{1,3});?"), //
+						RegexLeaf.spaceZeroOrMore(), RegexLeaf.end());
 	}
 
 	@Override
-	protected CommandExecutionResult executeArg(TitledDiagram system, LineLocation location, RegexResult arg, ParserPass currentPass) {
-		final String svg = arg.get("SVG", 0);
-		final SvgNanoParser nanoParser = new SvgNanoParser(svg);
-		system.addSprite(arg.get("NAME", 0), nanoParser);
-
+	protected CommandExecutionResult executeArg(PacketDiagram system, LineLocation location, RegexResult arg, ParserPass currentPass) throws NoSuchColorException {
+		try {
+			// The original python implementation takes int, but it really should be a float number
+			system.updateNodeHeight(Integer.parseInt(arg.get("HEIGHT", 0)));
+		} catch (NumberFormatException e) {
+			return CommandExecutionResult.error("Height must be an integer", e);
+		}
 		return CommandExecutionResult.ok();
 	}
 }

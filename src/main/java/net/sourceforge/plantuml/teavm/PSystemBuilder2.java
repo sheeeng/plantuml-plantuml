@@ -38,23 +38,29 @@ package net.sourceforge.plantuml.teavm;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sourceforge.plantuml.activitydiagram.ActivityDiagramFactory;
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagramFactory3;
 import net.sourceforge.plantuml.api.PSystemFactory;
+import net.sourceforge.plantuml.chart.ChartDiagramFactory;
 import net.sourceforge.plantuml.classdiagram.ClassDiagramFactory;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
+import net.sourceforge.plantuml.descdiagram.DescriptionDiagramFactory;
 import net.sourceforge.plantuml.error.PSystemError;
 import net.sourceforge.plantuml.error.PSystemErrorUtils;
 import net.sourceforge.plantuml.error.PSystemUnsupported;
 import net.sourceforge.plantuml.mindmap.MindMapDiagramFactory;
 import net.sourceforge.plantuml.nwdiag.NwDiagramFactory;
+import net.sourceforge.plantuml.packetdiag.PacketDiagramFactory;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.sequencediagram.SequenceDiagramFactory;
+import net.sourceforge.plantuml.statediagram.StateDiagramFactory;
 import net.sourceforge.plantuml.sudoku.PSystemSudokuFactory;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.timingdiagram.TimingDiagramFactory;
 import net.sourceforge.plantuml.utils.LineLocationImpl;
+import net.sourceforge.plantuml.version.PSystemVersionFactory;
 import net.sourceforge.plantuml.wbs.WBSDiagramFactory;
 
 public class PSystemBuilder2 {
@@ -63,14 +69,19 @@ public class PSystemBuilder2 {
 
 	public PSystemBuilder2() {
 		factories.add(new SequenceDiagramFactory());
-		factories.add(new ActivityDiagramFactory3());
 		factories.add(new ClassDiagramFactory());
-		// factories.add(new PSystemVersionFactory());
+		factories.add(new ActivityDiagramFactory());
+		factories.add(new DescriptionDiagramFactory());
+		factories.add(new StateDiagramFactory());
+		factories.add(new ActivityDiagramFactory3());
+		factories.add(new PSystemVersionFactory());
 		factories.add(new MindMapDiagramFactory());
 		factories.add(new WBSDiagramFactory());
 		factories.add(new NwDiagramFactory(DiagramType.UML));
 		factories.add(new PSystemSudokuFactory());
 		factories.add(new TimingDiagramFactory());
+		factories.add(new ChartDiagramFactory());
+		factories.add(new PacketDiagramFactory());
 	}
 
 	public Diagram createDiagram(String[] split) {

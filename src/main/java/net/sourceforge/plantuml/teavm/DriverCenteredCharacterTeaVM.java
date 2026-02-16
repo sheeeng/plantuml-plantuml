@@ -2,7 +2,7 @@
  * PlantUML : a free UML diagram generator
  * ========================================================================
  *
- * (C) Copyright 2009-2024, Arnaud Roques
+ * (C) Copyright 2009-2025, Arnaud Roques
  *
  * Project Info:  https://plantuml.com
  * 
@@ -35,27 +35,34 @@
  */
 package net.sourceforge.plantuml.teavm;
 
-import net.sourceforge.plantuml.klimt.ClipContainer;
 import net.sourceforge.plantuml.klimt.UParam;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
+import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UDriver;
-import net.sourceforge.plantuml.klimt.shape.ULine;
+import net.sourceforge.plantuml.klimt.font.UFont;
+import net.sourceforge.plantuml.klimt.font.UFontContext;
+import net.sourceforge.plantuml.klimt.shape.UCenteredCharacter;
 
-public class DriverLineTeaVM implements UDriver<ULine, SvgGraphicsTeaVM> {
-
-	private final ClipContainer clipContainer;
-
-	public DriverLineTeaVM(ClipContainer clipContainer) {
-		this.clipContainer = clipContainer;
-	}
+/**
+ * Driver for rendering UCenteredCharacter in TeaVM/SVG.
+ * 
+ * This is a simplified implementation that uses SVG text element with
+ * text-anchor="middle" and dominant-baseline for centering, instead of
+ * converting the character to a path (which would require AWT).
+ */
+public class DriverCenteredCharacterTeaVM implements UDriver<UCenteredCharacter, SvgGraphicsTeaVM> {
 
 	@Override
-	public void draw(ULine line, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
+	public void draw(UCenteredCharacter characterCircled, double x, double y, ColorMapper mapper, UParam param,
+			SvgGraphicsTeaVM svg) {
 		// ::uncomment when __TEAVM__
-//		DriverRectangleTeaVM.applyStrokeColor(svg, mapper, param);
-//		svg.setStrokeWidth(param.getStroke().getThickness(), param.getStroke().getDasharraySvg());
+//		final char c = characterCircled.getChar();
+//		final UFont font = characterCircled.getFont();
+//		final HColor textColor = param.getColor();
+//		final String text = String.valueOf(c);
 //
-//		svg.drawLine(x, y, x + line.getDX(), y + line.getDY());
+//		svg.setFillColor(textColor.toSvg(mapper));
+//		svg.drawCenteredCharacter(c, x, y, "monospace", font.getSize());
 		// ::done
 	}
 }

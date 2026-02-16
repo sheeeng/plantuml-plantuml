@@ -9,12 +9,13 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.util.jar.JarFile
 import java.util.Base64
+import java.util.Properties
 import org.gradle.api.tasks.Sync
 
 println("Running build.gradle.kts")
 println(project.version)
 
-val javacRelease = (project.findProperty("javacRelease") ?: "11") as String
+val javacRelease = (project.findProperty("javacRelease") ?: "8") as String
 
 plugins {
 	java
@@ -22,6 +23,7 @@ plugins {
 	signing
     eclipse
 	jacoco
+	id("com.gorylenko.gradle-git-properties") version "2.5.7"
 //	alias(libs.plugins.adarshr.test.logger)
 }
 
@@ -41,14 +43,20 @@ sourceSets {
 		java.srcDir(layout.buildDirectory.dir("generated/teavm-sjpp"))
 		// If resources are needed at TeaVM runtime, you can also add them:
 		resources.srcDir("src/main/resources")
-		compileClasspath += sourceSets.main.get().compileClasspath
-		runtimeClasspath += sourceSets.main.get().runtimeClasspath
+		// Note: compileClasspath will be configured after dependencies are declared
 	}
 }
 
 val jdependConfig by configurations.creating
 val teavmConfig by configurations.creating
-val teavmVersion = "0.13.0"
+
+// Separate configuration for TeaVM compile dependencies (requires Java 11+)
+val teavmCompileConfig by configurations.creating {
+	attributes {
+		// Force Java 11 compatibility for TeaVM dependencies
+		attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
+	}
+}
 
 
 dependencies {
@@ -77,11 +85,11 @@ dependencies {
 	jdependConfig(libs.jdepend)
 
 	// TeaVM CLI for compilation (contains the main class)
-    teavmConfig("org.teavm:teavm-cli:$teavmVersion")
+    teavmConfig(libs.teavm.cli)
 	
-	// TeaVM dependencies for Java to JavaScript compilation
-    compileOnly("org.teavm:teavm-jso-apis:$teavmVersion")
-    compileOnly("org.teavm:teavm-jso:$teavmVersion")
+	// TeaVM dependencies for Java to JavaScript compilation (Java 11+ only)
+	teavmCompileConfig(libs.teavm.jso.apis)
+	teavmCompileConfig(libs.teavm.jso)
 
     // Custom configuration for pdfJar task
     configurations.create("pdfJarDeps")
@@ -95,12 +103,25 @@ repositories {
 	mavenCentral()
 }
 
+// Configure teavm sourceSet classpath after dependencies are declared
+// Note: teavm sourceSet compiles preprocessed sources from generated/teavm-sjpp
+// It does NOT need the main sourceSet output (which would trigger unnecessary compilation)
+sourceSets["teavm"].apply {
+	compileClasspath = teavmCompileConfig
+	runtimeClasspath = teavmCompileConfig
+}
+
 tasks.compileJava {
-	options.release.set(Integer.parseInt(javacRelease))
+	if (JavaVersion.current().isJava8) {
+		java.targetCompatibility = JavaVersion.VERSION_1_8
+	} else {
+		options.release.set(Integer.parseInt(javacRelease))
+	}
 }
 
 tasks.named<JavaCompile>("compileTeavmJava") {
-	options.release.set(Integer.parseInt(javacRelease))
+	// TeaVM requires Java 11 minimum, regardless of the main javacRelease setting
+	options.release.set(11)
 	dependsOn("preprocessForTeaVM")
 }
 
@@ -502,12 +523,113 @@ tasks.register("site") {
 }
 
 // ============================================
+// CompilationInfo - Git commit & timestamp injection
+// ============================================
+
+gitProperties {
+	dateFormat = "yyyy-MM-dd'T'HH:mm:ssX"
+}
+
+tasks.named("generateGitProperties") {
+	doLast {
+		val propsFile = layout.buildDirectory.file("resources/main/git.properties").get().asFile
+		if (propsFile.exists()) {
+			println("----- git.properties -----")
+			propsFile.readLines()
+				.sorted()
+				.forEach { println(it) }
+			println("--------------------------")
+		} else {
+			println("git.properties not found")
+		}
+	}
+}
+
+val filteredSrcDir = layout.buildDirectory.dir("generated/sources/git-filtered")
+
+val filterSourcesWithBuildInfo by tasks.registering {
+	dependsOn("generateGitProperties")
+	mustRunAfter("processResources")
+
+	inputs.dir("src/main/java")
+	outputs.dir(filteredSrcDir)
+
+	doLast {
+		// 1) Read git.properties
+		val propsFile = layout.buildDirectory.file("resources/main/git.properties").get().asFile
+		val props = Properties().apply { propsFile.inputStream().use { load(it) } }
+		val commitId = props.getProperty("git.commit.id.abbrev")
+			?: error("git.commit.id.abbrev not found in ${propsFile.absolutePath}")
+
+		// 2) Compute compile timestamp (epoch millis)
+		val compileTs = System.currentTimeMillis().toString()
+
+		// 3) Copy sources
+		val outDir = filteredSrcDir.get().asFile
+		outDir.deleteRecursively()
+		project.copy {
+			from("src/main/java")
+			into(outDir)
+		}
+
+		// 4) Ant replace in the copy
+		val targetFile = outDir.resolve("net/sourceforge/plantuml/version/CompilationInfo.java")
+		if (!targetFile.exists()) {
+			error("Target file not found: ${targetFile.absolutePath}")
+		}
+
+		// 4) Get project version
+		val projectVersion = project.version.toString()
+
+		ant.withGroovyBuilder {
+			// version replacement
+			"replace"(
+				"file" to targetFile.absolutePath,
+				"token" to "\$version\$",
+				"value" to projectVersion
+			)
+
+			// commit token replacement
+			"replace"(
+				"file" to targetFile.absolutePath,
+				"token" to "\$git.commit.id\$",
+				"value" to commitId
+			)
+
+			// timestamp replacement
+			"replace"(
+				"file" to targetFile.absolutePath,
+				"token" to "COMPILE_TIMESTAMP = 000L",
+				"value" to "COMPILE_TIMESTAMP = ${compileTs}L"
+			)
+		}
+
+		println("Injected version into ${targetFile.name}: $projectVersion")
+		println("Injected git.commit.id into ${targetFile.name}: $commitId")
+		println("Injected compile timestamp into ${targetFile.name}: $compileTs")
+	}
+}
+
+sourceSets.named("main") {
+	java.setSrcDirs(listOf(filteredSrcDir))
+}
+
+tasks.compileJava {
+	dependsOn(filterSourcesWithBuildInfo)
+}
+
+tasks.named("sourcesJar") {
+	dependsOn(filterSourcesWithBuildInfo)
+}
+
+// ============================================
 // TeaVM Configuration - Java to JavaScript
 // ============================================
 
-// Sync sources for TeaVM preprocessing
+// Sync sources for TeaVM preprocessing (use filtered sources with CompilationInfo injected)
 val syncSourcesForTeaVM by tasks.registering(Sync::class) {
-	from(rootProject.layout.projectDirectory.dir("src/main/java"))
+	dependsOn(filterSourcesWithBuildInfo)
+	from(filteredSrcDir)
 	into(layout.buildDirectory.dir("sources/teavm-sjpp/java"))
 }
 
@@ -618,7 +740,7 @@ tasks.register<JavaExec>("generateJavaScript") {
 		println("[TEAVM] outputDir.exists() = ${outputDir.exists()}")
 		if (outputDir.exists()) {
 			println("[TEAVM] outputDir contents:")
-			outputDir.listFiles()?.forEach { println("[TEAVM]   - ${it.name} (${it.length()} bytes)") }
+			outputDir.listFiles()?.forEach { println("[TEAVM]   - ${it.name} (${it.length() / 1024} KB)") }
 		}
 		val classesJs = file("${outputDir.absolutePath}/classes.js")
 		println("[TEAVM] classes.js exists: ${classesJs.exists()}")

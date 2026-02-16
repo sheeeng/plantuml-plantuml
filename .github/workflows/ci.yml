@@ -10,8 +10,6 @@ on:
       - '**.md'
       - 'docs/**'
   push:
-    branches:
-      - master
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -158,6 +156,10 @@ jobs:
           distribution: temurin
           cache: gradle
 
+      # Use of `setup-gradle`, see https://github.com/gradle/actions/
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
       # Compile / Test / Package are separate steps so the reason for any failure is more obvious in GitHub UI
       - name: Compile
         if: needs.workflow_config.outputs.do_test_linux == 'true'
@@ -190,6 +192,8 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: gradle
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
 #      - name: Set version in gradle.properties
 #        if: env.POM_VERSION
 #        env:
@@ -240,6 +244,26 @@ jobs:
           key: "libs-${{ github.run_id }}"
           enableCrossOsArchive: true
 
+      - name: Upload plantuml JAR
+        uses: actions/upload-artifact@v6
+        with:
+          name: plantuml-jar
+          path: |
+            build/libs/plantuml-*.jar
+            !build/libs/plantuml-*-javadoc.jar
+            !build/libs/plantuml-*-sources.jar
+            !build/libs/plantuml-*-pdf*.jar
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload js-plantuml ZIP
+        uses: actions/upload-artifact@v6
+        with:
+          name: js-plantuml-zip
+          path: build/libs/js-plantuml-*.zip
+          if-no-files-found: error
+          retention-days: 30
+
   deploy_site_to_gh_page:
     needs: [ build_artifacts, jdk8 ]
     if: needs.workflow_config.outputs.do_javadoc == 'true'
@@ -253,6 +277,9 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build Site for GH Page
         run: gradle site
@@ -280,6 +307,9 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Restore Libs cache
         uses: actions/cache/restore@v5
