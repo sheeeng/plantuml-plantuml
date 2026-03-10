@@ -3,12 +3,17 @@ package net.sourceforge.plantuml.cli;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junitpioneer.jupiter.StdErr;
 import org.junitpioneer.jupiter.StdIo;
 import org.junitpioneer.jupiter.StdOut;
 
 import net.sourceforge.plantuml.Run;
 
+@Execution(ExecutionMode.SAME_THREAD)
+@Isolated
 class RunFlagPipeTest extends AbstractCliTest {
 
 	@StdIo({ "@startuml", "Alice->Bob: hello", "@enduml" })
@@ -42,7 +47,7 @@ class RunFlagPipeTest extends AbstractCliTest {
 		assertExit(ExitStatus.ERROR_200_SOME_DIAGRAMS_HAVE_ERROR, () -> {
 			Run.main(new String[] { "-pipe", "-svg" });
 		});
-		assertLineSplitContains(err.capturedString(), "ERROR", "1", "Syntax Error?");
+		assertLineSplitContains(err.capturedString(), "ERROR", "1", "Syntax Error? (Assumed diagram type: sequence)");
 		assertTrue(out.capturedString().contains("<svg"));
 		assertTrue(out.capturedString().contains("foo"));
 		assertTrue(out.capturedString().contains("Syntax Error?"));

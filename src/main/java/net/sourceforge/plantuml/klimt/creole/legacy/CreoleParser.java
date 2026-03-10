@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import net.sourceforge.plantuml.EmbeddedDiagram;
 import net.sourceforge.plantuml.StringUtils;
@@ -101,7 +102,7 @@ public class CreoleParser implements SheetBuilder {
 			return Arrays.asList(new StripeTree(fontConfiguration, skinParam, line));
 		} else if (Parser.isCodeStart(line)) {
 			return Arrays.asList(new StripeCode(fontConfiguration.changeFamily(Parser.MONOSPACED)));
-			// ::comment when __CORE__ or __TEAVM__
+			// ::comment when __TEAVM__
 		} else if (Parser.isLatexStart(line)) {
 			return Arrays.asList(new StripeLatex(fontConfiguration));
 			// ::done
@@ -113,12 +114,16 @@ public class CreoleParser implements SheetBuilder {
 				.createStripes(context, align);
 	}
 
+	private static final Pattern TABLE_LINE_PATTERN = Pattern.compile("^(\\<#\\w+(,#?\\w+)?\\>)?\\|(\\=)?.*\\|$");
+
+	private static final Pattern STARTS_BY_COLOR_PATTERN = Pattern.compile("^\\=?\\s*(\\<#\\w+(,#?\\w+)?\\>).*");
+
 	public static boolean isTableLine(String line) {
-		return line.matches("^(\\<#\\w+(,#?\\w+)?\\>)?\\|(\\=)?.*\\|$");
+		return TABLE_LINE_PATTERN.matcher(line).matches();
 	}
 
 	public static boolean doesStartByColor(String line) {
-		return line.matches("^\\=?\\s*(\\<#\\w+(,#?\\w+)?\\>).*");
+		return STARTS_BY_COLOR_PATTERN.matcher(line).matches();
 	}
 
 	private final Map<Display, Sheet> cache = new HashMap<>();

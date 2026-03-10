@@ -35,7 +35,6 @@
  */
 package net.sourceforge.plantuml.command;
 
-import net.sourceforge.plantuml.AbstractPSystem;
 import net.sourceforge.plantuml.ErrorUml;
 import net.sourceforge.plantuml.ErrorUmlType;
 import net.sourceforge.plantuml.Previous;
@@ -45,7 +44,6 @@ import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.error.PSystemErrorUtils;
 import net.sourceforge.plantuml.nio.PathSystem;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.utils.LineLocation;
 import net.sourceforge.plantuml.utils.StartUtils;
@@ -53,14 +51,16 @@ import net.sourceforge.plantuml.version.IteratorCounter2;
 
 public abstract class PSystemSingleLineFactory extends PSystemAbstractFactory {
 
-	protected abstract AbstractPSystem executeLine(UmlSource source, String line, PreprocessingArtifact preprocessing);
+	protected abstract Diagram executeLine(UmlSource source, String line, PreprocessingArtifact preprocessing);
 
 	protected PSystemSingleLineFactory() {
-		super(DiagramType.UML);
+		// This is a hack for "@startuml"
+		super(DiagramType.SEQUENCE);
 	}
 
 	@Override
-	final public Diagram createSystem(PathSystem pathSystem, UmlSource source, Previous previous, PreprocessingArtifact preprocessing) {
+	final public Diagram createSystem(PathSystem pathSystem, UmlSource source, Previous previous,
+			PreprocessingArtifact preprocessing) {
 
 		if (source.getTotalLineCount() != 3)
 			return null;
@@ -82,20 +82,15 @@ public abstract class PSystemSingleLineFactory extends PSystemAbstractFactory {
 		if (StartUtils.isArobaseEndDiagram(s.getString()))
 			return buildEmptyError(source, s.getLocation(), it.getTrace(), preprocessing);
 
-		final AbstractPSystem sys = executeLine(source, s.getString(), preprocessing);
+		final Diagram sys = executeLine(source, s.getString(), preprocessing);
 		if (sys == null) {
-			final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, s.getLocation(), getUmlDiagramType());
+			final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, s.getLocation(),
+					getDiagramType());
 			// return PSystemErrorUtils.buildV1(source, err, null);
 			return PSystemErrorUtils.buildV2(source, err, null, it.getTrace(), preprocessing);
 		}
 		return sys;
 
 	}
-	
-	@Override
-	final public UmlDiagramType getUmlDiagramType() {
-		return null;
-	}
-
 
 }

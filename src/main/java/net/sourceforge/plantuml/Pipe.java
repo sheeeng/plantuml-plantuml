@@ -60,7 +60,7 @@ import net.sourceforge.plantuml.preproc.Defines;
 import net.sourceforge.plantuml.security.SFile;
 
 public class Pipe {
-	// ::remove file when __CORE__ or __TEAVM__
+	
 	// ::remove file when __HAXE__
 
 	private final CliOptions option;
@@ -146,8 +146,8 @@ public class Pipe {
 
 	private void syntaxCheckDiagram(SourceStringReader sourceStringReader, ExitStatus exitStatus) {
 		final Diagram system = sourceStringReader.getBlocks().get(0).getDiagram();
-		if (system instanceof UmlDiagram) {
-			ps.println(((UmlDiagram) system).getUmlDiagramType().name());
+		if (system instanceof TitledDiagram) {
+			ps.println(((TitledDiagram) system).getDiagramType().name());
 			ps.println(system.getDescription());
 		} else if (system instanceof PSystemError) {
 			exitStatus.goesHasErrors();

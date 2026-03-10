@@ -35,33 +35,44 @@
  */
 package net.sourceforge.plantuml;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.regex.Pattern;
 
-import net.atmp.ImageBuilder;
 import net.sourceforge.plantuml.abel.DisplayPositioned;
-import net.sourceforge.plantuml.abel.DisplayPositionned;
 import net.sourceforge.plantuml.annotation.DuplicateCode;
 import net.sourceforge.plantuml.api.ApiStable;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
-import net.sourceforge.plantuml.core.Diagram;
+import net.sourceforge.plantuml.core.DiagramChromeFactory12026;
+import net.sourceforge.plantuml.core.DiagramType;
+import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.core.UmlSource;
+import net.sourceforge.plantuml.file.SuggestedFile;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.ColorOrder;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.creole.Display;
-import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+import net.sourceforge.plantuml.klimt.font.FontParam;
+import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
+import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.sprite.Sprite;
+import net.sourceforge.plantuml.pdf.PdfConverter;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.skin.Pragma;
 import net.sourceforge.plantuml.skin.SkinParam;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
@@ -73,8 +84,10 @@ import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.utils.LineLocation;
 import net.sourceforge.plantuml.warning.Warning;
 
-public abstract class TitledDiagram extends AbstractPSystem implements Diagram, Annotated {
-	// ::remove file when __HAXE__
+public abstract class TitledDiagram extends UgDiagram implements Annotated, WithSprite {
+
+	private static final Pattern DIGITS = Pattern.compile("\\d+");
+	private XDimension2D lastInfo;
 
 	public static boolean FORCE_SMETANA = false;
 	public static boolean FORCE_ELK = false;
@@ -86,25 +99,41 @@ public abstract class TitledDiagram extends AbstractPSystem implements Diagram, 
 	private DisplayPositioned header = DisplayPositioned.none(HorizontalAlignment.CENTER, null);
 	private DisplayPositioned footer = DisplayPositioned.none(HorizontalAlignment.CENTER, null);
 	private DisplayPositioned mainFrame = DisplayPositioned.none(null, null);
-	private final UmlDiagramType type;
+	private final DiagramType type;
 
 	private final SkinParam skinParam;
+	private String namespaceSeparator = null;
 
-	public TitledDiagram(UmlSource source, UmlDiagramType type, Previous previous,
-			PreprocessingArtifact preprocessing) {
+	public TitledDiagram(UmlSource source, DiagramType type, Previous previous, PreprocessingArtifact preprocessing) {
 		super(source, preprocessing);
 		this.type = type;
-		this.skinParam = SkinParam.create(source.getPathSystem(), type, Pragma.createEmpty(), preprocessing.getOption());
+		this.skinParam = SkinParam.create(source.getPathSystem(), type, Pragma.createEmpty(),
+				preprocessing.getOption());
 		if (previous != null)
 			this.skinParam.copyAllFrom(previous);
 
+	}
+
+	@Override
+	public boolean isHandwritten() {
+		if (skinParam.handwritten())
+			return true;
+		return super.isHandwritten();
+	}
+
+	public void setNamespaceSeparator(String namespaceSeparator) {
+		this.namespaceSeparator = namespaceSeparator;
+	}
+
+	final public String getNamespaceSeparator() {
+		return namespaceSeparator;
 	}
 
 	public final StyleBuilder getCurrentStyleBuilder() {
 		return skinParam.getCurrentStyleBuilder();
 	}
 
-	final public UmlDiagramType getUmlDiagramType() {
+	final public DiagramType getDiagramType() {
 		return type;
 	}
 
@@ -149,7 +178,7 @@ public abstract class TitledDiagram extends AbstractPSystem implements Diagram, 
 	}
 
 	@Override
-	final public DisplayPositionned getTitle() {
+	final public DisplayPositioned getTitle() {
 		return title;
 	}
 
@@ -238,12 +267,8 @@ public abstract class TitledDiagram extends AbstractPSystem implements Diagram, 
 	}
 
 	@Override
-	public ImageBuilder createImageBuilder(FileFormatOption fileFormatOption) throws IOException {
-		return super.createImageBuilder(fileFormatOption).styled(this);
-	}
-
-	public HColor calculateBackColor() {
-		final Style style = StyleSignatureBasic.of(SName.root, SName.document, this.getUmlDiagramType().getStyleName())
+	public final HColor calculateBackColor() {
+		final Style style = StyleSignatureBasic.of(SName.root, SName.document, this.getDiagramType().getStyleName())
 				.getMergedStyle(this.getSkinParam().getCurrentStyleBuilder());
 
 		HColor backgroundColor = style.value(PName.BackGroundColor).asColor(this.getSkinParam().getIHtmlColorSet());
@@ -278,13 +303,7 @@ public abstract class TitledDiagram extends AbstractPSystem implements Diagram, 
 
 	}
 
-	protected abstract TextBlock getTextMainBlock(FileFormatOption fileFormatOption);
-
-	@Override
-	public void exportDiagramGraphic(UGraphic ug, FileFormatOption fileFormatOption) {
-		final TextBlock textBlock = getTextMainBlock(fileFormatOption);
-		textBlock.drawU(ug);
-	}
+	protected abstract TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption);
 
 	final public Pragma getPragma() {
 		return skinParam.getPragma();
@@ -307,12 +326,144 @@ public abstract class TitledDiagram extends AbstractPSystem implements Diagram, 
 		return result;
 	}
 
-	public String getFlashData() {
-		final UmlSource source = getSource();
-		if (source == null)
-			return "";
+	public final DisplayPositioned getFooterOrHeaderTeoz(FontParam param) {
+		if (param == FontParam.FOOTER)
+			return getFooter();
 
-		return source.getPlainString("\n");
+		if (param == FontParam.HEADER)
+			return getHeader();
+
+		throw new IllegalArgumentException();
+	}
+
+//	@Override
+//	final protected ImageData exportDiagramNow(OutputStream os, int index, FileFormatOption fileFormatOption)
+//			throws IOException {
+//
+//		fileFormatOption = fileFormatOption.withTikzFontDistortion(getSkinParam().getTikzFontDistortion());
+//		fileFormatOption.getTikzFontDistortion().updateFromPragma(getPragma());
+//
+//		if (!TeaVM.isTeaVM()) {
+//			if (fileFormatOption.getFileFormat() == FileFormat.PDF)
+//				return exportDiagramInternalPdf(os, index);
+//		}
+//
+//		try {
+//			final ImageData imageData = exportDiagramInternal(os, index, fileFormatOption);
+//			this.lastInfo = new XDimension2D(imageData.getWidth(), imageData.getHeight());
+//			return imageData;
+//		} catch (NoStyleAvailableException e) {
+//			Logme.error(e);
+//			final CrashReportHandler report = new CrashReportHandler(null, getMetadata(), getFlashData());
+//
+//			report.add("There is an issue with your plantuml.jar file:");
+//			report.add("We cannot load any style from it!");
+//
+//			report.checkOldVersionWarning();
+//			report.addProperties();
+//			report.addEmptyLine();
+//
+//			report.exportDiagramError(fileFormatOption, seed(), os);
+//			return ImageDataSimple.error(e);
+//		} catch (UnparsableGraphvizException e) {
+//			Logme.error(e);
+//			final CrashReportHandler report = new CrashReportHandler(e.getCause(), getMetadata(), getFlashData());
+//
+//			report.anErrorHasOccured(e.getCause(), getFlashData());
+//			report.add("PlantUML (" + Version.versionString() + ") cannot parse result from dot/GraphViz.");
+//			if (e.getCause() instanceof EmptySvgException)
+//				report.add("Because dot/GraphViz returns an empty string.");
+//
+//			if (e.getGraphvizVersion() != null) {
+//				report.addEmptyLine();
+//				report.add("GraphViz version used : " + e.getGraphvizVersion());
+//			}
+//			report.pleaseCheckYourGraphVizVersion();
+//			report.addProperties();
+//			report.addEmptyLine();
+//			report.thisMayBeCaused();
+//			report.addEmptyLine();
+//			report.youShouldSendThisDiagram();
+//			report.addEmptyLine();
+//
+//			report.exportDiagramError(fileFormatOption, seed(), os);
+//			return ImageDataSimple.error(e);
+//		} catch (Throwable e) {
+//			Logme.error(e);
+//			final CrashReportHandler report = new CrashReportHandler(e, getMetadata(), getFlashData());
+//			report.anErrorHasOccured(e, getFlashData());
+//			report.addProperties();
+//			report.addEmptyLine();
+//			report.youShouldSendThisDiagram();
+//			report.addEmptyLine();
+//			report.exportDiagramError(fileFormatOption, seed(), os);
+//			return ImageDataSimple.error(e);
+//		}
+//	}
+
+	private ImageData exportDiagramInternalPdf(OutputStream os, int index) throws IOException {
+		final File svg = FileUtils.createTempFileLegacy("pdf", ".svf");
+		final File pdfFile = FileUtils.createTempFileLegacy("pdf", ".pdf");
+		final ImageData result;
+		try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(svg))) {
+			result = exportDiagram(fos, index, new FileFormatOption(FileFormat.SVG));
+		}
+		PdfConverter.convert(svg, pdfFile);
+		FileUtils.copyToStream(pdfFile, os);
+		return result;
+	}
+
+	final protected void exportCmap(SuggestedFile suggestedFile, int index, final ImageData cmapdata)
+			throws FileNotFoundException {
+		final String name = changeName(suggestedFile.getFile(index).getAbsolutePath());
+		final SFile cmapFile = new SFile(name);
+		try (PrintWriter pw = cmapFile.createPrintWriter()) {
+			if (PSystemUtils.canFileBeWritten(cmapFile) == false)
+				return;
+
+			pw.print(cmapdata.getCMapData(cmapFile.getName().substring(0, cmapFile.getName().length() - 6)));
+		}
+	}
+
+	static String changeName(String name) {
+		return name.replaceAll("(?i)\\.\\w{3}$", ".cmapx");
+	}
+
+	@Override
+	public String getWarningOrError() {
+		if (lastInfo == null)
+			return null;
+
+		final double actualWidth = lastInfo.getWidth();
+		if (actualWidth == 0)
+			return null;
+
+		final String value = getSkinParam().getValue("widthwarning");
+		if (value == null)
+			return null;
+
+		if (!DIGITS.matcher(value).matches())
+			return null;
+
+		final int widthwarning = Integer.parseInt(value);
+		if (actualWidth > widthwarning)
+			return "The image is " + ((int) actualWidth) + " pixel width. (Warning limit is " + widthwarning + ")";
+
+		return null;
+	}
+
+	public void setHideEmptyDescription(boolean hideEmptyDescription) {
+	}
+
+	public Previous getPrevious() {
+		return Previous.createFrom(getSkinParam().values());
+	}
+
+	@Override
+	public TextBlock addChrome(TextBlock result, FileFormatOption fileFormatOption) {
+		final TitledDiagram titledDiagram = (TitledDiagram) this;
+		result = DiagramChromeFactory12026.create(result, titledDiagram, titledDiagram.getSkinParam(), getWarnings());
+		return result;
 	}
 
 }

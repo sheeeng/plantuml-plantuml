@@ -35,7 +35,6 @@
  */
 package net.sourceforge.plantuml.command;
 
-import net.sourceforge.plantuml.AbstractPSystem;
 import net.sourceforge.plantuml.ErrorUml;
 import net.sourceforge.plantuml.ErrorUmlType;
 import net.sourceforge.plantuml.Previous;
@@ -49,14 +48,10 @@ import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.utils.StartUtils;
 import net.sourceforge.plantuml.version.IteratorCounter2;
 
-public abstract class PSystemBasicFactory<P extends AbstractPSystem> extends PSystemAbstractFactory {
+public abstract class PSystemBasicFactory<P extends Diagram> extends PSystemAbstractFactory {
 
 	public PSystemBasicFactory(DiagramType diagramType) {
 		super(diagramType);
-	}
-
-	public PSystemBasicFactory() {
-		this(DiagramType.UML);
 	}
 
 	public abstract P executeLine(UmlSource source, P system, String line, PreprocessingArtifact preprocessing);
@@ -88,7 +83,7 @@ public abstract class PSystemBasicFactory<P extends AbstractPSystem> extends PSy
 			}
 			system = executeLine(source, system, s.getString(), preprocessing);
 			if (system == null) {
-				final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, s.getLocation(), getUmlDiagramType());
+				final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, s.getLocation(), getDiagramType());
 				// return PSystemErrorUtils.buildV1(source, err, null);
 				return PSystemErrorUtils.buildV2(source, err, null, it.getTrace(), preprocessing);
 			}

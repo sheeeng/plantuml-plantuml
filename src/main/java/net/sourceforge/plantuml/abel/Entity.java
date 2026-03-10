@@ -50,6 +50,7 @@ import java.util.Set;
 
 import net.atmp.CucaDiagram;
 import net.sourceforge.plantuml.StringUtils;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.cucadiagram.Bodier;
 import net.sourceforge.plantuml.decoration.symbol.USymbol;
 import net.sourceforge.plantuml.decoration.symbol.USymbols;
@@ -65,7 +66,6 @@ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockEmpty;
 import net.sourceforge.plantuml.plasma.Quark;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.skin.VisibilityModifier;
 import net.sourceforge.plantuml.stereo.Stereostyles;
 import net.sourceforge.plantuml.stereo.Stereotag;
@@ -79,6 +79,7 @@ import net.sourceforge.plantuml.svek.Margins;
 import net.sourceforge.plantuml.svek.PackageStyle;
 import net.sourceforge.plantuml.svek.SingleStrategy;
 import net.sourceforge.plantuml.svek.image.EntityImageStateCommon;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.text.Guillemet;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.utils.Direction;
@@ -375,7 +376,8 @@ final public class Entity implements SpecificBackcolorable, Hideable, Removeable
 		if (groupType != null && leafType != null)
 			throw new IllegalStateException();
 
-		assert groupType == null || leafType == null;
+		if (TeaVM.a())
+			assert groupType == null || leafType == null;
 		if (groupType != null)
 			return true;
 
@@ -738,8 +740,8 @@ final public class Entity implements SpecificBackcolorable, Hideable, Removeable
 		return diagram.getSkinParam();
 	}
 
-	public final UmlDiagramType getUmlDiagramType() {
-		return diagram.getUmlDiagramType();
+	public final DiagramType getDiagramType() {
+		return diagram.getDiagramType();
 	}
 
 	public LineLocation getLocation() {
@@ -749,17 +751,17 @@ final public class Entity implements SpecificBackcolorable, Hideable, Removeable
 	public StyleBuilder getCurrentStyleBuilder() {
 
 		// See https://github.com/plantuml/plantuml/issues/2171 for background.
-		// If skinParam directive has been used in the diagram, retrieve the latest style builder
+		// If skinParam directive has been used in the diagram, retrieve the latest
+		// style builder
 		// from SkinParam for backward compatibility with previous behavior.
 		if (diagram.isSkinParamUsed())
 			return getSkinParam().getCurrentStyleBuilder();
 
-		// If skinParam directive is not used, support local styles by returning the style builder
+		// If skinParam directive is not used, support local styles by returning the
+		// style builder
 		// that was active when the entity was created (currentStyleBuilder).
 		return currentStyleBuilder;
 	}
-	
-	
 
 	public final CharSequence getBestMatch(CharSequence candidate) {
 		return bodier.getBestMatch(candidate);

@@ -35,15 +35,13 @@
  */
 package net.sourceforge.plantuml.style;
 
-import java.awt.Font;
-
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.color.HColors;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 
 public class ValueNull extends ValueAbstract implements Value {
-    // ::remove file when __HAXE__
 
 	public static final Value NULL = new ValueNull();
 
@@ -76,8 +74,8 @@ public class ValueNull extends ValueAbstract implements Value {
 	}
 
 	@Override
-	public int asFontStyle() {
-		return Font.PLAIN;
+	public UFontFace asFontFace() {
+		return UFontFace.normal();
 	}
 
 	@Override

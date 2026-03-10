@@ -37,10 +37,10 @@ package net.sourceforge.plantuml.style;
 
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 
 public interface Value {
-    // ::remove file when __HAXE__
 
 	public String asString();
 
@@ -54,7 +54,10 @@ public interface Value {
 
 	public boolean asBoolean();
 
-	public int asFontStyle();
+	/**
+	 * Returns the font face (weight + italic axis) represented by this value.
+	 */
+	public UFontFace asFontFace();
 
 	public HorizontalAlignment asHorizontalAlignment();
 

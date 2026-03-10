@@ -37,6 +37,7 @@ package net.sourceforge.plantuml;
 
 import java.io.IOException;
 
+import net.sourceforge.plantuml.nio.NFolder;
 import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.security.SecurityUtils;
 import net.sourceforge.plantuml.utils.Log;
@@ -66,7 +67,7 @@ public class FileSystem {
 	}
 
 	public SFile getCurrentDir() {
-		// ::comment when __CORE__ or __TEAVM__
+		// ::comment when __TEAVM__
 		final String path = this.currentDir.get();
 		if (path != null)
 			return new SFile(path);
@@ -76,11 +77,11 @@ public class FileSystem {
 	}
 
 	public SFile getFile(String nameOrPath) throws IOException {
-		// ::uncomment when __CORE__ or __TEAVM__
+		// ::uncomment when __TEAVM__
 		// return null;
 		// ::done
 
-		// ::comment when __CORE__ or __TEAVM__
+		// ::comment when __TEAVM__
 		if (isAbsolute(nameOrPath)) {
 			final SFile result = new SFile(nameOrPath);
 			Log.info(() -> "Trying " + result.getAbsolutePath());
@@ -97,13 +98,13 @@ public class FileSystem {
 				return filecurrent.getCanonicalFile();
 
 		}
-		for (SFile d : SecurityUtils.getPath(SecurityUtils.PATHS_INCLUDES)) {
+		for (SFile d : SecurityUtils.getPath(NFolder.PATHS_INCLUDES)) {
 			assert d.isDirectory();
 			final SFile file = d.file(nameOrPath);
 			if (file.exists())
 				return file.getCanonicalFile();
 		}
-		for (SFile d : SecurityUtils.getPath(SecurityUtils.PATHS_CLASSES)) {
+		for (SFile d : SecurityUtils.getPath(NFolder.PATHS_CLASSES)) {
 			assert d.isDirectory();
 			final SFile file = d.file(nameOrPath);
 			if (file.exists())
@@ -119,7 +120,7 @@ public class FileSystem {
 		// ::done
 	}
 
-	// ::comment when __CORE__ or __TEAVM__
+	// ::comment when __TEAVM__
 	private boolean isAbsolute(String nameOrPath) {
 		final SFile f = new SFile(nameOrPath);
 		return f.isAbsolute();

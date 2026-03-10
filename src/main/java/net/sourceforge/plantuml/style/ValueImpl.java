@@ -35,16 +35,15 @@
  */
 package net.sourceforge.plantuml.style;
 
-import java.awt.Font;
 import java.util.Objects;
 
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.color.HColors;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 
 public class ValueImpl implements Value {
-	// ::remove file when __HAXE__
 
 	private final DarkString value;
 
@@ -157,14 +156,25 @@ public class ValueImpl implements Value {
 		return defaultValue;
 	}
 
-	public int asFontStyle() {
-		if (value.getValue1().equalsIgnoreCase("bold"))
-			return Font.BOLD;
+	public UFontFace asFontFace() {
+		final String raw = value.getValue1();
+		if (raw == null || raw.isEmpty())
+			return UFontFace.normal();
 
-		if (value.getValue1().equalsIgnoreCase("italic"))
-			return Font.ITALIC;
+		final String s = raw.trim().toLowerCase();
+		if ("bold".equals(s))
+			return UFontFace.bold();
+		if ("italic".equals(s))
+			return UFontFace.italic();
+		if ("plain".equals(s) || "normal".equals(s))
+			return UFontFace.normal();
 
-		return Font.PLAIN;
+		// Try parsing as a CSS numeric weight (100-900)
+		final UFontFace fromCss = UFontFace.fromCssWeight(s);
+		if (fromCss != null)
+			return fromCss;
+
+		return UFontFace.normal();
 	}
 
 	public HorizontalAlignment asHorizontalAlignment() {

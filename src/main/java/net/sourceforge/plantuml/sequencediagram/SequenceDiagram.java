@@ -49,21 +49,20 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.atmp.ImageBuilder;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.Previous;
-import net.sourceforge.plantuml.UmlDiagram;
+import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.abel.EntityPortion;
 import net.sourceforge.plantuml.cli.GlobalConfig;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.core.DiagramDescription;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.creole.Display;
-import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.sequencediagram.graphic.FileMaker;
@@ -72,14 +71,14 @@ import net.sourceforge.plantuml.sequencediagram.graphic.SequenceDiagramTxtMaker;
 import net.sourceforge.plantuml.sequencediagram.teoz.SequenceDiagramFileMakerTeoz;
 import net.sourceforge.plantuml.skin.ColorParam;
 import net.sourceforge.plantuml.skin.PragmaKey;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.skin.rose.Rose;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.LineLocation;
 import net.sourceforge.plantuml.xmi.SequenceDiagramXmiMaker;
 
-public class SequenceDiagram extends UmlDiagram {
+public class SequenceDiagram extends TitledDiagram {
 
 	private boolean hideUnlinkedData;
 
@@ -106,7 +105,7 @@ public class SequenceDiagram extends UmlDiagram {
 	}
 
 	public SequenceDiagram(UmlSource source, Previous previous, PreprocessingArtifact preprocessing) {
-		super(source, UmlDiagramType.SEQUENCE, previous, preprocessing);
+		super(source, DiagramType.SEQUENCE, previous, preprocessing);
 	}
 
 	@Deprecated
@@ -284,15 +283,15 @@ public class SequenceDiagram extends UmlDiagram {
 		// We reset the counter for messages
 		this.cpt.set(1);
 
-		final FileFormat fileFormat = fileFormatOption.getFileFormat();
-		// ::comment when __CORE__ or __TEAVM__
-		if (fileFormat == FileFormat.ATXT || fileFormat == FileFormat.UTXT)
-			return new SequenceDiagramTxtMaker(this, fileFormat);
+		if (!TeaVM.isTeaVM()) {
+			final FileFormat fileFormat = fileFormatOption.getFileFormat();
+			if (fileFormat == FileFormat.ATXT || fileFormat == FileFormat.UTXT)
+				return new SequenceDiagramTxtMaker(this, fileFormat);
 
-		if (fileFormat.name().startsWith("XMI"))
-			return new SequenceDiagramXmiMaker(this, fileFormat);
-		// ::done
+			if (fileFormat.name().startsWith("XMI"))
+				return new SequenceDiagramXmiMaker(this, fileFormat);
 
+		}
 		if (modeTeoz())
 			return new SequenceDiagramFileMakerTeoz(this, skin2, fileFormatOption, index);
 
@@ -304,26 +303,25 @@ public class SequenceDiagram extends UmlDiagram {
 	}
 
 	@Override
-	public ImageBuilder createImageBuilder(FileFormatOption fileFormatOption) throws IOException {
-		return super.createImageBuilder(fileFormatOption).annotations(false);
-		// they are managed in the SequenceDiagramFileMaker* classes
+	protected ImageData exportXmi(OutputStream os, FileFormat fileFormat) throws IOException {
+		final SequenceDiagramXmiMaker maker = new SequenceDiagramXmiMaker(this, fileFormat);
+		return maker.createOne(os, 0, false);
 	}
 
 	@Override
-	protected ImageData exportDiagramInternal(OutputStream os, int index, FileFormatOption fileFormat)
-			throws IOException {
-		final FileMaker sequenceDiagramPngMaker = getSequenceDiagramPngMaker(index, fileFormat);
-		return sequenceDiagramPngMaker.createOne(os, index, fileFormat.isWithMetadata());
+	protected ImageData exportTxt(OutputStream os, int index, FileFormat fileFormat) throws IOException {
+		final SequenceDiagramTxtMaker maker = new SequenceDiagramTxtMaker(this, fileFormat);
+		return maker.createOne(os, index, false);
 	}
 
 	@Override
-	final public void exportDiagramGraphic(UGraphic ug, FileFormatOption fileFormatOption) {
-		final FileMaker sequenceDiagramPngMaker = getSequenceDiagramPngMaker(0, fileFormatOption);
-		sequenceDiagramPngMaker.createOneGraphic(ug);
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormat) {
+		final FileMaker sequenceDiagramPngMaker = getSequenceDiagramPngMaker(num, fileFormat);
+		return sequenceDiagramPngMaker.getTextBlock12026(num, fileFormat);
 	}
 
 	@Override
-	final protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
+	final protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -520,7 +518,8 @@ public class SequenceDiagram extends UmlDiagram {
 	public void putParticipantInLast(String code) {
 		final Participant p = Objects.requireNonNull(participantsget(code), code);
 		final boolean ok = participantsList.remove(p);
-		assert ok;
+		if (TeaVM.a())
+			assert ok;
 		addWithOrder(p);
 		participantEnglobers2.put(p, participantEnglober);
 	}
@@ -559,11 +558,8 @@ public class SequenceDiagram extends UmlDiagram {
 	}
 
 	@Override
-	public boolean isOk() {
-		if (participantsList.size() == 0)
-			return false;
-
-		return true;
+	public boolean isIncomplete() {
+		return participantsList.size() == 0;
 	}
 
 	@Override

@@ -1,63 +1,44 @@
-//    permits to start the build setting the javac release parameter, no parameter means build for java8:
-// gradle clean build -x javaDoc -PjavacRelease=8
-// gradle clean build -x javaDoc -PjavacRelease=17
-//    also supported is to build first, with java17, then switch the java version, and run the test with java8:
-// gradle clean build -x javaDoc -x test
-// gradle test
+// Remove-Item -Recurse -Force */build
 
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.util.jar.JarFile
 import java.util.Base64
 import java.util.Properties
-import org.gradle.api.tasks.Sync
 
 println("Running build.gradle.kts")
 println(project.version)
 
-val javacRelease = (project.findProperty("javacRelease") ?: "8") as String
+val javacRelease = (project.findProperty("javacRelease") ?: "11") as String
+
+// When -Pfast is set, skip expensive steps (tests, javadoc, etc.)
+val fastBuild = project.hasProperty("fast")
 
 plugins {
 	java
 	`maven-publish`
 	signing
-    eclipse
+	eclipse
 	jacoco
-	id("com.gorylenko.gradle-git-properties") version "2.5.7"
+	alias(libs.plugins.gorylenko.gradle.git.properties)
 //	alias(libs.plugins.adarshr.test.logger)
+	alias(libs.plugins.teavm)
 }
 
 group = "net.sourceforge.plantuml"
 description = "PlantUML"
 
 java {
-	withSourcesJar()
-	withJavadocJar()
+    if (!fastBuild) {
+        withSourcesJar()
+        withJavadocJar()
+    }
 	registerFeature("pdf") {
 		usingSourceSet(sourceSets["main"])
 	}
 }
 
-sourceSets {
-	create("teavm") {
-		java.srcDir(layout.buildDirectory.dir("generated/teavm-sjpp"))
-		// If resources are needed at TeaVM runtime, you can also add them:
-		resources.srcDir("src/main/resources")
-		// Note: compileClasspath will be configured after dependencies are declared
-	}
-}
-
 val jdependConfig by configurations.creating
-val teavmConfig by configurations.creating
-
-// Separate configuration for TeaVM compile dependencies (requires Java 11+)
-val teavmCompileConfig by configurations.creating {
-	attributes {
-		// Force Java 11 compatibility for TeaVM dependencies
-		attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11)
-	}
-}
-
 
 dependencies {
 	compileOnly(libs.ant)
@@ -68,14 +49,9 @@ dependencies {
 	testImplementation(libs.glytching.junit.extensions)
 	testImplementation(libs.assertj.core)
 	testImplementation(libs.xmlunit.core)
-	if (JavaVersion.current().isJava8) {
-		testImplementation(libs.mockito.core.j8)
-		testImplementation(libs.mockito.junit.jupiter.j8)
-	} else {
-		testImplementation(libs.mockito.core)
-		testImplementation(libs.mockito.junit.jupiter)
-		testImplementation(libs.junit.pioneer)
-	}
+	testImplementation(libs.mockito.core)
+	testImplementation(libs.mockito.junit.jupiter)
+	testImplementation(libs.junit.pioneer)
 	implementation(libs.jlatexmath)
     implementation(libs.elk.core)
     implementation(libs.elk.alg.layered)
@@ -84,12 +60,8 @@ dependencies {
 	// JDepend for package metrics
 	jdependConfig(libs.jdepend)
 
-	// TeaVM CLI for compilation (contains the main class)
-    teavmConfig(libs.teavm.cli)
-	
-	// TeaVM dependencies for Java to JavaScript compilation (Java 11+ only)
-	teavmCompileConfig(libs.teavm.jso.apis)
-	teavmCompileConfig(libs.teavm.jso)
+	// TeaVM JSO APIs for browser interop (provided to the teavm source set by the plugin)
+	teavm(teavm.libs.jsoApis)
 
     // Custom configuration for pdfJar task
     configurations.create("pdfJarDeps")
@@ -103,26 +75,23 @@ repositories {
 	mavenCentral()
 }
 
-// Configure teavm sourceSet classpath after dependencies are declared
-// Note: teavm sourceSet compiles preprocessed sources from generated/teavm-sjpp
-// It does NOT need the main sourceSet output (which would trigger unnecessary compilation)
-sourceSets["teavm"].apply {
-	compileClasspath = teavmCompileConfig
-	runtimeClasspath = teavmCompileConfig
-}
+// ============================================
+// TeaVM Configuration - Java to JavaScript
+// ============================================
 
-tasks.compileJava {
-	if (JavaVersion.current().isJava8) {
-		java.targetCompatibility = JavaVersion.VERSION_1_8
-	} else {
-		options.release.set(Integer.parseInt(javacRelease))
+teavm {
+	js {
+		mainClass.set("net.sourceforge.plantuml.teavm.browser.PlantUMLBrowser")
+		obfuscated.set(true)
+		optimization.set(org.teavm.gradle.api.OptimizationLevel.BALANCED)
+		// obfuscated.set(false)
+		// optimization.set(org.teavm.gradle.api.OptimizationLevel.NONE)
+		// outputDir defaults to build/generated/teavm/js
 	}
 }
 
-tasks.named<JavaCompile>("compileTeavmJava") {
-	// TeaVM requires Java 11 minimum, regardless of the main javacRelease setting
-	options.release.set(11)
-	dependsOn("preprocessForTeaVM")
+tasks.compileJava {
+	options.release.set(Integer.parseInt(javacRelease))
 }
 
 tasks.withType<Jar>().configureEach {
@@ -239,12 +208,14 @@ tasks.test {
 	}
 	useJUnitPlatform()
 	testLogging.showStandardStreams = true
+	jvmArgs("-ea")
 }
 
 tasks.register<Test>("runIntermediateTest") {
     description = "Runs the 'IntermediateTest'"
     group = "dev"
     useJUnitPlatform()
+    jvmArgs("-ea")
     filter {
         includeTestsMatching("IntermediateTest*")
     }
@@ -309,25 +280,36 @@ tasks.register<JavaExec>("jdepend") {
 abstract class JdependHtmlTask @Inject constructor(
     private val execOperations: ExecOperations
 ) : DefaultTask() {
-    
+
     @get:InputFiles
     abstract val classesDir: ConfigurableFileCollection
-    
+
     @get:InputFiles
     abstract val jdependClasspath: ConfigurableFileCollection
-    
-    @get:InputFile
-    abstract val xsltFile: RegularFileProperty
-    
-    @get:OutputFile
-    abstract val htmlReport: RegularFileProperty
-    
+
     @get:OutputFile
     abstract val xmlReport: RegularFileProperty
+
+    // XSLT -> HTML
+	@get:InputFile
+    abstract val xsltFile: RegularFileProperty
+
+	// output.html
+    @get:OutputFile
+    abstract val htmlReport: RegularFileProperty
+
+    // XSLT -> PUML
+    @get:InputFile
+    abstract val pumlXsltFile: RegularFileProperty
+
+    // output.puml
+    @get:OutputFile
+    abstract val pumlReport: RegularFileProperty
     
     @TaskAction
     fun generate() {
         htmlReport.get().asFile.parentFile.mkdirs()
+        pumlReport.get().asFile.parentFile.mkdirs()
         
         // Generate XML report (with stderr filtering for "Unknown constant:" warnings)
         val rawErr = ByteArrayOutputStream()
@@ -345,26 +327,42 @@ abstract class JdependHtmlTask @Inject constructor(
             logger.warn(filtered)
         }
         
-        // Convert XML to HTML using XSLT
+        // Convert XML to HTML + PUML using XSLT
         if (xmlReport.get().asFile.exists()) {
             val factory = javax.xml.transform.TransformerFactory.newInstance()
-            val transformer = factory.newTransformer(
-                javax.xml.transform.stream.StreamSource(xsltFile.get().asFile)
-            )
-            transformer.transform(
-                javax.xml.transform.stream.StreamSource(xmlReport.get().asFile),
-                javax.xml.transform.stream.StreamResult(htmlReport.get().asFile)
-            )
+
+            // XML -> HTML
+            run {
+                val transformer = factory.newTransformer(
+                    javax.xml.transform.stream.StreamSource(xsltFile.get().asFile)
+                )
+                transformer.transform(
+                    javax.xml.transform.stream.StreamSource(xmlReport.get().asFile),
+                    javax.xml.transform.stream.StreamResult(htmlReport.get().asFile)
+                )
+            }
+
+            // XML -> PUML
+            run {
+                val transformer = factory.newTransformer(
+                    javax.xml.transform.stream.StreamSource(pumlXsltFile.get().asFile)
+                )
+                transformer.transform(
+                    javax.xml.transform.stream.StreamSource(xmlReport.get().asFile),
+                    javax.xml.transform.stream.StreamResult(pumlReport.get().asFile)
+                )
+            }
             
             println("JDepend reports generated:")
+            println("  XML : ${xmlReport.get().asFile.absolutePath}")
             println("  HTML: ${htmlReport.get().asFile.absolutePath}")
-            println("  XML:  ${xmlReport.get().asFile.absolutePath}")
+            println("  PUML: ${pumlReport.get().asFile.absolutePath}")
         }
     }
 }
 
 tasks.register<JdependHtmlTask>("jdependHtml") {
-    description = "Generates JDepend HTML report"
+    description = "Generates JDepend HTML/PUML report"
     group = "documentation"
     
     dependsOn(tasks.classes)
@@ -372,11 +370,35 @@ tasks.register<JdependHtmlTask>("jdependHtml") {
     val outputDir = layout.buildDirectory.dir("reports/jdepend").get().asFile
     classesDir.from(sourceSets.main.get().output.classesDirs)
     jdependClasspath.from(jdependConfig)
+	xmlReport.set(file("$outputDir/jdepend-report.xml"))
+
     xsltFile.set(file("tools/jdepend-report.xsl"))
     htmlReport.set(file("$outputDir/jdepend-report.html"))
-    xmlReport.set(file("$outputDir/jdepend-report.xml"))
+    
+    pumlXsltFile.set(file("tools/jdepend2puml.xsl"))
+    pumlReport.set(file("$outputDir/jdepend-report.puml"))
 }
 
+tasks.register<JavaExec>("renderJdependPuml") {
+    description = "Renders jdepend-report.puml with PlantUML"
+    group = "documentation"
+
+    dependsOn("jdependHtml", tasks.classes)
+
+    val pumlInput = layout.buildDirectory.file("reports/jdepend/jdepend-report.puml")
+    inputs.file(pumlInput)
+
+    val outDir = layout.buildDirectory.dir("reports/jdepend")
+    outputs.dir(outDir)
+
+    mainClass.set("net.sourceforge.plantuml.Run")
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    args(
+        "-tsvg",
+        pumlInput.get().asFile.absolutePath
+    )
+}
 
 val pdfJar by tasks.registering(Jar::class) {
 	group = "build" // OR for example, "build"
@@ -405,9 +427,14 @@ signing {
 	}
 }
 
-// Site generation task - creates a comprehensive project site
-tasks.register("site") {
-	description = "Generates project site with documentation, reports, test results and demo."
+// TeaVM output directory (set by the official plugin, defaults to build/generated/teavm)
+val teavmJsOutputDir = layout.buildDirectory.dir("generated/teavm/js")
+
+// Site assembly task - creates the site from pre-existing build outputs
+// Use 'site' for a full build (including TeaVM), or 'siteAssemble' if
+// TeaVM JS files are already present (e.g. from CI artifact)
+tasks.register("siteAssemble") {
+	description = "Assembles project site from pre-existing build outputs (no TeaVM build)."
 	group = "documentation"
 	
 	val siteDir = layout.buildDirectory.dir("site").get().asFile
@@ -418,18 +445,18 @@ tasks.register("site") {
 		tasks.test,
 		tasks.jacocoTestReport,
 		"jdepend",
-		"jdependHtml",
-		// Demo.
-		"teavm"
+		"jdependHtml"
+		// "renderJdependPuml"
 	)
 	
 	doLast {
+		println("::group::[SITE]")
 		println("[SITE] Starting site generation...")
 		println("[SITE] siteDir = ${siteDir.absolutePath}")
 		siteDir.mkdirs()
 
 		// Check TeaVM output
-		val teavmDir = layout.buildDirectory.dir("teavm/js").get().asFile
+		val teavmDir = teavmJsOutputDir.get().asFile
 		println("[SITE] teavmDir = ${teavmDir.absolutePath}")
 		println("[SITE] teavmDir.exists() = ${teavmDir.exists()}")
 		if (teavmDir.exists()) {
@@ -485,9 +512,9 @@ tasks.register("site") {
 			into("$siteDir/jdepend")
 		}
 
-		println("[SITE] Copying teavm/js to js-plantuml...")
+		println("[SITE] Copying TeaVM JS output to js-plantuml...")
 		copy {
-			from(layout.buildDirectory.dir("teavm/js"))
+			from(teavmJsOutputDir)
 			into("$siteDir/js-plantuml")
 		}
 		
@@ -499,13 +526,14 @@ tasks.register("site") {
 			jsPlantUmlDir.listFiles()?.forEach { println("[SITE]   - ${it.name} (${it.length()} bytes)") }
 		}
 		
-		// Check for classes.js specifically
-		val classesJs = file("$siteDir/js-plantuml/classes.js")
-		println("[SITE] classes.js exists: ${classesJs.exists()}")
-		if (classesJs.exists()) {
-			println("[SITE] classes.js size: ${classesJs.length()} bytes")
+		// Check for the generated JS file
+		val plantumlJs = file("$siteDir/js-plantuml/plantuml.js")
+		println("[SITE] plantuml.js exists: ${plantumlJs.exists()}")
+		if (plantumlJs.exists()) {
+			println("[SITE] plantuml.js size: ${plantumlJs.length()} bytes")
 		}
-	
+		println("::endgroup::")
+
 		println("========================================")
 		println("Project site generated successfully!")
 		println("========================================")
@@ -522,6 +550,19 @@ tasks.register("site") {
 	}
 }
 
+// Full site generation task (builds TeaVM + assembles site)
+tasks.register("site") {
+	description = "Generates complete project site including TeaVM JS build."
+	group = "documentation"
+	
+	dependsOn("teavm", "siteAssemble")
+}
+
+// Ensure siteAssemble runs AFTER teavm so JS files are available for copying
+tasks.named("siteAssemble") {
+	mustRunAfter("teavm")
+}
+
 // ============================================
 // CompilationInfo - Git commit & timestamp injection
 // ============================================
@@ -534,18 +575,41 @@ tasks.named("generateGitProperties") {
 	doLast {
 		val propsFile = layout.buildDirectory.file("resources/main/git.properties").get().asFile
 		if (propsFile.exists()) {
+      println("::group::[Git Properties]")
 			println("----- git.properties -----")
 			propsFile.readLines()
 				.sorted()
 				.forEach { println(it) }
 			println("--------------------------")
+      println("::endgroup::")
 		} else {
 			println("git.properties not found")
+      println("::warning file=git.properties,title=File not found::")
 		}
 	}
 }
 
 val filteredSrcDir = layout.buildDirectory.dir("generated/sources/git-filtered")
+
+// Cleanup of generated filtered sources (avoid leaving copied sources on disk)
+val cleanupGitFilteredSources by tasks.registering(Delete::class) {
+    group = "build"
+    description = "Deletes build/generated/sources/git-filtered after the build."
+    delete(filteredSrcDir)
+}
+
+val keepFilteredSrc = project.hasProperty("keepFilteredSrc")
+
+tasks.named("build") {
+    if (!keepFilteredSrc) finalizedBy(cleanupGitFilteredSources)
+}
+tasks.named("jar") {
+    if (!keepFilteredSrc) finalizedBy(cleanupGitFilteredSources)
+}
+
+tasks.named("site") {
+    if (!keepFilteredSrc) finalizedBy(cleanupGitFilteredSources)
+}
 
 val filterSourcesWithBuildInfo by tasks.registering {
 	dependsOn("generateGitProperties")
@@ -618,155 +682,55 @@ tasks.compileJava {
 	dependsOn(filterSourcesWithBuildInfo)
 }
 
-tasks.named("sourcesJar") {
-	dependsOn(filterSourcesWithBuildInfo)
+tasks.configureEach {
+    if (name == "sourcesJar") {
+        dependsOn(filterSourcesWithBuildInfo)
+    }
 }
 
 // ============================================
-// TeaVM Configuration - Java to JavaScript
+// TeaVM tasks - build JS version with HTML file
 // ============================================
 
-// Sync sources for TeaVM preprocessing (use filtered sources with CompilationInfo injected)
-val syncSourcesForTeaVM by tasks.registering(Sync::class) {
-	dependsOn(filterSourcesWithBuildInfo)
-	from(filteredSrcDir)
-	into(layout.buildDirectory.dir("sources/teavm-sjpp/java"))
-}
-
-// Preprocess sources with SJPP for TeaVM
-val preprocessForTeaVM by tasks.registering {
-	dependsOn(syncSourcesForTeaVM)
-
-	inputs.dir(layout.buildDirectory.dir("sources/teavm-sjpp/java"))
-	outputs.dir(layout.buildDirectory.dir("generated/teavm-sjpp"))
-
-	doLast {
-		ant.withGroovyBuilder {
-			"taskdef"(
-				"name" to "sjpp",
-				"classname" to "sjpp.SjppAntTask",
-				"classpath" to rootProject.layout.projectDirectory.files("sjpp.jar").asPath
-			)
-			"sjpp"(
-				"src" to layout.buildDirectory.dir("sources/teavm-sjpp/java").get().asFile.absolutePath,
-				"dest" to layout.buildDirectory.dir("generated/teavm-sjpp").get().asFile.absolutePath,
-				"define" to "__TEAVM__"
-			)
-		}
-	}
-}
-
-// Generate embedded resources for TeaVM (Base64 encoded)
-val generateTeavmEmbeddedResources by tasks.registering {
-	dependsOn(preprocessForTeaVM)
-
-	val outDir = layout.buildDirectory.dir("generated/teavm-sjpp/net/sourceforge/plantuml/teavm")
-	inputs.file("src/main/resources/skin/plantuml.skin")
-	outputs.dir(outDir)
-
-	doLast {
-		val skinFile = file("src/main/resources/skin/plantuml.skin")
-		val bytes = skinFile.readBytes()
-		val b64 = Base64.getEncoder().encodeToString(bytes)
-
-		// Split into lines to avoid a giant single line
-		val chunks = b64.chunked(120).joinToString(separator = "\" +\n            \"", prefix = "\"", postfix = "\"")
-
-		val target = outDir.get().file("EmbeddedResources.java").asFile
-		target.parentFile.mkdirs()
-		target.writeText(
-			"""
-			package net.sourceforge.plantuml.teavm;
-
-			import java.io.ByteArrayInputStream;
-			import java.io.InputStream;
-			import java.util.Base64;
-
-			public final class EmbeddedResources {
-				private EmbeddedResources() {
-				}
-
-				private static final String PLANTUML_SKIN_B64 =
-						$chunks;
-
-				public static InputStream openPlantumlSkin() {
-					byte[] data = Base64.getDecoder().decode(PLANTUML_SKIN_B64);
-					return new ByteArrayInputStream(data);
-				}
-			}
-			""".trimIndent(),
-			Charsets.UTF_8
-		)
-	}
-}
-
-tasks.named<JavaCompile>("compileTeavmJava") {
-	dependsOn(generateTeavmEmbeddedResources)
-}
-
-// Task to compile Java to JavaScript using TeaVM
-tasks.register<JavaExec>("generateJavaScript") {
-	description = "Compiles Java to JavaScript using TeaVM"
-	group = "teavm"
-	
-	// 1) preprocess -> 2) compile the preprocessed sources -> 3) TeaVM
-	dependsOn(preprocessForTeaVM)
-	dependsOn(tasks.named("compileTeavmJava"))
-	
-	mainClass.set("org.teavm.cli.TeaVMRunner")
-	
-	// TeaVMRunner + compiled classes from the teavm sourceSet
-	classpath = teavmConfig + sourceSets["teavm"].output
-	
-	val outputDir = layout.buildDirectory.dir("teavm/js").get().asFile
-	
-	args(
-		"-d", outputDir.absolutePath,
-		"-t", "javascript",
-//		"-G",  // Generate source maps
-//		"-g",  // Generate debug information
-		"net.sourceforge.plantuml.teavm.browser.PlantUMLBrowser"  // Main class as positional argument
-	)
-	
-	doFirst {
-		outputDir.mkdirs()
-		println("Compiling Java to JavaScript with TeaVM (preprocessed __TEAVM__) ...")
-		println("Output directory: ${outputDir.absolutePath}")
-	}
-	
-	doLast {
-		println("[TEAVM] JavaScript generation complete!")
-		println("[TEAVM] Checking output directory: ${outputDir.absolutePath}")
-		println("[TEAVM] outputDir.exists() = ${outputDir.exists()}")
-		if (outputDir.exists()) {
-			println("[TEAVM] outputDir contents:")
-			outputDir.listFiles()?.forEach { println("[TEAVM]   - ${it.name} (${it.length() / 1024} KB)") }
-		}
-		val classesJs = file("${outputDir.absolutePath}/classes.js")
-		println("[TEAVM] classes.js exists: ${classesJs.exists()}")
-		if (!classesJs.exists()) {
-			println("[TEAVM] WARNING: classes.js was NOT generated!")
-		}
-	}
-}
-
-// Custom task to build TeaVM JS version with HTML file
+// Custom task to prepare TeaVM JS version with HTML file
 tasks.register("teavm") {
 	description = "Prepares TeaVM JS version with HTML file"
 	group = "teavm"
 	
+	// The official plugin provides the 'generateJavaScript' task
 	dependsOn("generateJavaScript")
 	
-	val outputDir = layout.buildDirectory.dir("teavm/js").get().asFile
+	val outputDir = teavmJsOutputDir.get().asFile
 	
 	doLast {
-		// Copy the HTML template and Viz.js library (without erasing existing files)
+		// Copy the HTML template and all js files (without erasing existing files)
 		copy {
-			from("src/main/resources/teavm/index.html")
-			from("src/main/resources/teavm/viz-global.js")
+			from("src/main/resources/teavm") {
+				include("index.html", "*.js")
+			}
 			into(outputDir)
 		}
-		
+
+		// List all produced .js files with human-readable sizes
+		fun sizeInMB(bytes: Long): String {
+			return "%.2f MB".format(bytes.toDouble() / (1024.0 * 1024.0))
+		}
+
+		val jsFiles = outputDir.listFiles { f -> f.isFile && f.name.endsWith(".js") }
+			?.sortedBy { it.name.lowercase() }
+		if (jsFiles != null && jsFiles.isNotEmpty()) {
+			val nameWidth = maxOf(jsFiles.maxOf { it.name.length }, "TOTAL".length)
+			val totalSize = jsFiles.sumOf { it.length() }
+			val sizeWidth = sizeInMB(totalSize).length
+
+			println("")
+			println("TeaVM JS files:")
+			for (f in jsFiles) {
+				println("  %-${nameWidth}s  %${sizeWidth}s".format(f.name, sizeInMB(f.length())))
+			}
+			println("  %-${nameWidth}s  %${sizeWidth}s".format("TOTAL", sizeInMB(totalSize)))
+		}
+
 		println("")
 		println("======================")
 		println("TeaVM Ready!  --> ${outputDir.absolutePath}/index.html")
@@ -783,8 +747,8 @@ tasks.register<Zip>("teavmZip") {
 	dependsOn("teavm")
 	
 	// Use lazy evaluation to ensure files are read after teavm task completes
-	from(layout.buildDirectory.dir("teavm/js")) {
-		include("classes.js", "index.html", "viz-global.js")
+	from(teavmJsOutputDir) {
+		include("*.js", "*.html")
 	}
 	
 	destinationDirectory.set(layout.buildDirectory.dir("libs"))
@@ -798,4 +762,39 @@ tasks.register<Zip>("teavmZip") {
 		println("======================")
 		println("")
 	}
+}
+
+
+
+if (fastBuild) {
+    // 1) Skip tests
+    tasks.withType<Test>().configureEach {
+        enabled = false
+    }
+
+    // 2) Skip javadoc (both generation and jar)
+    tasks.withType<Javadoc>().configureEach {
+        enabled = false
+    }
+    tasks.matching { it.name == "javadocJar" }.configureEach {
+        enabled = false
+    }
+    tasks.matching { it.name == "sourcesJar" }.configureEach {
+        enabled = false
+    }
+
+    // 3) Optional but consistent: skip jacoco in fast mode
+    tasks.matching { it.name.startsWith("jacoco") }.configureEach {
+        enabled = false
+    }
+
+    // 4) Key point: build only produces the jar
+    tasks.named("build") {
+        setDependsOn(listOf(tasks.named("jar")))
+    }
+
+    // Optional: if someone runs "check" explicitly, skip it in fast mode
+    tasks.named("check") {
+        enabled = false
+    }
 }

@@ -37,61 +37,55 @@ package net.sourceforge.plantuml.teavm;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.UFont;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 
 public class StringBounderTeaVM implements StringBounder {
+	// ::remove file when JAVA8
 
 	@Override
 	public XDimension2D calculateDimension(UFont font, String text) {
-		// ::uncomment when __TEAVM__
-//		if (text == null || text.isEmpty())
-//			return new XDimension2D(0, 0);
-//
-//		final String fontFamily = font.getFamily(null, null);
-//		final int fontSize = font.getSize();
-//		final String fontWeight = font.isBold() ? "bold" : "normal";
-//
-//		final double[] metrics = SvgGraphicsTeaVM.measureTextCanvas(text, fontFamily, fontSize, fontWeight);
-//		final double width = metrics[0];
-//
-//		// Use SVG getBBox for height as it's more accurate for layout
-//		final double[] svgMetrics = SvgGraphicsTeaVM.measureTextSvgBBox(text, fontFamily, fontSize);
-//		double height = svgMetrics[1];
-//
-//		// getBBox returns height=0 for whitespace-only strings (no visible glyphs)
-//		// In this case, use font metrics to get the proper line height
-//		if (height == 0 && !text.isEmpty()) {
-//			final double[] detailedMetrics = SvgGraphicsTeaVM.getDetailedTextMetrics(text, fontFamily, fontSize, fontWeight);
-//			height = detailedMetrics[3] + detailedMetrics[4]; // fontBoundingBoxAscent + fontBoundingBoxDescent
-//		}
-//
-//		return new XDimension2D(width, height);
-		// ::done
-		
-		// ::comment when __TEAVM__
-		throw new UnsupportedOperationException();
-		// ::done
+		if (text == null || text.isEmpty())
+			return new XDimension2D(0, 0);
+
+		final String fontFamily = font.getFamily(null, null);
+		final int fontSize = font.getSize();
+		final String fontWeight = font.getFontFace().isBold() ? "bold" : "normal";
+
+		final double[] metrics = SvgGraphicsTeaVM.measureTextCanvas(text, fontFamily, fontSize, fontWeight);
+		final double width = metrics[0];
+
+		// Use SVG getBBox for height as it's more accurate for layout
+		final double[] svgMetrics = SvgGraphicsTeaVM.measureTextSvgBBox(text, fontFamily, fontSize);
+		double height = svgMetrics[1];
+
+		// getBBox returns height=0 for whitespace-only strings (no visible glyphs)
+		// In this case, use font metrics to get the proper line height
+		if (height == 0 && !text.isEmpty()) {
+			final double[] detailedMetrics = SvgGraphicsTeaVM.getDetailedTextMetrics(text, fontFamily, fontSize,
+					fontWeight);
+			height = detailedMetrics[3] + detailedMetrics[4]; // fontBoundingBoxAscent + fontBoundingBoxDescent
+		}
+
+		return new XDimension2D(width, height);
 
 	}
 
 	@Override
 	public double getDescent(UFont font, String text) {
-		// ::uncomment when __TEAVM__
-//		if (text == null || text.isEmpty())
-//			return 0;
-//
-//		final String fontFamily = font.getFamily(null, null);
-//		final int fontSize = font.getSize();
-//		final String fontWeight = font.isBold() ? "bold" : "normal";
-//
-//		final double[] metrics = SvgGraphicsTeaVM.getDetailedTextMetrics(text, fontFamily, fontSize, fontWeight);
-//		// metrics[2] is actualBoundingBoxDescent
-//		return metrics[2];
-		// ::done
+		if (text == null || text.isEmpty())
+			return 0;
 
-		// ::comment when __TEAVM__
-		throw new UnsupportedOperationException();
-		// ::done
+		final String fontFamily = font.getFamily(null, null);
+		final int fontSize = font.getSize();
+		final String fontWeight = font.getFontFace().isBold() ? "bold" : "normal";
 
+		final double[] metrics = SvgGraphicsTeaVM.getDetailedTextMetrics(text, fontFamily, fontSize, fontWeight);
+		// metrics[0] = width
+		// metrics[1] = actualBoundingBoxAscent (glyph-specific ascent above baseline)
+		// metrics[2] = actualBoundingBoxDescent (glyph-specific descent below baseline, can be negative for characters above baseline like '"')
+		// metrics[3] = fontBoundingBoxAscent (font-level ascent, constant for all glyphs)
+		// metrics[4] = fontBoundingBoxDescent (font-level descent, constant for all glyphs, like Java's LineMetrics.getDescent())
+		return metrics[4];
 	}
 
 	@Override

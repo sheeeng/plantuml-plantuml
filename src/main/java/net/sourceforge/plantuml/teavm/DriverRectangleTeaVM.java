@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.teavm;
 
 import net.sourceforge.plantuml.klimt.ClipContainer;
+import net.sourceforge.plantuml.klimt.UClip;
 import net.sourceforge.plantuml.klimt.UParam;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -43,6 +44,7 @@ import net.sourceforge.plantuml.klimt.drawing.UDriver;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
 
 public class DriverRectangleTeaVM implements UDriver<URectangle, SvgGraphicsTeaVM> {
+	// ::remove file when JAVA8
 
 	private final ClipContainer clipContainer;
 
@@ -52,35 +54,47 @@ public class DriverRectangleTeaVM implements UDriver<URectangle, SvgGraphicsTeaV
 
 	@Override
 	public void draw(URectangle rect, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
-		// ::uncomment when __TEAVM__
-//		final double rx = rect.getRx();
-//		final double ry = rect.getRy();
-//		final double width = rect.getWidth();
-//		final double height = rect.getHeight();
-//
-//		applyFillColor(svg, mapper, param);
-//		applyStrokeColor(svg, mapper, param);
-//		svg.setStrokeWidth(param.getStroke().getThickness());
-//
-//		svg.drawRectangle(x, y, width, height, rx / 2, ry / 2);
-//	}
-//
-//	public static void applyFillColor(SvgGraphicsTeaVM svg, ColorMapper mapper, UParam param) {
-//		final HColor background = param.getBackcolor();
-//		if (background == null) {
-//			svg.setFillColor("none");
-//		} else {
-//			svg.setFillColor(background.toSvg(mapper));
-//		}
-//	}
-//
-//	public static void applyStrokeColor(SvgGraphicsTeaVM svg, ColorMapper mapper, UParam param) {
-//		final HColor color = param.getColor();
-//		if (color == null) {
-//			svg.setStrokeColor("none");
-//		} else {
-//			svg.setStrokeColor(color.toSvg(mapper));
-//		}
-		// ::done
+		final double rx = rect.getRx();
+		final double ry = rect.getRy();
+		double width = rect.getWidth();
+		double height = rect.getHeight();
+
+		applyFillColor(svg, mapper, param);
+		applyStrokeColor(svg, mapper, param);
+		svg.setStrokeWidth(param.getStroke().getThickness());
+
+		final UClip clip = clipContainer.getClip();
+		if (clip != null) {
+			final double clipRight = clip.getX() + clip.getWidth();
+			final double clipBottom = clip.getY() + clip.getHeight();
+			final double newX = Math.max(x, clip.getX());
+			final double newY = Math.max(y, clip.getY());
+			width = Math.min(x + width, clipRight) - newX;
+			height = Math.min(y + height, clipBottom) - newY;
+			x = newX;
+			y = newY;
+			if (width <= 0 || height <= 0)
+				return;
+		}
+
+		svg.drawRectangle(x, y, width, height, rx / 2, ry / 2);
+	}
+
+	public static void applyFillColor(SvgGraphicsTeaVM svg, ColorMapper mapper, UParam param) {
+		final HColor background = param.getBackcolor();
+		if (background == null) {
+			svg.setFillColor("none");
+		} else {
+			svg.setFillColor(background.toSvg(mapper));
+		}
+	}
+
+	public static void applyStrokeColor(SvgGraphicsTeaVM svg, ColorMapper mapper, UParam param) {
+		final HColor color = param.getColor();
+		if (color == null) {
+			svg.setStrokeColor("none");
+		} else {
+			svg.setStrokeColor(color.toSvg(mapper));
+		}
 	}
 }

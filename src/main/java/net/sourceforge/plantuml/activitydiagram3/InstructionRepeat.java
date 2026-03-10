@@ -52,7 +52,6 @@ import net.sourceforge.plantuml.activitydiagram3.gtile.GtileBox;
 import net.sourceforge.plantuml.activitydiagram3.gtile.GtileRepeat;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.klimt.color.Colors;
-import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
@@ -139,7 +138,6 @@ public class InstructionRepeat extends AbstractInstruction implements Instructio
 		return repeatList.add(ins);
 	}
 
-	// ::comment when __CORE__
 	@Override
 	public Gtile createGtile(ISkinParam skinParam, StringBounder stringBounder) {
 
@@ -159,7 +157,6 @@ public class InstructionRepeat extends AbstractInstruction implements Instructio
 //		}
 		return result;
 	}
-	// ::done
 
 	public Ftile createFtile(FtileFactory factory) {
 		final Ftile back = getFtileBackward(factory);

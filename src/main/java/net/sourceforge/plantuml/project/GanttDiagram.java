@@ -35,8 +35,6 @@
  */
 package net.sourceforge.plantuml.project;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,10 +48,9 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.TitledDiagram;
-import net.sourceforge.plantuml.WithSprite;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.core.DiagramDescription;
-import net.sourceforge.plantuml.core.ImageData;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
@@ -90,14 +87,13 @@ import net.sourceforge.plantuml.project.ngm.math.PiecewiseConstant;
 import net.sourceforge.plantuml.project.solver.ImpossibleSolvingException;
 import net.sourceforge.plantuml.project.time.TimePoint;
 import net.sourceforge.plantuml.project.time.WeekNumberStrategy;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 
-public class GanttDiagram extends TitledDiagram implements WithSprite, GanttStyle {
+public class GanttDiagram extends TitledDiagram implements GanttStyle {
 
 	// ------------------------------------------------------------------------
 	// model / prepared state
@@ -145,18 +141,12 @@ public class GanttDiagram extends TitledDiagram implements WithSprite, GanttStyl
 	}
 
 	public GanttDiagram(UmlSource source, PreprocessingArtifact preprocessing) {
-		super(source, UmlDiagramType.GANTT, null, preprocessing);
+		super(source, DiagramType.GANTT, null, preprocessing);
 		this.timelineStyle = new TimelineStyleData(getSkinParam(), this, HColorSet.instance());
 	}
 
 	public final int getDpi(FileFormatOption fileFormatOption) {
 		return 96;
-	}
-
-	@Override
-	protected ImageData exportDiagramNow(OutputStream os, int index, FileFormatOption fileFormatOption)
-			throws IOException {
-		return createImageBuilder(fileFormatOption).drawable(getTextMainBlock(fileFormatOption)).write(os);
 	}
 
 	public void setPrintScale(PrintScale printScale) {
@@ -178,7 +168,7 @@ public class GanttDiagram extends TitledDiagram implements WithSprite, GanttStyl
 	}
 
 	@Override
-	protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
+	protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
 		final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(getSkinParam());
 		if (this.timeBounds.getPrintStart() == null) {
 			initMinMax();
@@ -193,6 +183,11 @@ public class GanttDiagram extends TitledDiagram implements WithSprite, GanttStyl
 
 		return new GanttDiagramMainBlock(this.timeBounds, this.modelData, this.drawRegistry, this.displayConfig,
 				this.timelineStyle, this, timeHeader, stringBounder);
+	}
+
+	@Override
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
+		return getTextMainBlock01970(fileFormatOption);
 	}
 
 	private void initMinMax() {

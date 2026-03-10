@@ -36,8 +36,6 @@
  */
 package net.sourceforge.plantuml.regexdiagram;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -47,7 +45,7 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.core.DiagramDescription;
-import net.sourceforge.plantuml.core.ImageData;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.ebnf.ETile;
 import net.sourceforge.plantuml.ebnf.ETileAlternation;
@@ -62,17 +60,16 @@ import net.sourceforge.plantuml.ebnf.ETileRegexGroupAllBut;
 import net.sourceforge.plantuml.ebnf.ETileZeroOrMore;
 import net.sourceforge.plantuml.ebnf.Symbol;
 import net.sourceforge.plantuml.jsondiagram.StyleExtractor;
+import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.Style;
@@ -83,7 +80,7 @@ import net.sourceforge.plantuml.utils.CharInspector;
 public class PSystemRegex extends TitledDiagram {
 
 	public PSystemRegex(UmlSource source, PreprocessingArtifact preprocessing) {
-		super(source, UmlDiagramType.REGEX, null, preprocessing);
+		super(source, DiagramType.REGEX, null, preprocessing);
 		final StyleExtractor styleExtractor = new StyleExtractor(source.iterator2());
 
 		final ISkinParam skinParam = getSkinParam();
@@ -110,40 +107,30 @@ public class PSystemRegex extends TitledDiagram {
 	private final HColor lineColor;
 
 	@Override
-	protected ImageData exportDiagramNow(OutputStream os, int index, FileFormatOption fileFormatOption)
-			throws IOException {
-		return createImageBuilder(fileFormatOption).drawable(getTextMainBlock(fileFormatOption)).write(os);
-	}
-
-//	public CommandExecutionResult changeLanguage(String lang) {
-//		setParam("language", lang);
-//		return CommandExecutionResult.ok();
-//	}
-//
-//	public CommandExecutionResult useDescriptiveNames(String useDescriptive) {
-//		setParam("descriptive", useDescriptive);
-//		return CommandExecutionResult.ok();
-//	}
-
-	@Override
-	protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
+	protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
 //		while (stack.size() > 1)
 //			concatenation();
 		final ETile peekFirst = stack.peekFirst();
-		final TextBlock tb = new AbstractTextBlock() {
+		final TextBlock tb = new TextBlock() {
 
 			@Override
 			public void drawU(UGraphic ug) {
+				ug = ug.apply(new UTranslate(5, 5));
 				peekFirst.drawU(ug.apply(lineColor));
 			}
 
 			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
-				return peekFirst.calculateDimension(stringBounder);
+				return peekFirst.calculateDimension(stringBounder).delta(10);
 			}
 		};
 		return TextBlockUtils.addBackcolor(tb, null);
 
+	}
+
+	@Override
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
+		return getTextMainBlock01970(fileFormatOption);
 	}
 
 	public CommandExecutionResult addBlocLines(BlocLines from) {

@@ -35,9 +35,12 @@
  */
 package net.sourceforge.plantuml.teavm;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import net.sourceforge.plantuml.DefinitionsContainer;
 import net.sourceforge.plantuml.activitydiagram.ActivityDiagramFactory;
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagramFactory3;
 import net.sourceforge.plantuml.api.PSystemFactory;
@@ -47,25 +50,38 @@ import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.descdiagram.DescriptionDiagramFactory;
+import net.sourceforge.plantuml.ebnf.PSystemEbnfFactory;
 import net.sourceforge.plantuml.error.PSystemError;
+import net.sourceforge.plantuml.error.PSystemErrorPreprocessor;
 import net.sourceforge.plantuml.error.PSystemErrorUtils;
 import net.sourceforge.plantuml.error.PSystemUnsupported;
+import net.sourceforge.plantuml.jaws.Jaws;
+import net.sourceforge.plantuml.jsondiagram.JsonDiagramFactory;
+import net.sourceforge.plantuml.klimt.creole.legacy.PSystemCreoleFactory;
 import net.sourceforge.plantuml.mindmap.MindMapDiagramFactory;
+import net.sourceforge.plantuml.nio.PathSystem;
 import net.sourceforge.plantuml.nwdiag.NwDiagramFactory;
 import net.sourceforge.plantuml.packetdiag.PacketDiagramFactory;
+import net.sourceforge.plantuml.preproc.Defines;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.regexdiagram.PSystemRegexFactory;
 import net.sourceforge.plantuml.sequencediagram.SequenceDiagramFactory;
 import net.sourceforge.plantuml.statediagram.StateDiagramFactory;
 import net.sourceforge.plantuml.sudoku.PSystemSudokuFactory;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
+import net.sourceforge.plantuml.tim.TimLoader;
 import net.sourceforge.plantuml.timingdiagram.TimingDiagramFactory;
 import net.sourceforge.plantuml.utils.LineLocationImpl;
 import net.sourceforge.plantuml.version.PSystemVersionFactory;
 import net.sourceforge.plantuml.wbs.WBSDiagramFactory;
+import net.sourceforge.plantuml.yaml.YamlDiagramFactory;
 
 public class PSystemBuilder2 {
+	// ::remove file when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__
 
 	private final List<PSystemFactory> factories = new ArrayList<>();
+	private PSystemFactory lastFactory;
 
 	public PSystemBuilder2() {
 		factories.add(new SequenceDiagramFactory());
@@ -75,32 +91,73 @@ public class PSystemBuilder2 {
 		factories.add(new StateDiagramFactory());
 		factories.add(new ActivityDiagramFactory3());
 		factories.add(new PSystemVersionFactory());
+		// factories.add(new PSystemDotFactory(DiagramType.UML));
 		factories.add(new MindMapDiagramFactory());
 		factories.add(new WBSDiagramFactory());
-		factories.add(new NwDiagramFactory(DiagramType.UML));
+		factories.add(new NwDiagramFactory());
 		factories.add(new PSystemSudokuFactory());
+		factories.add(new PSystemCreoleFactory());
 		factories.add(new TimingDiagramFactory());
 		factories.add(new ChartDiagramFactory());
 		factories.add(new PacketDiagramFactory());
+		factories.add(new JsonDiagramFactory());
+		factories.add(new YamlDiagramFactory());
+		factories.add(new PSystemEbnfFactory());
+		factories.add(new PSystemRegexFactory());
+		factories.add(new PSystemSudokuFactory());
 	}
 
 	public Diagram createDiagram(String[] split) {
-		final List<StringLocated> lines = new ArrayList<>();
+		BrowserLog.consoleLog(PSystemBuilder2.class, "createDiagram start");
+		final List<StringLocated> rawSource = new ArrayList<>();
 		for (String s : clean(split))
-			lines.add(new StringLocated(s, new LineLocationImpl("textarea", null)));
+			rawSource.add(new StringLocated(s, new LineLocationImpl("textarea", null)));
 
-		final UmlSource source = UmlSource.create(lines, false);
-		final DiagramType diagramType = source.getDiagramType();
+		final PathSystem pathSystem = PathSystem.fetch();
+		final Defines defines = Defines.createEmpty();
+		final Charset charset = java.nio.charset.StandardCharsets.UTF_8;
+		final DefinitionsContainer definitions = null;
 
-		final PreprocessingArtifact preprocessing = new PreprocessingArtifact();
+		BrowserLog.consoleLog(PSystemBuilder2.class, "wip3");
+		final TimLoader timLoader = new TimLoader(pathSystem, defines, charset, definitions, rawSource.get(0));
+		BrowserLog.consoleLog(PSystemBuilder2.class, "wip4");
+		timLoader.load(rawSource);
+		BrowserLog.consoleLog(PSystemBuilder2.class, "createDiagram ok");
+		List<StringLocated> tmp = timLoader.getResultList();
+		tmp = Jaws.expands0(tmp);
+		tmp = Jaws.expandsJawsForPreprocessor(tmp);
+		// System.err.println("resultList=" + resultList);
+
+		final UmlSource source = UmlSource.create(tmp, false);
+		final Collection<DiagramType> diagramTypes = source.getDiagramTypes();
+
+		final PreprocessingArtifact preprocessing = timLoader.getPreprocessingArtifact();
+
+		if (timLoader.isPreprocessorError())
+			return new PSystemErrorPreprocessor(tmp, timLoader.getDebug(), timLoader.getPreprocessingArtifact());
+
 		final List<PSystemError> errors = new ArrayList<>();
-		for (PSystemFactory systemFactory : factories) {
-			if (diagramType != systemFactory.getDiagramType())
-				continue;
 
-			final Diagram sys = systemFactory.createSystem(null, source, null, preprocessing);
+		if (lastFactory != null && diagramTypes.contains(lastFactory.getDiagramType())) {
+			final Diagram sys = lastFactory.createSystem(null, source, null, preprocessing);
 			if (isOk(sys))
 				return sys;
+
+		}
+
+		for (PSystemFactory f : factories) {
+			if (!diagramTypes.contains(f.getDiagramType()))
+				continue;
+			if (f == lastFactory)
+				continue;
+			BrowserLog.consoleLog(PSystemBuilder2.class, "trying " + f.getClass());
+
+			final Diagram sys = f.createSystem(null, source, null, preprocessing);
+			if (isOk(sys)) {
+				BrowserLog.consoleLog(PSystemBuilder2.class, "ok!");
+				this.lastFactory = f;
+				return sys;
+			}
 			errors.add((PSystemError) sys);
 		}
 
@@ -127,16 +184,6 @@ public class PSystemBuilder2 {
 			lines.remove(lines.size() - 1);
 
 		return lines;
-	}
-
-	public static void main(String[] args) {
-		System.err.println("Hello!");
-
-		final String source[] = new String[] { "@startuml", "class A", "class B extends A", "@enduml" };
-
-		final Diagram diagram = new PSystemBuilder2().createDiagram(source);
-
-		System.err.println("diagram=" + diagram);
 	}
 
 }

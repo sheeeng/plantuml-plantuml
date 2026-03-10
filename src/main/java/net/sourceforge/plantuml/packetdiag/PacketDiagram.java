@@ -35,8 +35,6 @@
  */
 package net.sourceforge.plantuml.packetdiag;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -45,25 +43,24 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.UmlDiagram;
+import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.core.DiagramDescription;
-import net.sourceforge.plantuml.core.ImageData;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
+import net.sourceforge.plantuml.teavm.TeaVM;
 
-public class PacketDiagram extends UmlDiagram {
+public class PacketDiagram extends TitledDiagram {
 
 	public static final int DEFAULT_COL_WIDTH = 16;
 
@@ -88,8 +85,8 @@ public class PacketDiagram extends UmlDiagram {
 	private int scaleInterval = colWidth / 2;
 
 	/**
-	 * Default scale interval is the half of {@link #colWidth}.
-	 * By calling {@link #updateScaleInterval(int)} user can override this setting.
+	 * Default scale interval is the half of {@link #colWidth}. By calling
+	 * {@link #updateScaleInterval(int)} user can override this setting.
 	 */
 	private boolean useDefaultScaleInterval = true;
 
@@ -119,20 +116,40 @@ public class PacketDiagram extends UmlDiagram {
 	private Style style;
 
 	public PacketDiagram(UmlSource source, PreprocessingArtifact preprocessing) {
-		super(source, UmlDiagramType.PACKET, null, preprocessing);
+		super(source, DiagramType.PACKET, null, preprocessing);
 	}
 
 	@Override
-	protected ImageData exportDiagramInternal(OutputStream os, int index, FileFormatOption fileFormatOption) throws IOException {
-		return createImageBuilder(fileFormatOption).drawable(getTextMainBlock(fileFormatOption)).write(os);
-	}
-
-	@Override
-	protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
-		return new AbstractTextBlock() {
+	protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
+		return new TextBlock() {
 			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
-				return null;
+				double indicatorTotalWidth = 0D;
+				double indicatorMaxHeight = 0D;
+				for (PacketIndicator indicator : packetIndicators) {
+					XDimension2D iDim = indicator.calculateDimension(stringBounder);
+					indicatorTotalWidth = indicatorTotalWidth + bitWidth;
+					indicatorMaxHeight = Math.max(iDim.getHeight(), indicatorMaxHeight);
+				}
+
+				double gridMaxWidth = 0D;
+				double gridTotalHeight = 0D;
+				for (List<PacketBlock> blocks : packetGrid) {
+					double rowWidth = 0D;
+					double rowHeight = 0D;
+					for (PacketBlock block : blocks) {
+						TextBlock tb = block.getShapeTextBlock(stringBounder, bitWidth, bitHeight);
+						XDimension2D dim = tb.calculateDimension(stringBounder);
+						rowWidth += dim.getWidth();
+						rowHeight = dim.getHeight();
+					}
+					gridMaxWidth = Math.max(gridMaxWidth, rowWidth);
+					gridTotalHeight += rowHeight;
+				}
+
+				final double totalWidth = Math.max(indicatorTotalWidth, gridMaxWidth);
+				final double totalHeight = indicatorMaxHeight + gridTotalHeight;
+				return new XDimension2D(totalWidth, totalHeight);
 			}
 
 			@Override
@@ -170,8 +187,19 @@ public class PacketDiagram extends UmlDiagram {
 	}
 
 	@Override
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
+		return getTextMainBlock01970(fileFormatOption);
+	}
+
+	@Override
 	public DiagramDescription getDescription() {
 		return new DiagramDescription("Packet Diagram");
+	}
+
+	@Override
+	public String checkFinalError() {
+		build();
+		return super.checkFinalError();
 	}
 
 	boolean isUseDefaultScaleInterval() {
@@ -216,24 +244,22 @@ public class PacketDiagram extends UmlDiagram {
 	public Style getStyle() {
 		if (style == null) {
 			style = StyleSignatureBasic.of(SName.root, SName.element, SName.packetdiagDiagram)
-							.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+					.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 		}
 		return style;
 	}
 
 	/**
-	 * Returns the last packet's end bit-position from the packet frame.
-	 * If the system currently contains no packet, return empty.
+	 * Returns the last packet's end bit-position from the packet frame. If the
+	 * system currently contains no packet, return empty.
 	 *
 	 * @return bit-position of the last packet item in system or empty
 	 */
 	Optional<Integer> getLastPacketEnd() {
-		return packetItems.isEmpty() ?
-						Optional.empty() :
-						Optional.of(packetItems.get(packetItems.size() - 1).bitEnd);
+		return packetItems.isEmpty() ? Optional.empty() : Optional.of(packetItems.get(packetItems.size() - 1).bitEnd);
 	}
 
-	public void build() {
+	private void build() {
 		if (isUseDefaultScaleInterval()) {
 			updateScaleInterval(getColWidth() / 2);
 		}
@@ -267,7 +293,8 @@ public class PacketDiagram extends UmlDiagram {
 	}
 
 	/**
-	 * Rearranges packets into one grid, split long packets if it went out of the row
+	 * Rearranges packets into one grid, split long packets if it went out of the
+	 * row
 	 */
 	void adjustLayout() {
 		List<List<PacketBlock>> grid = new ArrayList<>();
@@ -306,7 +333,8 @@ public class PacketDiagram extends UmlDiagram {
 		if (!currRow.isEmpty()) {
 			grid.add(currRow);
 		}
-		// Equalize packet height, this behavior is not in the original implementation, but I find it make sense to do so
+		// Equalize packet height, this behavior is not in the original implementation,
+		// but I find it make sense to do so
 		grid.forEach(blocks -> {
 			final int maxH = blocks.stream().map(PacketBlock::getHeight).max(Integer::compare).orElse(1);
 			blocks.forEach(blk -> blk.setHeight(maxH));
@@ -333,7 +361,8 @@ public class PacketDiagram extends UmlDiagram {
 	}
 
 	private Optional<PacketItem> fitPacketInRow(PacketItem packet, int remainRowWidth, List<PacketBlock> row) {
-		assert remainRowWidth > 0;
+		if (TeaVM.a())
+			assert remainRowWidth > 0;
 		int overflow = packet.width - remainRowWidth;
 		if (overflow > 0) {
 			int margin = packet.width - remainRowWidth;

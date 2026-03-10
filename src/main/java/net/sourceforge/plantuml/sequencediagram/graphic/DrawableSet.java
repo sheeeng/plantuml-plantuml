@@ -39,7 +39,6 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -50,14 +49,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sourceforge.plantuml.klimt.UClip;
-import net.sourceforge.plantuml.klimt.UGroupType;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.drawing.txt.UGraphicTxt;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.sequencediagram.Doll;
 import net.sourceforge.plantuml.sequencediagram.Event;
@@ -69,11 +66,11 @@ import net.sourceforge.plantuml.skin.Component;
 import net.sourceforge.plantuml.skin.ComponentType;
 import net.sourceforge.plantuml.skin.Context2D;
 import net.sourceforge.plantuml.skin.LineParam;
-import net.sourceforge.plantuml.skin.PragmaKey;
 import net.sourceforge.plantuml.skin.SimpleContext2D;
 import net.sourceforge.plantuml.skin.SkinParamBackcolored;
 import net.sourceforge.plantuml.skin.rose.Rose;
 import net.sourceforge.plantuml.style.ISkinParam;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.url.Url;
 
 public class DrawableSet {
@@ -196,7 +193,7 @@ public class DrawableSet {
 				pending = null;
 				continue;
 			}
-			assert englober != null;
+			if (TeaVM.a()) assert englober != null;
 			if (pending != null && englober == pending.getParticipantEnglober()) {
 				pending.addParticipant(ent.getKey());
 				continue;
@@ -266,7 +263,7 @@ public class DrawableSet {
 
 		eventsList.add(idx, newpage);
 		events.put(newpage, object);
-		assert events.size() == eventsList.size();
+		if (TeaVM.a()) assert events.size() == eventsList.size();
 	}
 
 	void setDimension(XDimension2D dim) {
@@ -281,7 +278,7 @@ public class DrawableSet {
 	}
 
 	TextBlock asTextBlock(final double delta, final double width, final Page page, final boolean showTail) {
-		return new AbstractTextBlock() {
+		return new TextBlock() {
 
 			public void drawU(UGraphic ug) {
 				drawU22(ug, delta, width, page, showTail);
@@ -325,10 +322,7 @@ public class DrawableSet {
 
 	private void drawLineU22(UGraphic ug, boolean showTail, Page page) {
 		// http://plantuml.sourceforge.net/qa/?qa=4826/lifelines-broken-for-txt-seq-diagrams-when-create-is-used
-		// ::revert when __CORE__ or __TEAVM__
-		final boolean isTxt = ug instanceof UGraphicTxt;
-		// final boolean isTxt = false;
-		// ::done
+		final boolean isTxt = TeaVM.isTeaVM() ? false : ug instanceof UGraphicTxt;
 		for (LivingParticipantBox box : getAllLivingParticipantBox()) {
 			final double create = box.getCreate();
 			final double startMin = page.getBodyRelativePosition() - box.magicMargin(ug.getStringBounder());
@@ -470,7 +464,7 @@ public class DrawableSet {
 		int min = -1;
 		for (Participant p : someParticipants) {
 			final int n = list.indexOf(p);
-			assert n != -1;
+			if (TeaVM.a()) assert n != -1;
 			if (min == -1 || min > n)
 				min = n;
 
@@ -483,7 +477,7 @@ public class DrawableSet {
 		int max = -1;
 		for (Participant p : someParticipants) {
 			final int n = list.indexOf(p);
-			assert n != -1;
+			if (TeaVM.a()) assert n != -1;
 			if (max == -1 || max < n)
 				max = n;
 

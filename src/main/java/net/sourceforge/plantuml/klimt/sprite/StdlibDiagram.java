@@ -36,17 +36,14 @@
 package net.sourceforge.plantuml.klimt.sprite;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
-import net.atmp.ImageBuilder;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.Previous;
-import net.sourceforge.plantuml.UmlDiagram;
-import net.sourceforge.plantuml.WithSprite;
+import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.command.Command;
 import net.sourceforge.plantuml.command.CommandFactorySprite;
 import net.sourceforge.plantuml.core.DiagramDescription;
-import net.sourceforge.plantuml.core.ImageData;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -58,22 +55,20 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.UFontFactory;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.preproc.Stdlib;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 
-public class StdlibDiagram extends UmlDiagram {
-	// ::remove file when __CORE__ or __TEAVM__
+public class StdlibDiagram extends TitledDiagram {
 
 	private static final int WIDTH = 1800;
 	private String name;
 
 	public StdlibDiagram(UmlSource source, Previous previous, PreprocessingArtifact preprocessing) {
-		super(source, UmlDiagramType.HELP, previous, preprocessing);
+		super(source, DiagramType.HELP, previous, preprocessing);
+		throw new UnsupportedOperationException();
 	}
 
 	public DiagramDescription getDescription() {
@@ -81,20 +76,8 @@ public class StdlibDiagram extends UmlDiagram {
 	}
 
 	@Override
-	public ImageBuilder createImageBuilder(FileFormatOption fileFormatOption) throws IOException {
-		return super.createImageBuilder(fileFormatOption).annotations(false);
-	}
-
-	@Override
-	protected ImageData exportDiagramInternal(OutputStream os, int index, FileFormatOption fileFormatOption)
-			throws IOException {
-
-		return createImageBuilder(fileFormatOption).drawable(getTextMainBlock(fileFormatOption)).write(os);
-	}
-
-	@Override
-	protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
-		return new AbstractTextBlock() {
+	protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
+		return new TextBlock() {
 
 			public void drawU(UGraphic ug) {
 				try {
@@ -110,6 +93,11 @@ public class StdlibDiagram extends UmlDiagram {
 		};
 	}
 
+	@Override
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
+		return getTextMainBlock01970(fileFormatOption);
+	}
+
 	public void setStdlibName(String name) {
 		this.name = name;
 	}
@@ -122,7 +110,7 @@ public class StdlibDiagram extends UmlDiagram {
 
 		final CommandFactorySprite factorySpriteCommand = CommandFactorySprite.ME;
 
-		Command<WithSprite> cmd = factorySpriteCommand.createMultiLine(false);
+		Command<TitledDiagram> cmd = factorySpriteCommand.createMultiLine(false);
 
 //		final List<String> all = folder.extractAllSprites();
 //		int nb = 0;

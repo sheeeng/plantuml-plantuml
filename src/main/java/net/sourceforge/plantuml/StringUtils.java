@@ -43,7 +43,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.plantuml.asciiart.Wcwidth;
-import net.sourceforge.plantuml.klimt.awt.XColor;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
@@ -54,17 +53,11 @@ import net.sourceforge.plantuml.utils.Log;
 public class StringUtils {
 
 	public static String goUpperCase(String s) {
-		// ::revert when __HAXE__
 		return s.toUpperCase(Locale.ENGLISH);
-		// return s.toUpperCase();
-		// ::done
 	}
 
 	public static String goLowerCase(String s) {
-		// ::revert when __HAXE__
 		return s.toLowerCase(Locale.ENGLISH);
-		// return s.toLowerCase();
-		// ::done
 	}
 
 	public static String eventuallyRemoveStartingAndEndingDoubleQuote(String s, String format) {
@@ -97,8 +90,6 @@ public class StringUtils {
 	private static boolean isDoubleQuote(char c) {
 		return c == '\"' || c == '\u201c' || c == '\u201d' || c == '\u00ab' || c == '\u00bb';
 	}
-
-	// ::comment when __HAXE__
 
 	public static final char USER_NEWLINE = '\uEE00';
 	public static final char USER_TAB = '\uEE01';
@@ -497,10 +488,6 @@ public class StringUtils {
 		return s;
 	}
 
-	public static String trinNoTrace(CharSequence s) {
-		return s.toString().trim();
-	}
-
 	public static String manageEscapedTabs(String s) {
 		return s.replace("\\t", "\t");
 	}
@@ -516,43 +503,46 @@ public class StringUtils {
 	}
 
 	public static String trin(String arg) {
-		if (arg.length() == 0)
+		final int len = arg.length();
+		if (len == 0)
+			return "";
+
+		int start = 0;
+		int end = len - 1;
+
+		while (start <= end) {
+			final char cStart = arg.charAt(start);
+			if (cStart == ' ' || cStart == '\t' || cStart == '\r' || cStart == '\n' || cStart == '\0') {
+				start++;
+				continue;
+			}
+
+			final char cEnd = arg.charAt(end);
+			if (cEnd == ' ' || cEnd == '\t' || cEnd == '\r' || cEnd == '\n' || cEnd == '\0') {
+				end--;
+				continue;
+			}
+			break;
+		}
+
+		if (start == 0 && end == len - 1)
 			return arg;
 
-		return trinEndingInternal(arg, getPositionStartNonSpace(arg));
+		if (start > end)
+			return "";
+
+		return arg.substring(start, end + 1);
 	}
 
-	private static int getPositionStartNonSpace(String arg) {
-		int i = 0;
-		while (i < arg.length() && isSpaceOrTabOrNull(arg.charAt(i)))
-			i++;
-
-		return i;
-	}
-
-	private static String trinEnding(String arg) {
-		if (arg.length() == 0)
-			return arg;
-
-		return trinEndingInternal(arg, 0);
-	}
-
-	private static String trinEndingInternal(String arg, int from) {
-		int j = arg.length() - 1;
-		while (j >= from && isSpaceOrTabOrNull(arg.charAt(j)))
-			j--;
-
-		if (from == 0 && j == arg.length() - 1)
-			return arg;
-
-		return arg.substring(from, j + 1);
+	public static String trinNoTrace(CharSequence s) {
+		return s.toString().trim();
 	}
 
 	private static boolean isSpaceOrTabOrNull(char c) {
 		return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\0';
 	}
 
-	// ::comment when __CORE__ or __HAXE__ or __TEAVM__
+	// ::comment when __TEAVM__
 	public static int getWcWidth(Display stringsToDisplay) {
 		int result = 1;
 		for (CharSequence s : stringsToDisplay) {

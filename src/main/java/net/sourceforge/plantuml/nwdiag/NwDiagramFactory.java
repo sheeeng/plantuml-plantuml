@@ -46,16 +46,16 @@ import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.nio.PathSystem;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 
 public class NwDiagramFactory extends PSystemCommandFactory {
 
-	public NwDiagramFactory(DiagramType type) {
-		super(type);
+	public NwDiagramFactory() {
+		super(DiagramType.NWDIAG);
 	}
 
 	@Override
-	public NwDiagram createEmptyDiagram(PathSystem pathSystem, UmlSource source, Previous previous, PreprocessingArtifact preprocessing) {
+	public NwDiagram createEmptyDiagram(PathSystem pathSystem, UmlSource source, Previous previous,
+			PreprocessingArtifact preprocessing) {
 		return new NwDiagram(source, preprocessing);
 	}
 
@@ -71,11 +71,6 @@ public class NwDiagramFactory extends PSystemCommandFactory {
 		cmds.add(new CommandProperty());
 		cmds.add(new CommandEndSomething());
 		cmds.add(new CommandFootboxIgnored());
-	}
-
-	@Override
-	public UmlDiagramType getUmlDiagramType() {
-		return UmlDiagramType.NWDIAG;
 	}
 
 }

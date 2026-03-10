@@ -133,18 +133,18 @@ class PipeTest {
 				false, false));
 		l.add(TestCase.of("-syntax", "@startuml\na->b\n@enduml\n@startuml\na->b\nb->c\n@enduml\n",
 				"SEQUENCE\n(2 participants)\nSEQUENCE\n(3 participants)\n", Verification.EXACT, false, false));
-		l.add(TestCase.of("-syntax", "@startgantt\n[a] lasts 1 day\n@endgantt", "OTHER\n(Gantt)\n", Verification.EXACT,
+		l.add(TestCase.of("-syntax", "@startgantt\n[a] lasts 1 day\n@endgantt", "GANTT\n(Gantt)\n", Verification.EXACT,
 				false, false));
 
 		// invalid syntax
-		l.add(TestCase.of("-syntax", "@startuml\na\n@enduml", "ERROR\n1\nSyntax Error?\n", Verification.EXACT, true,
+		l.add(TestCase.of("-syntax", "@startuml\na\n@enduml", "ERROR\n1\nSyntax Error? (Assumed diagram type: sequence)\n", Verification.EXACT, true,
 				false));
 		l.add(TestCase.of("-syntax", "@startuml\na\n@enduml\n@startuml\na\n@enduml",
-				"ERROR\n1\nSyntax Error?\nERROR\n1\nSyntax Error?\n", Verification.EXACT, true, false));
+				"ERROR\n1\nSyntax Error? (Assumed diagram type: sequence)\nERROR\n1\nSyntax Error? (Assumed diagram type: sequence)\n", Verification.EXACT, true, false));
 		l.add(TestCase.of("-syntax", "@startuml\na->b\n@enduml\n@startuml\na\n@enduml",
-				"SEQUENCE\n(2 participants)\nERROR\n1\nSyntax Error?\n", Verification.EXACT, true, false));
+				"SEQUENCE\n(2 participants)\nERROR\n1\nSyntax Error? (Assumed diagram type: sequence)\n", Verification.EXACT, true, false));
 		l.add(TestCase.of("-syntax", "@startuml\na\n@enduml\n@startuml\na->b\n@enduml",
-				"ERROR\n1\nSyntax Error?\nSEQUENCE\n(2 participants)\n", Verification.EXACT, true, false));
+				"ERROR\n1\nSyntax Error? (Assumed diagram type: sequence)\nSEQUENCE\n(2 participants)\n", Verification.EXACT, true, false));
 
 		// pipemap (using regexp to allow any coords so that it doesn't fail on
 		// different systems)

@@ -62,6 +62,7 @@ import net.sourceforge.plantuml.preproc.Defines;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.preproc.ReadLineWithYamlHeader;
 import net.sourceforge.plantuml.regex.Matcher2;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.text.BackSlash;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.tim.TimLoader;
@@ -88,10 +89,10 @@ public class BlockUml {
 
 	@Deprecated
 	BlockUml(String... strings) {
-		this(PathSystem.fetch(), convert(strings), Defines.createEmpty(), null, null, null);
+		this(null, PathSystem.fetch(), convert(strings), Defines.createEmpty(), null, null);
 	}
 
-	// ::comment when __CORE__ or __TEAVM__
+	// ::comment when __TEAVM__
 	public String getEncodedUrl() throws IOException {
 		final Transcoder transcoder = TranscoderUtil.getDefaultTranscoder();
 		final String source = getDiagram().getSource().getPlainString("\n");
@@ -136,8 +137,8 @@ public class BlockUml {
 //		this(strings, defines, skinMap, definitions, charsetOrDefault(definitions.getCharset()));
 //	}
 
-	public BlockUml(PathSystem pathSystem, List<StringLocated> strings, Defines defines, Previous previous,
-			DefinitionsContainer definitions, Charset charset) {
+	public BlockUml(DefinitionsContainer definitions, PathSystem pathSystem, List<StringLocated> strings,
+			Defines defines, Previous previous, Charset charset) {
 		this.pathSystem = pathSystem;
 		this.rawSource = ReadLineWithYamlHeader.removeYamlHeader(strings);
 		this.localDefines = defines;
@@ -147,8 +148,7 @@ public class BlockUml {
 			this.data = new ArrayList<>(this.rawSource);
 			this.preprocessingArtifact = new PreprocessingArtifact();
 		} else {
-			final TimLoader timLoader = new TimLoader(pathSystem, /*definitions.getImportedFiles(),*/ defines, charset,
-					definitions, this.rawSource.get(0));
+			final TimLoader timLoader = new TimLoader(pathSystem, defines, charset, definitions, this.rawSource.get(0));
 			this.included.addAll(timLoader.load(this.rawSource));
 			List<StringLocated> tmp = timLoader.getResultList();
 			tmp = Jaws.expands0(tmp);
@@ -160,7 +160,7 @@ public class BlockUml {
 		}
 	}
 
-	// ::comment when __CORE__ or __TEAVM__
+	// ::comment when __TEAVM__
 	public String getFileOrDirname() {
 		if (GlobalConfig.getInstance().boolValue(GlobalConfigKey.WORD))
 			return null;
@@ -190,24 +190,26 @@ public class BlockUml {
 	// ::done
 
 	public Diagram getDiagram() {
-		// ::revert when __CORE__ or __TEAVM__
-		if (system == null) {
-			if (preprocessorError)
-				system = new PSystemErrorPreprocessor(data, debug, preprocessingArtifact);
-			else
-				system = new PSystemBuilder().createPSystem(pathSystem, data, rawSource, previous,
-						preprocessingArtifact);
+		if (!TeaVM.isTeaVM()) {
+			if (system == null) {
+				if (preprocessorError)
+					system = new PSystemErrorPreprocessor(data, debug, preprocessingArtifact);
+				else
+					system = new PSystemBuilder().createPSystem(pathSystem, data, rawSource, previous,
+							preprocessingArtifact);
+			}
+			return system;
+		} else {
+			throw new UnsupportedOperationException("TEAVM113");
 		}
-		return system;
-		// throw new UnsupportedOperationException("TEAVM11");
-		// ::done
+
 	}
 
 	public final List<StringLocated> getData() {
 		return data;
 	}
 
-	// ::comment when __CORE__ or __TEAVM__
+	// ::comment when __TEAVM__
 	private String internalEtag() {
 		try {
 			final AsciiEncoder coder = new AsciiEncoder();

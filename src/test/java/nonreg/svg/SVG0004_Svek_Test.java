@@ -32,13 +32,13 @@ Expected result MUST be put between triple brackets
     <g class="cluster" data-qualified-name="pkg1" data-source-line="3" id="ent0003">
       <path fill="none" style="stroke:#000000;stroke-width:1.5;"/>
       <line style="stroke:#000000;stroke-width:1.5;"/>
-      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing">pkg1</text>
+      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="700" lengthAdjust="spacing">pkg1</text>
     </g>
     <!--cluster pkg2-->
     <g class="cluster" data-qualified-name="pkg1.pkg2" data-source-line="3" id="ent0004">
       <path fill="none" style="stroke:#000000;stroke-width:1.5;"/>
       <line style="stroke:#000000;stroke-width:1.5;"/>
-      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing">pkg2</text>
+      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="700" lengthAdjust="spacing">pkg2</text>
     </g>
     <!--class Class 1 with ASCII special chars\r\n\t!#$%&'()*+,-/:;<=>?@[\\]^_`{|}~????????????????????????????????-???????????????-->
     <g class="entity" data-qualified-name="pkg1.pkg2.Class 1 with ASCII special chars.r.n.t...........-............._.....................................-..............." data-source-line="3" id="ent0002">

@@ -44,6 +44,7 @@ import net.sourceforge.plantuml.abel.LinkArg;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.decoration.LinkDecor;
 import net.sourceforge.plantuml.decoration.LinkType;
 import net.sourceforge.plantuml.descdiagram.command.CommandLinkElement;
@@ -60,7 +61,6 @@ import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexOr;
 import net.sourceforge.plantuml.regex.RegexResult;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.url.UrlBuilder;
 import net.sourceforge.plantuml.url.UrlMode;
@@ -74,12 +74,12 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 	private static final String SINGLE2 = "(?:" + SINGLE + "|" + SINGLE_GUILLEMENT + ")";
 	private static final String COUPLE = "\\([%s]*(" + SINGLE2 + ")[%s]*,[%s]*(" + SINGLE2 + ")[%s]*\\)";
 
-	public CommandLinkClass(UmlDiagramType umlDiagramType) {
-		super(getRegexConcat(umlDiagramType));
+	public CommandLinkClass(DiagramType diagramType) {
+		super(getRegexConcat(diagramType));
 	}
 
-	static private RegexConcat getRegexConcat(UmlDiagramType umlDiagramType) {
-		return RegexConcat.build(CommandLinkClass.class.getName() + umlDiagramType, RegexLeaf.start(), //
+	static private RegexConcat getRegexConcat(DiagramType diagramType) {
+		return RegexConcat.build(CommandLinkClass.class.getName() + diagramType, RegexLeaf.start(), //
 				new RegexOptional( //
 						new RegexConcat( //
 								new RegexLeaf(1, "HEADER", "@([\\d.]+)"), //
@@ -98,6 +98,7 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 						RegexLeaf.spaceOneOrMore() //
 				)), //
 				new RegexOptional(new RegexLeaf(1, "FIRST_LABEL", "[%g]([^%g]+)[%g]")), //
+				new RegexOptional(new RegexLeaf(1, "FIRST_ROLE", "/([^%s]+|[%g][^%g]+[%g])")), //
 
 				RegexLeaf.spaceZeroOrMore(), //
 
@@ -114,6 +115,7 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 				RegexLeaf.spaceZeroOrMore(), //
 
 				new RegexOptional(new RegexLeaf(1, "SECOND_LABEL", "[%g]([^%g]+)[%g]")), //
+				new RegexOptional(new RegexLeaf(1, "SECOND_ROLE", "/([^%s]+|[%g][^%g]+[%g])")), //
 				new RegexOptional(new RegexConcat( //
 						RegexLeaf.spaceOneOrMore(), //
 						new RegexLeaf("[\\[]"), //
@@ -211,6 +213,7 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 				.build(labels.getDisplay(diagram.getPragma()), queue,
 						diagram.getSkinParam().classAttributeIconSize() > 0)
 				.withQuantifier(labels.getFirstLabel(), labels.getSecondLabel())
+				.withRole(labels.getFirstRole(), labels.getSecondRole())
 				.withDistanceAngle(diagram.getLabeldistance(), diagram.getLabelangle()).withKal(kal1, kal2);
 
 		Link link = new Link(location, diagram, diagram.getSkinParam().getCurrentStyleBuilder(), cl1, cl2, linkType,

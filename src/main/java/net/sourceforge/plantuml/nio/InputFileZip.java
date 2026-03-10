@@ -58,6 +58,7 @@ import java.util.zip.ZipFile;
  * </pre>
  */
 public class InputFileZip implements InputFile {
+	
 
 	private final File zipFile;
 	private final String entryName;

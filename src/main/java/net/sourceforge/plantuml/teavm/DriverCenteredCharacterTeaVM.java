@@ -40,7 +40,6 @@ import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UDriver;
 import net.sourceforge.plantuml.klimt.font.UFont;
-import net.sourceforge.plantuml.klimt.font.UFontContext;
 import net.sourceforge.plantuml.klimt.shape.UCenteredCharacter;
 
 /**
@@ -51,18 +50,17 @@ import net.sourceforge.plantuml.klimt.shape.UCenteredCharacter;
  * converting the character to a path (which would require AWT).
  */
 public class DriverCenteredCharacterTeaVM implements UDriver<UCenteredCharacter, SvgGraphicsTeaVM> {
+	// ::remove file when JAVA8
 
 	@Override
 	public void draw(UCenteredCharacter characterCircled, double x, double y, ColorMapper mapper, UParam param,
 			SvgGraphicsTeaVM svg) {
-		// ::uncomment when __TEAVM__
-//		final char c = characterCircled.getChar();
-//		final UFont font = characterCircled.getFont();
-//		final HColor textColor = param.getColor();
-//		final String text = String.valueOf(c);
-//
-//		svg.setFillColor(textColor.toSvg(mapper));
-//		svg.drawCenteredCharacter(c, x, y, "monospace", font.getSize());
-		// ::done
+		final char c = characterCircled.getChar();
+		final UFont font = characterCircled.getFont();
+		final HColor textColor = param.getColor();
+		final String text = String.valueOf(c);
+
+		svg.setFillColor(textColor.toSvg(mapper));
+		svg.drawCenteredCharacter(c, x, y, "monospace", font.getSize());
 	}
 }

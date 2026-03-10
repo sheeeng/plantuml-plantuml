@@ -37,23 +37,26 @@ package net.sourceforge.plantuml.klimt.font;
 
 public interface UFont {
 
-	public UFont withSize(float size);
+	/**
+	 * Returns the font face (weight + italic axis) for this font.
+	 *
+	 * @return font face
+	 */
+	public UFontFace getFontFace();
 
-	public UFont withStyle(int style);
-
-	public UFont bold();
-
-	public UFont italic();
-
-	public int getStyle();
+	/**
+	 * Returns a new font with the given face and the same size and family.
+	 *
+	 * @param face new face
+	 * @return new font with the requested face
+	 */
+	public UFont withFontFace(UFontFace face);
 
 	public int getSize();
 
 	public double getSize2D();
 
-	public boolean isBold();
-
-	public boolean isItalic();
+	public UFont withSize(float size);
 
 	public String getFamily(String text, UFontContext context);
 

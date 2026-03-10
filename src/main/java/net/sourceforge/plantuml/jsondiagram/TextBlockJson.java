@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.json.JsonArray;
 import net.sourceforge.plantuml.json.JsonObject;
 import net.sourceforge.plantuml.json.JsonObject.Member;
@@ -53,12 +54,10 @@ import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
@@ -69,8 +68,7 @@ import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.yaml.Highlighted;
 
 //See TextBlockMap
-public class TextBlockJson extends AbstractTextBlock {
-	// ::remove folder when __HAXE__
+public class TextBlockJson implements TextBlock {
 
 	private static final double MIN_WIDTH = 30;
 	private static final double MIN_HEIGHT = 15;
@@ -111,7 +109,7 @@ public class TextBlockJson extends AbstractTextBlock {
 
 	TextBlockJson(ISkinParam skinParam, JsonValue root, List<Highlighted> allHighlighteds) {
 		this.styleBuilder = skinParam.getCurrentStyleBuilder();
-		this.diagramType = skinParam.getUmlDiagramType() == UmlDiagramType.JSON ? SName.jsonDiagram : SName.yamlDiagram;
+		this.diagramType = skinParam.getDiagramType() == DiagramType.JSON ? SName.jsonDiagram : SName.yamlDiagram;
 		this.skinParam = skinParam;
 
 		this.root = root;

@@ -35,7 +35,6 @@
  */
 package net.sourceforge.plantuml.skin;
 
-import java.awt.Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -58,6 +57,7 @@ import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.TikzFontDistortion;
 import net.sourceforge.plantuml.activitydiagram3.ftile.ArrowsRegular;
 import net.sourceforge.plantuml.activitydiagram3.ftile.ArrowsTriangle;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.decoration.LinkStyle;
 import net.sourceforge.plantuml.dot.DotSplines;
 import net.sourceforge.plantuml.klimt.Arrows;
@@ -75,6 +75,7 @@ import net.sourceforge.plantuml.klimt.creole.legacy.CreoleParser;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.FontParam;
 import net.sourceforge.plantuml.klimt.font.UFont;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.font.UFontFactory;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.Rankdir;
@@ -98,6 +99,7 @@ import net.sourceforge.plantuml.style.parser.StyleParsingException;
 import net.sourceforge.plantuml.svek.ConditionEndStyle;
 import net.sourceforge.plantuml.svek.ConditionStyle;
 import net.sourceforge.plantuml.svek.PackageStyle;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.text.Guillemet;
 import net.sourceforge.plantuml.utils.BlocLines;
 
@@ -117,7 +119,23 @@ public class SkinParam implements ISkinParam {
 	private final PathSystem pathSystem;
 	private final ConfigurationStore<OptionKey> option;
 
-	private SkinParam(PathSystem pathSystem, UmlDiagramType type, Pragma pragma, ConfigurationStore<OptionKey> option) {
+	private static final Pattern DIGITS = Pattern.compile("\\d+");
+	private static final Pattern DIGITS_DOT = Pattern.compile("[\\d.]+");
+	private static final Pattern INT_OR_DECIMAL = Pattern.compile("\\d+(\\.\\d+)?");
+
+	private static boolean isDigits(String s) {
+		return s != null && DIGITS.matcher(s).matches();
+	}
+
+	private static boolean isDigitsOrDot(String s) {
+		return s != null && DIGITS_DOT.matcher(s).matches();
+	}
+
+	private static boolean isIntOrDecimal(String s) {
+		return s != null && INT_OR_DECIMAL.matcher(s).matches();
+	}
+
+	private SkinParam(PathSystem pathSystem, DiagramType type, Pragma pragma, ConfigurationStore<OptionKey> option) {
 		this.type = type;
 		this.pragma = pragma;
 		this.option = option;
@@ -172,7 +190,7 @@ public class SkinParam implements ISkinParam {
 	private final Map<String, String> paramsPendingForStyleMigration = new LinkedHashMap<String, String>();
 	private final Map<String, String> svgCharSizes = new HashMap<String, String>();
 	private Rankdir rankdir = Rankdir.TOP_TO_BOTTOM;
-	private final UmlDiagramType type;
+	private final DiagramType type;
 	private boolean useVizJs;
 
 	@Override
@@ -222,7 +240,7 @@ public class SkinParam implements ISkinParam {
 		paramsPendingForStyleMigration.clear();
 	}
 
-	public static SkinParam create(PathSystem pathSystem, UmlDiagramType type, Pragma pragma,
+	public static SkinParam create(PathSystem pathSystem, DiagramType type, Pragma pragma,
 			ConfigurationStore<OptionKey> option) {
 		return new SkinParam(pathSystem, type, pragma, option);
 	}
@@ -340,7 +358,8 @@ public class SkinParam implements ISkinParam {
 		if (param == ColorParam.background)
 			return getIHtmlColorSet().getColorOrWhite(value);
 
-		assert param != ColorParam.background;
+		if (TeaVM.a())
+			assert param != ColorParam.background;
 
 		return getIHtmlColorSet().getColorOrWhite(value);
 	}
@@ -393,15 +412,15 @@ public class SkinParam implements ISkinParam {
 			checkStereotype(stereotype);
 			final String value2 = getFirstValueNonNullWithSuffix(
 					"fontsize" + stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR), param);
-			if (value2 != null && value2.matches("\\d+"))
+			if (isDigits(value2))
 				return Integer.parseInt(value2);
 
 		}
 		String value = getFirstValueNonNullWithSuffix("fontsize", param);
-		if (value == null || value.matches("\\d+") == false)
+		if (isDigits(value) == false)
 			value = getValue("defaultfontsize");
 
-		if (value == null || value.matches("\\d+") == false)
+		if (isDigits(value) == false)
 			return param[0].getDefaultSize(this);
 
 		return Integer.parseInt(value);
@@ -464,7 +483,7 @@ public class SkinParam implements ISkinParam {
 		return null;
 	}
 
-	private int getFontStyle(Stereotype stereotype, boolean inPackageTitle, FontParam... param) {
+	private UFontFace getFontFace(Stereotype stereotype, boolean inPackageTitle, FontParam... param) {
 		String value = null;
 		if (stereotype != null) {
 			checkStereotype(stereotype);
@@ -478,16 +497,18 @@ public class SkinParam implements ISkinParam {
 			value = getValue("defaultfontstyle");
 
 		if (value == null)
-			return param[0].getDefaultFontStyle(this, inPackageTitle);
+			return param[0].getDefaultFontFace(this, inPackageTitle);
 
-		int result = Font.PLAIN;
-		if (StringUtils.goLowerCase(value).contains("bold"))
-			result = result | Font.BOLD;
-
-		if (StringUtils.goLowerCase(value).contains("italic"))
-			result = result | Font.ITALIC;
-
-		return result;
+		final String lower = StringUtils.goLowerCase(value);
+		final boolean bold = lower.contains("bold");
+		final boolean italic = lower.contains("italic");
+		if (bold && italic)
+			return UFontFace.boldItalic();
+		if (bold)
+			return UFontFace.bold();
+		if (italic)
+			return UFontFace.italic();
+		return UFontFace.normal();
 	}
 
 	@Override
@@ -496,9 +517,9 @@ public class SkinParam implements ISkinParam {
 			checkStereotype(stereotype);
 
 		final String fontFamily = getFontFamily(stereotype, fontParam);
-		final int fontStyle = getFontStyle(stereotype, inPackageTitle, fontParam);
+		final UFontFace face = getFontFace(stereotype, inPackageTitle, fontParam);
 		final int fontSize = getFontSize(stereotype, fontParam);
-		return UFontFactory.build(fontFamily, fontStyle, fontSize);
+		return UFontFactory.build(fontFamily, face, fontSize);
 	}
 
 	@Override
@@ -795,8 +816,8 @@ public class SkinParam implements ISkinParam {
 	}
 
 	@Override
-	public boolean useSwimlanes(UmlDiagramType type) {
-		if (type != UmlDiagramType.ACTIVITY)
+	public boolean useSwimlanes(DiagramType type) {
+		if (type != DiagramType.ACTIVITY)
 			return false;
 
 		return swimlanes();
@@ -857,7 +878,7 @@ public class SkinParam implements ISkinParam {
 			key += stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR);
 
 		final String value = getValue(key);
-		if (value != null && value.matches("\\d+"))
+		if (isDigits(value))
 			return Double.parseDouble(value);
 
 		return null;
@@ -876,7 +897,7 @@ public class SkinParam implements ISkinParam {
 
 			final String value2 = getValue(
 					param.name() + "thickness" + stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR));
-			if (value2 != null && value2.matches("[\\d.]+")) {
+			if (isDigitsOrDot(value2)) {
 				if (style == null)
 					style = LinkStyle.NORMAL();
 
@@ -884,7 +905,7 @@ public class SkinParam implements ISkinParam {
 			}
 		}
 		final String value = getValue(param.name() + "thickness");
-		if (value != null && value.matches("[\\d.]+")) {
+		if (isDigitsOrDot(value)) {
 			if (style == null)
 				style = LinkStyle.NORMAL();
 
@@ -1057,14 +1078,14 @@ public class SkinParam implements ISkinParam {
 		if ("same".equalsIgnoreCase(value))
 			return SWIMLANE_WIDTH_SAME;
 
-		if (value != null && value.matches("\\d+"))
+		if (isDigits(value))
 			return Integer.parseInt(value);
 
 		return 0;
 	}
 
 	@Override
-	public UmlDiagramType getUmlDiagramType() {
+	public DiagramType getDiagramType() {
 		return type;
 	}
 
@@ -1091,7 +1112,7 @@ public class SkinParam implements ISkinParam {
 
 	private double getAsDouble(final String name) {
 		final String value = getValue(name);
-		if (value != null && value.matches("\\d+(\\.\\d+)?"))
+		if (isIntOrDecimal(value))
 			return Double.parseDouble(value);
 
 		return 0;
@@ -1099,7 +1120,7 @@ public class SkinParam implements ISkinParam {
 
 	private int getAsInt(String key, int defaultValue) {
 		final String value = getValue(key);
-		if (value != null && value.matches("\\d+"))
+		if (isDigits(value))
 			return Integer.parseInt(value);
 
 		return defaultValue;

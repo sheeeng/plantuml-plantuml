@@ -37,18 +37,18 @@ package net.sourceforge.plantuml.eggs;
 
 import java.io.IOException;
 
-import net.sourceforge.plantuml.AbstractPSystem;
 import net.sourceforge.plantuml.command.PSystemSingleLineFactory;
+import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.utils.Log;
 
 public class PSystemAppleTwoFactory extends PSystemSingleLineFactory {
-	// ::remove file when __CORE__ or __TEAVM__
+	
 
 	@Override
-	protected AbstractPSystem executeLine(UmlSource source, String line, PreprocessingArtifact preprocessing) {
+	protected Diagram executeLine(UmlSource source, String line, PreprocessingArtifact preprocessing) {
 		if (line.equalsIgnoreCase("apple //e") || line.equalsIgnoreCase("apple ][") || line.equalsIgnoreCase("apple II")
 				|| line.equalsIgnoreCase("Steve Jobs") || line.equalsIgnoreCase("Steve Wozniak")) {
 			try {

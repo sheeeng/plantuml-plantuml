@@ -38,7 +38,7 @@ Expected result MUST be put between triple brackets
       <rect fill="none" style="stroke:#181818;stroke-width:1;"/>
       <rect fill="none" style="stroke:#181818;stroke-width:1;"/>
       <rect fill="none" style="stroke:#181818;stroke-width:1;"/>
-      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing">c1</text>
+      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="700" lengthAdjust="spacing">c1</text>
     </g>
     <!--cluster c2-->
     <g class="cluster" data-qualified-name="c2" data-source-line="7" id="ent0004">
@@ -46,7 +46,7 @@ Expected result MUST be put between triple brackets
       <rect fill="none" style="stroke:#181818;stroke-width:1;"/>
       <rect fill="none" style="stroke:#181818;stroke-width:1;"/>
       <rect fill="none" style="stroke:#181818;stroke-width:1;"/>
-      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing">c2</text>
+      <text fill="#000000" font-family="sans-serif" font-size="14" font-weight="700" lengthAdjust="spacing">c2</text>
     </g>
     <g class="entity" data-qualified-name="c1.p1" data-source-line="4" id="ent0003">
       <text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing">p1</text>

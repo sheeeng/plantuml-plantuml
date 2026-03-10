@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.klimt.sprite;
 import net.atmp.PixelImage;
 import net.sourceforge.plantuml.klimt.AffineTransformType;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
+import net.sourceforge.plantuml.klimt.awt.PortableImageFactory;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorGradient;
@@ -45,7 +46,6 @@ import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.UImage;
 
@@ -97,7 +97,7 @@ public class SpriteColor implements Sprite {
 	}
 
 	public UImage toUImage(ColorMapper colorMapper, HColor backcolor, HColor forecolor) {
-		final PortableImage im = new PortableImage(width, height, PortableImage.TYPE_INT_RGB);
+		final PortableImage im = PortableImageFactory.build(width, height, PortableImage.TYPE_INT_RGB);
 
 		if (backcolor == null)
 			backcolor = HColors.WHITE;
@@ -121,8 +121,9 @@ public class SpriteColor implements Sprite {
 	}
 
 	@Override
-	public TextBlock asTextBlock(final HColor fontColor, final HColor forcedColor, final double scale, final HColor backColor) {
-		return new AbstractTextBlock() {
+	public TextBlock asTextBlock(final HColor fontColor, final HColor forcedColor, final double scale,
+			final HColor backColor) {
+		return new TextBlock() {
 
 			public void drawU(UGraphic ug) {
 				final UImage image = toUImage(ug.getColorMapper(), ug.getParam().getBackcolor(), fontColor);

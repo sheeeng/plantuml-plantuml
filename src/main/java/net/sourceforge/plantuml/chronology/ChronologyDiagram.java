@@ -35,8 +35,6 @@
  */
 package net.sourceforge.plantuml.chronology;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -45,10 +43,9 @@ import java.util.Objects;
 
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.TitledDiagram;
-import net.sourceforge.plantuml.WithSprite;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.core.DiagramDescription;
-import net.sourceforge.plantuml.core.ImageData;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
@@ -56,7 +53,6 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.project.GanttStyle;
@@ -72,12 +68,11 @@ import net.sourceforge.plantuml.project.timescale.TimeScale;
 import net.sourceforge.plantuml.real.Real;
 import net.sourceforge.plantuml.real.RealOrigin;
 import net.sourceforge.plantuml.real.RealUtils;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 
-public class ChronologyDiagram extends TitledDiagram implements WithSprite, GanttStyle {
+public class ChronologyDiagram extends TitledDiagram implements GanttStyle {
 
 	private final Map<Task, TaskDraw> draws = new LinkedHashMap<Task, TaskDraw>();
 	private final Map<TaskCode, Task> tasks = new LinkedHashMap<TaskCode, Task>();
@@ -131,18 +126,12 @@ public class ChronologyDiagram extends TitledDiagram implements WithSprite, Gant
 //	}
 
 	public ChronologyDiagram(UmlSource source, PreprocessingArtifact preprocessing) {
-		super(source, UmlDiagramType.CHRONOLOGY, null, preprocessing);
+		super(source, DiagramType.CHRONOLOGY, null, preprocessing);
 	}
 
 //	public final int getDpi(FileFormatOption fileFormatOption) {
 //		return 96;
 //	}
-
-	@Override
-	protected ImageData exportDiagramNow(OutputStream os, int index, FileFormatOption fileFormatOption)
-			throws IOException {
-		return createImageBuilder(fileFormatOption).drawable(getTextMainBlock(fileFormatOption)).write(os);
-	}
 
 //	public void setPrintScale(PrintScale printScale) {
 //		this.printScale = printScale;
@@ -180,7 +169,12 @@ public class ChronologyDiagram extends TitledDiagram implements WithSprite, Gant
 //	}
 
 	@Override
-	protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
+		return getTextMainBlock01970(fileFormatOption);
+	}
+
+	@Override
+	protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
 		final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(getSkinParam());
 		initMinMax();
 
@@ -189,16 +183,16 @@ public class ChronologyDiagram extends TitledDiagram implements WithSprite, Gant
 		initTaskAndResourceDraws(timeHeader.getTimeScale(), timeHeader.getFullHeaderHeight(stringBounder),
 				stringBounder);
 
-		return new AbstractTextBlock() {
+		return new TextBlock() {
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(1000, 1000);
 			}
 
 			@Override
 			public void drawU(UGraphic ug) {
-				timeHeader.drawTimeHeader(ug, 200);
-				drawTasksRect(ug);
-				drawTasksTitle(ug, 0, 0);
+//				timeHeader.drawTimeHeader(ug, 200);
+//				drawTasksRect(ug);
+//				drawTasksTitle(ug, 0, 0);
 			}
 		};
 

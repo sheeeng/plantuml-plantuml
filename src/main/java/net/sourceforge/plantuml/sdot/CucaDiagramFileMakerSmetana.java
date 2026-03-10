@@ -44,7 +44,6 @@ import static gen.lib.gvc.gvc__c.gvContext;
 import static gen.lib.gvc.gvlayout__c.gvLayoutJobs;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -62,7 +61,6 @@ import h.ST_Agrec_s;
 import h.ST_GVC_s;
 import net.atmp.CucaDiagram;
 import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.abel.CucaNote;
 import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.GroupType;
@@ -70,11 +68,7 @@ import net.sourceforge.plantuml.abel.LeafType;
 import net.sourceforge.plantuml.abel.Link;
 import net.sourceforge.plantuml.abel.LinkArrow;
 import net.sourceforge.plantuml.annotation.DuplicateCode;
-import net.sourceforge.plantuml.api.ImageDataSimple;
-import net.sourceforge.plantuml.core.ImageData;
-import net.sourceforge.plantuml.crash.GraphvizCrash;
-import net.sourceforge.plantuml.crash.CrashReportHandler;
-import net.sourceforge.plantuml.eggs.QuoteUtils;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.creole.CreoleMode;
@@ -88,12 +82,9 @@ import net.sourceforge.plantuml.klimt.geom.Rankdir;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XPoint2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
-import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.skin.AlignmentParam;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.skin.VisibilityModifier;
 import net.sourceforge.plantuml.skin.rose.Rose;
 import net.sourceforge.plantuml.stereo.Stereotype;
@@ -119,8 +110,6 @@ import smetana.core.debug.SmetanaDebug;
 
 @DuplicateCode(reference = "SvekEdge, CucaDiagramFileMakerElk, CucaDiagramFileMakerSmetana")
 public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
-	// ::remove folder when __HAXE__ or __TEAVM__
-
 	private final Map<Entity, ST_Agnode_s> nodes = new LinkedHashMap<Entity, ST_Agnode_s>();
 	private final Map<Entity, ST_Agnode_s> coreNodes = new LinkedHashMap<Entity, ST_Agnode_s>();
 	private final Map<Link, ST_Agedge_s> edges = new LinkedHashMap<Link, ST_Agedge_s>();
@@ -157,7 +146,7 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 		return result;
 	}
 
-	class Drawing extends AbstractTextBlock {
+	class Drawing implements TextBlock {
 
 		private final YMirror ymirror;
 		private final MinMaxMutable minMax;
@@ -179,9 +168,17 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 					continue;
 
 				final ST_Agedge_s edge = ent.getValue();
+				final TextBlock quantifier1 = getQuantifier(ug.getStringBounder(), link, 1);
+				final TextBlock quantifier2 = getQuantifier(ug.getStringBounder(), link, 2);
+				final TextBlock role1 = getRoleLabel(ug.getStringBounder(), link, 1);
+				final TextBlock role2 = getRoleLabel(ug.getStringBounder(), link, 2);
+				final TextBlock tailLabel = quantifier1 != null ? quantifier1 : role1;
+				final TextBlock headLabel = quantifier2 != null ? quantifier2 : role2;
+				final TextBlock tailRole = quantifier1 != null ? role1 : null;
+				final TextBlock headRole = quantifier2 != null ? role2 : null;
 				final SmetanaEdge smetanaPath = new SmetanaEdge(link, edge, ymirror,
-						getLabel(ug.getStringBounder(), link), getQuantifier(ug.getStringBounder(), link, 1),
-						getQuantifier(ug.getStringBounder(), link, 2), getBibliotekon(), diagram.getSkinParam());
+						getLabel(ug.getStringBounder(), link), tailLabel, headLabel, tailRole, headRole,
+						getBibliotekon(), diagram.getSkinParam());
 				smetanaPathes.put(link, smetanaPath);
 			}
 
@@ -207,7 +204,7 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 		}
 
 		public XDimension2D calculateDimension(StringBounder stringBounder) {
-			return minMax.getDimension().delta(6);
+			return minMax.getDimension().delta(16, 6);
 		}
 
 		private XPoint2D getCorner(ST_Agnode_s n) {
@@ -385,8 +382,9 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 
 	private static final Lock lock = new ReentrantLock();
 
-	public ImageData createFile(OutputStream os, List<String> dotStrings, FileFormatOption fileFormatOption)
-			throws IOException {
+	@Override
+	public TextBlock getTextBlock12026(List<String> dotStrings, FileFormatOption fileFormatOption)
+			throws IOException, InterruptedException {
 
 		final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam());
 
@@ -412,58 +410,18 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 					link.setOpale(true);
 				}
 			}
-
 		}
 
 		lock.lock();
 		try {
-			return createFileLocked(os, dotStrings, fileFormatOption);
+			final Globals zz = Globals.open();
+			try {
+				return getTextBlock(stringBounder, zz);
+			} finally {
+				Globals.close();
+			}
 		} finally {
 			lock.unlock();
-		}
-	}
-
-	@Override
-	public void createOneGraphic(UGraphic ug) {
-		final Globals zz = Globals.open();
-		try {
-			final TextBlock textBlock = getTextBlock(ug.getStringBounder(), zz);
-			textBlock.drawU(ug);
-		} catch (Throwable e) {
-			SmetanaDebug.printMe();
-		} finally {
-			Globals.close();
-		}
-	}
-
-	private ImageData createFileLocked(OutputStream os, List<String> dotStrings, FileFormatOption fileFormatOption)
-			throws IOException {
-
-		final Globals zz = Globals.open();
-		try {
-			final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam());
-
-			final TextBlock drawable = getTextBlock(stringBounder, zz);
-			return diagram.createImageBuilder(fileFormatOption).drawable(drawable).write(os);
-		} catch (Throwable e) {
-			SmetanaDebug.printMe();
-			Logme.error(e);
-			final CrashReportHandler report = new CrashReportHandler(e, diagram.getMetadata(), diagram.getFlashData());
-			report.add("An error has occured : " + e);
-			final String quote = StringUtils.rot(QuoteUtils.getSomeQuote());
-			report.add("<i>" + quote);
-			report.addEmptyLine();
-			report.addProperties();
-			report.addEmptyLine();
-			report.add("Sorry, the subproject Smetana is not finished yet...");
-			report.addEmptyLine();
-			report.add("You should send this diagram and this image to <b>plantuml@gmail.com</b> or");
-			report.add("post to <b>https://plantuml.com/qa</b> to solve this issue.");
-			report.addEmptyLine();
-			report.exportDiagramError(fileFormatOption, diagram.seed(), os);
-			return ImageDataSimple.error();
-		} finally {
-			Globals.close();
 		}
 	}
 
@@ -538,7 +496,7 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 
 	private Style getStyle() {
 		return StyleSignatureBasic
-				.of(SName.root, SName.element, diagram.getUmlDiagramType().getStyleName(), SName.arrow)
+				.of(SName.root, SName.element, diagram.getDiagramType().getStyleName(), SName.arrow)
 				.getMergedStyle(diagram.getSkinParam().getCurrentStyleBuilder());
 	}
 
@@ -552,15 +510,15 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 	}
 
 	private FontConfiguration getFontForLink(Link link, final ISkinParam skinParam) {
-		final SName styleName = skinParam.getUmlDiagramType().getStyleName();
+		final SName styleName = skinParam.getDiagramType().getStyleName();
 
 		final Style style = getDefaultStyleDefinitionArrow(link.getStereotype(), styleName)
 				.getMergedStyle(link.getStyleBuilder());
 		return style.getFontConfiguration(skinParam.getIHtmlColorSet());
 	}
 
-	private HorizontalAlignment getMessageTextAlignment(UmlDiagramType umlDiagramType, ISkinParam skinParam) {
-		if (umlDiagramType == UmlDiagramType.STATE)
+	private HorizontalAlignment getMessageTextAlignment(DiagramType diagramType, ISkinParam skinParam) {
+		if (diagramType == DiagramType.STATE)
 			return skinParam.getHorizontalAlignment(AlignmentParam.stateMessageAlignment, null, false, null);
 
 		return skinParam.getDefaultTextAlignment(HorizontalAlignment.CENTER);
@@ -592,7 +550,7 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 //		TextBlock labelOnly = link.getLabel().create(labelFont,
 //				skinParam.getDefaultTextAlignment(HorizontalAlignment.CENTER), skinParam);
 
-		final UmlDiagramType type = skinParam.getUmlDiagramType();
+		final DiagramType type = skinParam.getDiagramType();
 		final FontConfiguration font = getFontForLink(link, skinParam);
 
 		TextBlock labelOnly;
@@ -658,6 +616,23 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 		return TextBlockUtils.withMargin(label, marginLabel, marginLabel);
 	}
 
+	private TextBlock getRoleLabel(StringBounder stringBounder, Link link, int n) {
+		final String role = n == 1 ? link.getRole1() : link.getRole2();
+		if (role == null)
+			return null;
+
+		final double marginLabel = 1;
+		ISkinParam skinParam = diagram.getSkinParam();
+		final Style style = getStyle();
+		final FontConfiguration labelFont = style.getFontConfiguration(skinParam.getIHtmlColorSet());
+		final TextBlock label = Display.getWithNewlines(diagram.getPragma(), role).create(labelFont,
+				skinParam.getDefaultTextAlignment(HorizontalAlignment.CENTER), skinParam);
+		if (TextBlockUtils.isEmpty(label, stringBounder))
+			return label;
+
+		return TextBlockUtils.withMargin(label, marginLabel, marginLabel);
+	}
+
 	private ST_Agnode_s getAgnodeFromLeaf(Entity entity) {
 		final ST_Agnode_s n = nodes.get(entity);
 		if (n != null)
@@ -709,14 +684,18 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 			agsafeset(zz, e, new CString("label"), hackDim, new CString(""));
 		}
 		final TextBlock q1 = getQuantifier(stringBounder, link, 1);
-		if (q1 != null) {
-			final XDimension2D dimLabel = q1.calculateDimension(stringBounder);
+		final TextBlock r1 = getRoleLabel(stringBounder, link, 1);
+		final TextBlock tailForLayout = q1 != null ? q1 : r1;
+		if (tailForLayout != null) {
+			final XDimension2D dimLabel = tailForLayout.calculateDimension(stringBounder);
 			final CString hackDim = createLabelDim(dimLabel.getWidth(), dimLabel.getHeight());
 			agsafeset(zz, e, new CString("taillabel"), hackDim, new CString(""));
 		}
 		final TextBlock q2 = getQuantifier(stringBounder, link, 2);
-		if (q2 != null) {
-			final XDimension2D dimLabel = q2.calculateDimension(stringBounder);
+		final TextBlock r2 = getRoleLabel(stringBounder, link, 2);
+		final TextBlock headForLayout = q2 != null ? q2 : r2;
+		if (headForLayout != null) {
+			final XDimension2D dimLabel = headForLayout.calculateDimension(stringBounder);
 			final CString hackDim = createLabelDim(dimLabel.getWidth(), dimLabel.getHeight());
 			agsafeset(zz, e, new CString("headlabel"), hackDim, new CString(""));
 		}

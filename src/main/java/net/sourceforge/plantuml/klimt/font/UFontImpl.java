@@ -38,44 +38,58 @@ package net.sourceforge.plantuml.klimt.font;
 import java.awt.Font;
 import java.util.Objects;
 
+import net.sourceforge.plantuml.teavm.TeaVM;
+
 public final class UFontImpl implements UFont {
 
 	private final FontStack fontStack;
-	private final int style;
+	/**
+	 * The full font face (italic axis + CSS weight 100-900).  This is the
+	 * canonical weight/style store.
+	 */
+	private final UFontFace face;
 	private final int size;
 
 	public static Font getUnderlayingFont(final UFont font, final String text) {
 		return ((UFontImpl) font).getUnderlayingFont(text);
 	}
 
-	UFontImpl(FontStack fontStack, int style, int size) {
+	/**
+	 * Face-aware constructor.  Stores the full {@link UFontFace} so that
+	 * intermediate CSS weights (100-900) are preserved and applied via
+	 * {@link TextAttribute#WEIGHT} during Java2D rendering.
+	 */
+	UFontImpl(FontStack fontStack, UFontFace face, int size) {
 		this.fontStack = fontStack;
-		this.style = style;
+		this.face = face == null ? UFontFace.normal() : face;
 		this.size = size;
 	}
 
+	/**
+	 * Returns the underlying {@link java.awt.Font} for the given text, with all
+	 * font properties applied via {@link java.awt.font.TextAttribute}s.
+	 *
+	 * <p>Weight (CSS 100-900) and italic axis are both applied through
+	 * {@link UFontFace#deriveFont(Font)} so that fonts with intermediate weight
+	 * faces (e.g. Helvetica Neue Medium) render at the requested weight.
+	 * Fonts that only provide binary bold/normal fall back gracefully.
+	 */
 	public Font getUnderlayingFont(String text) {
-		return fontStack.getFont(text, style, size);
+		return fontStack.getFont(text, face, size);
 	}
 
 	public UFont withSize(float size) {
-		return new UFontImpl(fontStack, this.style, (int) size);
+		return new UFontImpl(fontStack, this.face, (int) size);
 	}
 
-	public UFont withStyle(int style) {
-		return new UFontImpl(fontStack, style, this.size);
+	public UFontFace getFontFace() {
+		return face;
 	}
 
-	public UFont bold() {
-		return withStyle(Font.BOLD);
-	}
-
-	public UFont italic() {
-		return withStyle(Font.ITALIC);
-	}
-
-	public int getStyle() {
-		return style;
+	public UFont withFontFace(UFontFace newFace) {
+		if (newFace == null)
+			return this;
+		return new UFontImpl(fontStack, newFace, this.size);
 	}
 
 	public int getSize() {
@@ -86,38 +100,29 @@ public final class UFontImpl implements UFont {
 		return size;
 	}
 
-	public boolean isBold() {
-		return (style & Font.BOLD) != 0;
-	}
-
-	public boolean isItalic() {
-		return (style & Font.ITALIC) != 0;
-	}
-
 	public String getFamily(String text, UFontContext context) {
-		// ::uncomment when __TEAVM__
-//		final String fullDefinition = fontStack.getFullDefinition();
-//		// Map Java font name to web-safe equivalent
-//		// http://plantuml.sourceforge.net/qa/?qa=5432/svg-monospace-output-has-wrong-font-family
-//		if ("monospaced".equalsIgnoreCase(fullDefinition))
-//			return "monospace";
-//
-//		return fullDefinition.replace('"', '\'').replaceAll("(?i)sansserif", "sans-serif");
-		// ::done
-		// ::comment when __TEAVM__
-		if (context == UFontContext.EPS) {
+		if (TeaVM.isTeaVM()) {
+			final String fullDefinition = fontStack.getFullDefinition();
+			// Map Java font name to web-safe equivalent
+			// http://plantuml.sourceforge.net/qa/?qa=5432/svg-monospace-output-has-wrong-font-family
+			if ("monospaced".equalsIgnoreCase(fullDefinition))
+				return "monospace";
+
+			return fullDefinition.replace('"', '\'').replaceAll("(?i)sansserif", "sans-serif");
+		} else {
+			if (context == UFontContext.EPS) {
 //			if (fontStack.getFamily() == null)
 //				return "Times-Roman";
-			return getUnderlayingFont(text).getPSName();
-		}
-		if (context == UFontContext.SVG) {
-			String result = fontStack.getFullDefinition().replace('"', '\'');
-			result = result.replaceAll("(?i)sansserif", "sans-serif");
+				return getUnderlayingFont(text).getPSName();
+			}
+			if (context == UFontContext.SVG) {
+				String result = fontStack.getFullDefinition().replace('"', '\'');
+				result = result.replaceAll("(?i)sansserif", "sans-serif");
 
-			return result;
+				return result;
+			}
 		}
 		throw new IllegalArgumentException();
-		// ::done
 	}
 
 	// Kludge for testing because font names on some machines (only macOS?) do not
@@ -145,11 +150,9 @@ public final class UFontImpl implements UFont {
 		return sb.toString();
 	}
 
-	// ::comment when __HAXE__
-
 	@Override
 	public int hashCode() {
-		return Objects.hash(fontStack, style, size);
+		return Objects.hash(fontStack, face, size);
 	}
 
 	@Override
@@ -159,9 +162,7 @@ public final class UFontImpl implements UFont {
 		if (!(obj instanceof UFontImpl))
 			return false;
 		UFontImpl other = (UFontImpl) obj;
-		return Objects.equals(fontStack, other.fontStack) && style == other.style && size == other.size;
+		return Objects.equals(fontStack, other.fontStack) && Objects.equals(face, other.face) && size == other.size;
 	}
-
-	// ::done
 
 }

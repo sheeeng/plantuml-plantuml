@@ -39,18 +39,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import net.sourceforge.plantuml.AbstractPSystem;
 import net.sourceforge.plantuml.EmbeddedDiagram;
 import net.sourceforge.plantuml.ErrorUml;
 import net.sourceforge.plantuml.ErrorUmlType;
 import net.sourceforge.plantuml.Previous;
-import net.sourceforge.plantuml.core.Diagram;
+import net.sourceforge.plantuml.core.AbstractDiagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.error.PSystemError;
 import net.sourceforge.plantuml.error.PSystemErrorUtils;
 import net.sourceforge.plantuml.nio.PathSystem;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.utils.BlocLines;
 import net.sourceforge.plantuml.utils.LineLocation;
@@ -63,18 +63,19 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 
 	protected abstract void initCommandsList(List<Command> cmds);
 
-	public abstract AbstractPSystem createEmptyDiagram(PathSystem pathSystem, UmlSource source, Previous previous, PreprocessingArtifact preprocessing);
-
-	protected PSystemCommandFactory() {
-		this(DiagramType.UML);
-	}
+	public abstract AbstractDiagram createEmptyDiagram(PathSystem pathSystem, UmlSource source, Previous previous,
+			PreprocessingArtifact preprocessing);
 
 	protected PSystemCommandFactory(DiagramType type) {
 		super(type);
 	}
 
 	@Override
-	final public Diagram createSystem(PathSystem pathSystem, UmlSource source, Previous previous, PreprocessingArtifact preprocessing) {
+	final public AbstractDiagram createSystem(PathSystem pathSystem, UmlSource source, Previous previous,
+			PreprocessingArtifact preprocessing) {
+
+		BrowserLog.consoleLog(getClass(), "createSystem");
+
 		IteratorCounter2 it = source.iterator2();
 		final StringLocated startLine = it.next();
 		if (StartUtils.isArobaseStartDiagram(startLine.getString()) == false)
@@ -86,7 +87,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 
 			return buildEmptyError(source, startLine.getLocation(), it.getTrace(), preprocessing);
 		}
-		AbstractPSystem sys = createEmptyDiagram(pathSystem, source, previous, preprocessing);
+		AbstractDiagram sys = createEmptyDiagram(pathSystem, source, previous, preprocessing);
 
 		final Set<ParserPass> requiredPass = sys.getRequiredPass();
 
@@ -108,7 +109,8 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 
 	}
 
-	private Diagram finalizeDiagram(AbstractPSystem sys, UmlSource source, IteratorCounter2 it, PreprocessingArtifact preprocessing) {
+	private AbstractDiagram finalizeDiagram(AbstractDiagram sys, UmlSource source, IteratorCounter2 it,
+			PreprocessingArtifact preprocessing) {
 		if (sys == null)
 			return null;
 
@@ -121,18 +123,20 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 			final LineLocation location = it.next().getLocation();
 			return buildEmptyError(source, location, it.getTrace(), preprocessing);
 		}
+
 		sys.makeDiagramReady();
-		if (sys.isOk() == false)
+		if (sys.isIncomplete())
 			return null;
 
 		return sys;
 	}
 
-	private AbstractPSystem executeFewLines(AbstractPSystem sys, UmlSource source, final IteratorCounter2 it,
+	private AbstractDiagram executeFewLines(AbstractDiagram sys, UmlSource source, final IteratorCounter2 it,
 			ParserPass currentPass, PreprocessingArtifact preprocessing) {
 		final Step step = getCandidate(it);
 		if (step == null) {
-			final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, it.peek().getLocation(), getUmlDiagramType());
+			final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, it.peek().getLocation(),
+					getDiagramType());
 			it.next();
 			return PSystemErrorUtils.buildV2(source, err, null, it.getTrace(), preprocessing);
 		}
@@ -144,7 +148,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 		if (result.isOk() == false) {
 			final LineLocation location = ((StringLocated) step.blocLines.getFirst()).getLocation();
 			final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR, result.getError(), result.getScore(),
-					location, getUmlDiagramType());
+					location, getDiagramType());
 			sys = PSystemErrorUtils.buildV2(source, err, result.getDebugLines(), it.getTrace(), preprocessing);
 		}
 		if (result.getNewDiagram() != null)

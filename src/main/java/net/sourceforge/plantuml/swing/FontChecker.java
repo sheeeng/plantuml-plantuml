@@ -35,7 +35,6 @@
  */
 package net.sourceforge.plantuml.swing;
 
-import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Shape;
 import java.awt.font.TextLayout;
@@ -49,10 +48,10 @@ import java.util.Set;
 
 import javax.xml.transform.TransformerException;
 
-import net.atmp.ImageBuilder;
 import net.atmp.SvgOption;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.core.TextBlockExporter12026;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
 import net.sourceforge.plantuml.klimt.color.HColors;
@@ -60,18 +59,20 @@ import net.sourceforge.plantuml.klimt.drawing.LimitFinder;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.drawing.svg.SvgGraphics;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
+import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.UFont;
 import net.sourceforge.plantuml.klimt.font.UFontContext;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.font.UFontFactory;
-import net.sourceforge.plantuml.klimt.shape.UDrawable;
+import net.sourceforge.plantuml.klimt.geom.XDimension2D;
+import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
 import net.sourceforge.plantuml.klimt.shape.UText;
 import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.security.SImageIO;
+import net.sourceforge.plantuml.teavm.TeaVM;
 
 public class FontChecker {
-	// ::remove folder when __HAXE__
-	// ::remove file when __CORE__
 
 	final private UFont font;
 	private static final Set<String> SQUARE = new HashSet<>(Arrays.asList("MI=I=XM=I=IX", "MI=I=XM=I=IXMI=I=XM=I=IX"));
@@ -175,10 +176,15 @@ public class FontChecker {
 	}
 
 	public PortableImage getBufferedImage(final char c) throws IOException {
-		assert c != '\t';
+		if (TeaVM.a())
+			assert c != '\t';
 
 		final double dim = 20;
-		final UDrawable drawable = new UDrawable() {
+		final TextBlock textBlock = new TextBlock() {
+			public XDimension2D calculateDimension(StringBounder stringBounder) {
+				return new XDimension2D(dim, dim);
+			}
+
 			public void drawU(UGraphic ug) {
 				ug = ug.apply(HColors.BLACK);
 				ug.draw(URectangle.build(dim - 1, dim - 1));
@@ -189,8 +195,9 @@ public class FontChecker {
 				}
 			}
 		};
-		final byte[] bytes = ImageBuilder.create(new FileFormatOption(FileFormat.PNG), drawable).writeByteArray();
-		return SImageIO.read(bytes);
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TextBlockExporter12026.builder(textBlock, new FileFormatOption(FileFormat.PNG), false).build().exportTo(baos);
+		return SImageIO.read(baos.toByteArray());
 	}
 
 	// public BufferedImage getBufferedImageOld(char c) throws IOException {
@@ -217,7 +224,7 @@ public class FontChecker {
 		final int v2 = Integer.parseInt(args[3]);
 		final SFile f = new SFile("fontchecker-" + name + "-" + v1 + "-" + v2 + ".html");
 
-		final FontChecker fc = new FontChecker(UFontFactory.build(name, Font.PLAIN, size));
+		final FontChecker fc = new FontChecker(UFontFactory.build(name, UFontFace.normal(), size));
 		final PrintWriter pw = f.createPrintWriter();
 		pw.println("<html>");
 		pw.println("<h1>PROBLEM</h1>");
@@ -238,7 +245,7 @@ public class FontChecker {
 				fc.printChar(pw, c);
 				final String desc = fc.getCharDescVerbose(c);
 				for (String n : allFontNames) {
-					final FontChecker other = new FontChecker(UFontFactory.build(n, Font.PLAIN, size));
+					final FontChecker other = new FontChecker(UFontFactory.build(n, UFontFace.normal(), size));
 					final String descOther = other.getCharDescVerbose(c);
 					if (desc.equals(descOther)) {
 						pw.println("&nbsp;");

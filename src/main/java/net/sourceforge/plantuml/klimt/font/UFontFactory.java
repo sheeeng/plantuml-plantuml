@@ -35,25 +35,32 @@
  */
 package net.sourceforge.plantuml.klimt.font;
 
-import java.awt.Font;
-
 public class UFontFactory {
 
-	public static UFont build(String fullDefinition, int fontStyle, int fontSize) {
+	/**
+	 * Builds a font using a face (weight + italic axis) and size.
+	 *
+	 * @param fullDefinition font family definition
+	 * @param face font face (style + weight), defaults to normal if null
+	 * @param fontSize font size
+	 * @return configured font
+	 */
+	public static UFont build(String fullDefinition, UFontFace face, int fontSize) {
 		final FontStack fontStack = new FontStack(fullDefinition);
-		return new UFontImpl(fontStack, fontStyle, fontSize);
+		final UFontFace safeFace = face == null ? UFontFace.normal() : face;
+		return new UFontImpl(fontStack, safeFace, fontSize);
 	}
 
 	public static UFont serif(int size) {
-		return build("Serif", Font.PLAIN, size);
+		return build("Serif", UFontFace.normal(), size);
 	}
 
 	public static UFont sansSerif(int size) {
-		return build("SansSerif", Font.PLAIN, size);
+		return build("SansSerif", UFontFace.normal(), size);
 	}
 
 	public static UFont courier(int size) {
-		return build("Courier", Font.PLAIN, size);
+		return build("Courier", UFontFace.normal(), size);
 	}
 
 	public static UFont byDefault(int size) {
@@ -61,7 +68,7 @@ public class UFontFactory {
 	}
 
 	public static UFont monospaced(int size) {
-		return build("Monospaced", Font.PLAIN, size);
+		return build("Monospaced", UFontFace.normal(), size);
 	}
 
 }

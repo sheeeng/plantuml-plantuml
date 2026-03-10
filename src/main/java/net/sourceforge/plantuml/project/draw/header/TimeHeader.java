@@ -46,6 +46,7 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.UFont;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.ULine;
@@ -146,7 +147,7 @@ public abstract class TimeHeader {
 
 	final protected FontConfiguration getFontConfiguration(UFont font, boolean bold, HColor color) {
 		if (bold)
-			font = font.bold();
+			font = font.withFontFace(UFontFace.bold());
 
 		return FontConfiguration.create(font, color, color, null);
 	}

@@ -50,7 +50,6 @@ import net.sourceforge.plantuml.asciiart.UmlCharArea;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.creole.Display;
-import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.drawing.txt.UGraphicTxt;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
@@ -60,7 +59,7 @@ import net.sourceforge.plantuml.sequencediagram.Participant;
 import net.sourceforge.plantuml.sequencediagram.SequenceDiagram;
 
 public class SequenceDiagramTxtMaker implements FileMaker {
-	// ::remove file when __CORE__ or __TEAVM__
+	
 
 	private final SequenceDiagram diagram;
 	private final DrawableSet drawableSet;
@@ -141,11 +140,6 @@ public class SequenceDiagramTxtMaker implements FileMaker {
 
 	public int getNbPages() {
 		return 1;
-	}
-
-	@Override
-	public void createOneGraphic(UGraphic ug) {
-		throw new UnsupportedOperationException();
 	}
 
 }

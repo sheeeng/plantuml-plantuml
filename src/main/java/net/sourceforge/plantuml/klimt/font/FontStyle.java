@@ -35,21 +35,19 @@
  */
 package net.sourceforge.plantuml.klimt.font;
 
-import java.awt.Font;
-
 public enum FontStyle {
 
 	PLAIN, ITALIC, BOLD, UNDERLINE, STRIKE, WAVE, BACKCOLOR;
 
 	public UFont mutateFont(UFont font) {
 		if (this == PLAIN)
-			return font.withStyle(Font.PLAIN);
+			return font.withFontFace(UFontFace.normal());
 
 		if (this == ITALIC)
-			return font.withStyle(font.getStyle() | Font.ITALIC);
+			return font.withFontFace(font.getFontFace().withStyle(UFontStyle.ITALIC));
 
 		if (this == BOLD)
-			return font.withStyle(font.getStyle() | Font.BOLD);
+			return font.withFontFace(font.getFontFace().withWeight(700));
 
 		return font;
 	}

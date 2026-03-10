@@ -73,7 +73,6 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.MinMax;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
@@ -87,9 +86,10 @@ import net.sourceforge.plantuml.style.StyleBuilder;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.style.Styleable;
 import net.sourceforge.plantuml.svek.UGraphicForSnake;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.MathUtils;
 
-public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable {
+public class Swimlanes implements TextBlock, Styleable {
 
 	private final ISkinParam skinParam;
 	private final Pragma pragma;
@@ -194,7 +194,7 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 					final ConnectionCross connectionCross = new ConnectionCross(connection);
 					connectionCross.drawU(getUg());
 				}
-				// ::comment when __CORE__
+
 			} else if (shape instanceof Gtile) {
 				final Gtile tile = (Gtile) shape;
 				tile.drawU(this);
@@ -204,7 +204,6 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 				connection.drawTranslatable(getUg());
 				// connection.drawU(this);
 				// throw new UnsupportedOperationException();
-				// ::done
 			}
 		}
 
@@ -224,12 +223,10 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 	}
 
 	public final void drawU(UGraphic ug) {
-		// ::comment when __CORE__
 		if (Gtile.USE_GTILE) {
 			drawGtile(ug);
 			return;
 		}
-		// ::done
 
 		TextBlock full = root.createFtile(getFtileFactory(ug.getStringBounder()));
 		final Style style = skinParam.getCurrentStyleBuilder()
@@ -248,7 +245,6 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 		}
 	}
 
-	// ::comment when __CORE__
 	private void drawGtile(UGraphic ug) {
 		TextBlock full = root.createGtile(skinParam, ug.getStringBounder());
 
@@ -267,7 +263,6 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 		}
 
 	}
-	// ::done
 
 	private TextBlock getTitle(Swimlane swimlane) {
 		final HorizontalAlignment horizontalAlignment = HorizontalAlignment.LEFT;
@@ -310,7 +305,7 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 
 		final XDimension2D dimensionFull = full.calculateDimension(stringBounder);
 		int i = 0;
-		assert dividers.size() == swimlanes().size() + 1;
+		if (TeaVM.a()) assert dividers.size() == swimlanes().size() + 1;
 		for (Swimlane swimlane : swimlanesSpecial()) {
 			final LaneDivider divider1 = dividers.get(i);
 
@@ -411,7 +406,7 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 
 			xpos += swimlane.getActualWidth() + laneDivider.getWidth();
 		}
-		assert dividers.size() == swimlanes().size() + 1;
+		if (TeaVM.a()) assert dividers.size() == swimlanes().size() + 1;
 	}
 
 	public double getHalfMissingSpace(StringBounder stringBounder, int i, double min) {
@@ -424,7 +419,7 @@ public class Swimlanes extends AbstractTextBlock implements TextBlock, Styleable
 		if (titleWidth <= swimlaneActualWidth)
 			return 5;
 
-		assert titleWidth > swimlaneActualWidth;
+		if (TeaVM.a()) assert titleWidth > swimlaneActualWidth;
 		return Math.max(5, 5 + (titleWidth - swimlaneActualWidth) / 2);
 	}
 

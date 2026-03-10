@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.abel.Entity;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.dot.DotSplines;
 import net.sourceforge.plantuml.dot.Graphviz;
 import net.sourceforge.plantuml.dot.GraphvizRuntimeEnvironment;
@@ -60,24 +61,23 @@ import net.sourceforge.plantuml.klimt.geom.XCubicCurve2D;
 import net.sourceforge.plantuml.klimt.geom.XPoint2D;
 import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.skin.PragmaKey;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.style.ISkinParam;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.Position;
 import net.sourceforge.plantuml.vizjs.GraphvizJs;
 import net.sourceforge.plantuml.vizjs.GraphvizJsRuntimeException;
 
 public final class DotStringFactory implements Moveable {
 
-	private final UmlDiagramType umlDiagramType;
+	private final DiagramType diagramType;
 	private final ISkinParam skinParam;
 	private final Bibliotekon bibliotekon;
 	private final Cluster root;
 
-	public DotStringFactory(Bibliotekon bibliotekon, Cluster root, UmlDiagramType umlDiagramType,
-			ISkinParam skinParam) {
+	public DotStringFactory(Bibliotekon bibliotekon, Cluster root, DiagramType diagramType, ISkinParam skinParam) {
 		this.bibliotekon = bibliotekon;
 		this.skinParam = skinParam;
-		this.umlDiagramType = umlDiagramType;
+		this.diagramType = diagramType;
 		this.root = root;
 	}
 
@@ -178,7 +178,7 @@ public final class DotStringFactory implements Moveable {
 				line.appendLine(getGraphvizVersion(), sb, dotMode, dotSplines);
 
 			root.printCluster3_forKermor(sb, getBibliotekon().allLines(), stringBounder, dotMode, getGraphvizVersion(),
-					umlDiagramType);
+					diagramType);
 
 		} else {
 			root.printCluster1(sb, getBibliotekon().allLines(), stringBounder);
@@ -187,7 +187,7 @@ public final class DotStringFactory implements Moveable {
 				line.appendLine(getGraphvizVersion(), sb, dotMode, dotSplines);
 
 			root.printCluster2(sb, getBibliotekon().allLines(), stringBounder, dotMode, getGraphvizVersion(),
-					umlDiagramType);
+					diagramType);
 
 			for (SvekEdge line : getBibliotekon().lines1())
 				line.appendLine(getGraphvizVersion(), sb, dotMode, dotSplines);
@@ -204,11 +204,11 @@ public final class DotStringFactory implements Moveable {
 		final List<String> minPointCluster = new ArrayList<>();
 		final List<String> maxPointCluster = new ArrayList<>();
 		for (Cluster cluster : getBibliotekon().allCluster()) {
-			final String minPoint = cluster.getMinPoint(umlDiagramType);
+			final String minPoint = cluster.getMinPoint(diagramType);
 			if (minPoint != null)
 				minPointCluster.add(minPoint);
 
-			final String maxPoint = cluster.getMaxPoint(umlDiagramType);
+			final String maxPoint = cluster.getMaxPoint(diagramType);
 			if (maxPoint != null)
 				maxPointCluster.add(maxPoint);
 
@@ -236,7 +236,7 @@ public final class DotStringFactory implements Moveable {
 	}
 
 	private int getMinRankSep() {
-		if (umlDiagramType == UmlDiagramType.ACTIVITY) {
+		if (diagramType == DiagramType.ACTIVITY) {
 			// return 29;
 			return 40;
 		}
@@ -246,7 +246,7 @@ public final class DotStringFactory implements Moveable {
 	}
 
 	private int getMinNodeSep() {
-		if (umlDiagramType == UmlDiagramType.ACTIVITY) {
+		if (diagramType == DiagramType.ACTIVITY) {
 			// return 15;
 			return 20;
 		}
@@ -256,93 +256,96 @@ public final class DotStringFactory implements Moveable {
 	private GraphvizVersion graphvizVersion;
 
 	public GraphvizVersion getGraphvizVersion() {
-		// ::comment when __TEAVM__
-		if (graphvizVersion == null)
-			graphvizVersion = getGraphvizVersionInternal();
-		// ::done
+		if (TeaVM.isTeaVM())
+			return null;
+		else {
+			if (graphvizVersion == null)
+				graphvizVersion = getGraphvizVersionInternal();
 
-		return graphvizVersion;
+			return graphvizVersion;
+		}
 	}
 
 	private GraphvizVersion getGraphvizVersionInternal() {
-		// ::revert when __TEAVM__
-		final Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, "foo;", "svg");
-		if (graphviz instanceof GraphvizJs)
-			return GraphvizJs.getGraphvizVersion(false);
+		if (TeaVM.isTeaVM())
+			return null;
+		else {
+			final Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, "foo;", "svg");
+			if (graphviz instanceof GraphvizJs)
+				return GraphvizJs.getGraphvizVersion(false);
 
-		final File f = graphviz.getDotExe();
-		return GraphvizRuntimeEnvironment.getInstance().getVersion(f);
-		// return null;
-		// ::done
+			final File f = graphviz.getDotExe();
+			return GraphvizRuntimeEnvironment.getInstance().getVersion(f);
+		}
 	}
 
 	public String getSvg(StringBounder stringBounder, DotMode dotMode, BaseFile basefile, String[] dotOptions)
 			throws IOException {
 		String dotString = createDotString(stringBounder, dotMode, dotOptions);
 
-		// ::uncomment when __TEAVM__
-		// // System.err.println("dotString=" + dotString);
-		// String svg = net.sourceforge.plantuml.teavm.GraphVizjsTeaVMEngine.renderDotToSvg(dotString);
-		// // System.err.println("svg=" + svg);
-		// return svg;
-		// ::done
+		if (TeaVM.isTeaVM()) {
+			// ::revert when JAVA8
+			return net.sourceforge.plantuml.teavm.GraphVizjsTeaVMEngine.renderDotToSvg(dotString);
+			// return null;
+			// ::done
+		} else {
 
-		// ::comment when __TEAVM__
-		if (basefile != null) {
-			final SFile f = basefile.getTraceFile("svek.dot");
-			SvekUtils.traceString(f, dotString);
+			if (basefile != null) {
+				final SFile f = basefile.getTraceFile("svek.dot");
+				SvekUtils.traceString(f, dotString);
+			}
+
+			Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, dotString, "svg");
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try {
+				final ProcessState state = graphviz.createFile3(baos);
+				baos.close();
+				if (state.differs(ProcessState.TERMINATED_OK()))
+					throw new IllegalStateException("Timeout4 " + state, state.getCause());
+
+			} catch (GraphvizJsRuntimeException e) {
+				System.err.println("GraphvizJsRuntimeException");
+				graphvizVersion = GraphvizJs.getGraphvizVersion(true);
+				dotString = createDotString(stringBounder, dotMode, dotOptions);
+				graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, dotString, "svg");
+				baos = new ByteArrayOutputStream();
+				final ProcessState state = graphviz.createFile3(baos);
+				baos.close();
+				if (state.differs(ProcessState.TERMINATED_OK()))
+					throw new IllegalStateException("Timeout4 " + state, state.getCause());
+
+			}
+			final byte[] result = baos.toByteArray();
+			final String s = new String(result, UTF_8);
+
+			if (basefile != null) {
+				final SFile f = basefile.getTraceFile("svek.svg");
+				SvekUtils.traceString(f, s);
+			}
+
+			return s;
 		}
-
-		Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, dotString, "svg");
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			final ProcessState state = graphviz.createFile3(baos);
-			baos.close();
-			if (state.differs(ProcessState.TERMINATED_OK()))
-				throw new IllegalStateException("Timeout4 " + state, state.getCause());
-
-		} catch (GraphvizJsRuntimeException e) {
-			System.err.println("GraphvizJsRuntimeException");
-			graphvizVersion = GraphvizJs.getGraphvizVersion(true);
-			dotString = createDotString(stringBounder, dotMode, dotOptions);
-			graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, dotString, "svg");
-			baos = new ByteArrayOutputStream();
-			final ProcessState state = graphviz.createFile3(baos);
-			baos.close();
-			if (state.differs(ProcessState.TERMINATED_OK()))
-				throw new IllegalStateException("Timeout4 " + state, state.getCause());
-
-		}
-		final byte[] result = baos.toByteArray();
-		final String s = new String(result, UTF_8);
-
-		if (basefile != null) {
-			final SFile f = basefile.getTraceFile("svek.svg");
-			SvekUtils.traceString(f, s);
-		}
-
-		return s;
-		// ::done
 	}
 
 	public boolean illegalDotExe() {
-		// ::revert when __TEAVM__
+		if (TeaVM.isTeaVM())
+			return false;
 		final Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, "svg");
 		if (graphviz instanceof GraphvizJs)
 			return false;
 
 		final File dotExe = graphviz.getDotExe();
 		return dotExe == null || dotExe.isFile() == false || dotExe.canRead() == false;
-		// return false;
-		// ::done
 	}
 
-	// ::comment when __TEAVM__
 	public File getDotExe() {
-		final Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, "svg");
-		return graphviz.getDotExe();
+		if (!TeaVM.isTeaVM()) {
+			final Graphviz graphviz = GraphvizRuntimeEnvironment.getInstance().create(skinParam, "svg");
+			return graphviz.getDotExe();
+		} else {
+			throw new UnsupportedOperationException("TEAVM777");
+		}
 	}
-	// ::done
 
 	private static final Pattern pGraph = Pattern.compile("(?m)\\<svg\\s+width=\"(\\d+)pt\"\\s+height=\"(\\d+)pt\"");
 

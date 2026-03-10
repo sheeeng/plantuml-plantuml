@@ -40,7 +40,6 @@ import java.util.Objects;
 
 import net.atmp.PixelImage;
 import net.sourceforge.plantuml.FileUtils;
-import net.sourceforge.plantuml.emoji.SvgNanoParser;
 import net.sourceforge.plantuml.klimt.AffineTransformType;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
@@ -48,11 +47,13 @@ import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.UImage;
 import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.security.SImageIO;
+import net.sourceforge.plantuml.svg.parser.ISvgSpriteParser;
+import net.sourceforge.plantuml.svg.parser.SvgSpriteParserFactory;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.Log;
 
 public class SpriteImage implements Sprite {
@@ -64,8 +65,9 @@ public class SpriteImage implements Sprite {
 	}
 
 	@Override
-	public TextBlock asTextBlock(final HColor fontColor, final HColor forcedColor, final double scale, final HColor backColor) {
-		return new AbstractTextBlock() {
+	public TextBlock asTextBlock(final HColor fontColor, final HColor forcedColor, final double scale,
+			final HColor backColor) {
+		return new TextBlock() {
 
 			public void drawU(UGraphic ug) {
 				final ColorMapper colorMapper = ug.getColorMapper();
@@ -86,14 +88,17 @@ public class SpriteImage implements Sprite {
 	}
 
 	public static Sprite fromInternal(String name) {
-		// ::revert when __TEAVM__
+		if (TeaVM.isTeaVM())
+			return null;
 		if (name.endsWith(".png") || name.endsWith(".svg"))
 			throw new IllegalArgumentException();
 
 		try {
 			InputStream is = getInternalSprite(name + ".svg");
-			if (is != null)
-				return new SvgNanoParser(FileUtils.readAllBytes(is));
+			if (is != null) {
+				final ISvgSpriteParser parser = SvgSpriteParserFactory.create(FileUtils.readAllBytes(is));
+				return parser;
+			}
 			is = getInternalSprite(name + ".png");
 			if (is != null)
 				return new SpriteImage(SImageIO.read(is));
@@ -103,8 +108,6 @@ public class SpriteImage implements Sprite {
 			Logme.error(e);
 			return null;
 		}
-		// return null;
-		// ::done
 	}
 
 	private static InputStream getInternalSprite(final String inner) {

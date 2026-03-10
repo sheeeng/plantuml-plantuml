@@ -37,10 +37,10 @@ package net.sourceforge.plantuml.style;
 
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 
 public abstract class ValueAbstract implements Value {
-    // ::remove file when __HAXE__
 
 	public String asString() {
 		throw new UnsupportedOperationException("Class=" + getClass());
@@ -66,7 +66,7 @@ public abstract class ValueAbstract implements Value {
 		throw new UnsupportedOperationException("Class=" + getClass());
 	}
 
-	public int asFontStyle() {
+	public UFontFace asFontFace() {
 		throw new UnsupportedOperationException("Class=" + getClass());
 	}
 

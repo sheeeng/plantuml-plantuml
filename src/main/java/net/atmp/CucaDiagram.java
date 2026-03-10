@@ -45,12 +45,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.Previous;
 import net.sourceforge.plantuml.StringUtils;
-import net.sourceforge.plantuml.UmlDiagram;
+import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.abel.Bag;
 import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.EntityFactory;
@@ -63,6 +64,7 @@ import net.sourceforge.plantuml.abel.Together;
 import net.sourceforge.plantuml.api.ImageDataSimple;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
+import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.core.InstallationRequirement;
 import net.sourceforge.plantuml.core.UmlSource;
@@ -81,7 +83,6 @@ import net.sourceforge.plantuml.dot.CucaDiagramTxtMaker;
 import net.sourceforge.plantuml.elk.CucaDiagramFileMakerElk;
 import net.sourceforge.plantuml.graphml.CucaDiagramGraphmlMaker;
 import net.sourceforge.plantuml.klimt.creole.Display;
-import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.plasma.Plasma;
 import net.sourceforge.plantuml.plasma.Quark;
@@ -89,20 +90,21 @@ import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.project.Failable;
 import net.sourceforge.plantuml.sdot.CucaDiagramFileMakerSmetana;
 import net.sourceforge.plantuml.skin.PragmaKey;
-import net.sourceforge.plantuml.skin.UmlDiagramType;
 import net.sourceforge.plantuml.skin.VisibilityModifier;
 import net.sourceforge.plantuml.statediagram.StateDiagram;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.svek.CucaDiagramFileMaker;
 import net.sourceforge.plantuml.svek.CucaDiagramFileMakerSvek;
+import net.sourceforge.plantuml.svek.CucaDiagramFileMakerTeaVM;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.text.BackSlash;
 import net.sourceforge.plantuml.text.Guillemet;
 import net.sourceforge.plantuml.utils.LineLocation;
 import net.sourceforge.plantuml.xmi.CucaDiagramXmiMaker;
 import net.sourceforge.plantuml.xmlsc.StateDiagramScxmlMaker;
 
-public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, PortionShower, EntityFactory {
+public abstract class CucaDiagram extends TitledDiagram implements GroupHierarchy, PortionShower, EntityFactory {
 
 	static class EntityHideOrShow {
 		private final EntityGender gender;
@@ -144,7 +146,7 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 		this.setSeparator(namespaceSeparator);
 	}
 
-	public CucaDiagram(UmlSource source, UmlDiagramType type, Previous previous, PreprocessingArtifact preprocessing) {
+	public CucaDiagram(UmlSource source, DiagramType type, Previous previous, PreprocessingArtifact preprocessing) {
 		super(source, type, previous, preprocessing);
 		this.namespace = new Plasma<Entity>();
 		this.root = namespace.root();
@@ -263,7 +265,8 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 		if (x == -1) {
 			if (reuseExistingChild && this.countByName(full) == 1) {
 				final Quark<Entity> byName = this.firstWithName(full);
-				assert byName != null;
+				if (TeaVM.a())
+					assert byName != null;
 				if (byName != currentQuark)
 					return Failable.ok(byName);
 			}
@@ -410,7 +413,7 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 		return result.toArray(new String[result.size()]);
 	}
 
-	// ::comment when __CORE__ or __TEAVM__
+	// ::comment when __TEAVM__
 	private void createFilesGraphml(OutputStream suggestedFile) throws IOException {
 		final CucaDiagramGraphmlMaker maker = new CucaDiagramGraphmlMaker(this);
 		maker.createFiles(suggestedFile);
@@ -419,6 +422,30 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 	private void createFilesXmi(OutputStream suggestedFile, FileFormat fileFormat) throws IOException {
 		final CucaDiagramXmiMaker maker = new CucaDiagramXmiMaker(this, fileFormat);
 		maker.createFiles(suggestedFile);
+	}
+
+	@Override
+	protected ImageData exportXmi(OutputStream os, FileFormat fileFormat) throws IOException {
+		createFilesXmi(os, fileFormat);
+		return ImageDataSimple.ok();
+	}
+
+	@Override
+	protected ImageData exportScxml(OutputStream os) throws IOException {
+		createFilesScxml(os);
+		return ImageDataSimple.ok();
+	}
+
+	@Override
+	protected ImageData exportGraphml(OutputStream os) throws IOException {
+		createFilesGraphml(os);
+		return ImageDataSimple.ok();
+	}
+
+	@Override
+	protected ImageData exportTxt(OutputStream os, int index, FileFormat fileFormat) throws IOException {
+		createFilesTxt(os, index, fileFormat);
+		return ImageDataSimple.ok();
 	}
 
 	private void createFilesScxml(OutputStream suggestedFile) throws IOException {
@@ -433,69 +460,114 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 	// ::done
 
 	@Override
-	final public void exportDiagramGraphic(UGraphic ug, FileFormatOption fileFormatOption) {
-		// ::revert when __TEAVM__
-		final CucaDiagramFileMaker maker = new CucaDiagramFileMakerSmetana(this);
-		// final CucaDiagramFileMaker maker = new net.sourceforge.plantuml.svek.CucaDiagramFileMakerTeaVM(this);
-		// ::done
-		maker.createOneGraphic(ug);
-	}
-
-	@Override
-	final protected TextBlock getTextMainBlock(FileFormatOption fileFormatOption) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	protected ImageData exportDiagramInternal(OutputStream os, int index, FileFormatOption fileFormatOption)
-			throws IOException {
+	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption)
+			throws IOException, InterruptedException {
 		final FileFormat fileFormat = fileFormatOption.getFileFormat();
 
-		// ::comment when __CORE__ or __TEAVM__
-		if (fileFormat == FileFormat.ATXT || fileFormat == FileFormat.UTXT) {
-			createFilesTxt(os, index, fileFormat);
-			return ImageDataSimple.ok();
-		}
+//		if (fileFormat == FileFormat.ATXT || fileFormat == FileFormat.UTXT) {
+//			createFilesTxt(os, index, fileFormat);
+//			return ImageDataSimple.ok();
+//		}
+//
+//		if (fileFormat == FileFormat.GRAPHML) {
+//			createFilesGraphml(os);
+//			return ImageDataSimple.ok();
+//		}
+//
+//		if (fileFormat.name().startsWith("XMI")) {
+//			createFilesXmi(os, fileFormat);
+//			return ImageDataSimple.ok();
+//		}
+//
+//		if (fileFormat == FileFormat.SCXML) {
+//			createFilesScxml(os);
+//			return ImageDataSimple.ok();
+//		}
 
-		if (fileFormat == FileFormat.GRAPHML) {
-			createFilesGraphml(os);
-			return ImageDataSimple.ok();
-		}
-
-		if (fileFormat.name().startsWith("XMI")) {
-			createFilesXmi(os, fileFormat);
-			return ImageDataSimple.ok();
-		}
-
-		if (fileFormat == FileFormat.SCXML) {
-			createFilesScxml(os);
-			return ImageDataSimple.ok();
-		}
-		// ::done
-
-		if (getUmlDiagramType() == UmlDiagramType.COMPOSITE)
-			throw new UnsupportedOperationException();
+//		if (getUmlDiagramType() == UmlDiagramType.COMPOSITE)
+//			throw new UnsupportedOperationException();
 
 		this.eventuallyBuildPhantomGroups(null);
 		final CucaDiagramFileMaker maker;
-		// ::revert when __CORE__ or __TEAVM__
-		if (this.isUseElk())
+
+		if (TeaVM.isTeaVM())
+			// ::revert when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
+			maker = new CucaDiagramFileMakerTeaVM(this);
+		// maker = new CucaDiagramFileMakerSmetana(this);
+		// ::done
+		else if (this.isUseElk())
 			maker = new CucaDiagramFileMakerElk(this);
 		else if (this.isUseSmetana())
 			maker = new CucaDiagramFileMakerSmetana(this);
 		else
 			maker = new CucaDiagramFileMakerSvek(this);
-		// maker = null;
-		// ::done
 
-		final ImageData result = maker.createFile(os, getDotStrings(), fileFormatOption);
-
-		if (result == null)
-			return ImageDataSimple.error();
-
-		this.warningOrError = result.getWarningOrError();
-		return result;
+		return maker.getTextBlock12026(getDotStrings(), fileFormatOption);
+//		final ImageData result = maker.createFile01970(os, getDotStrings(), fileFormatOption);
+//
+//		if (result == null)
+//			return ImageDataSimple.error();
+//
+//		this.warningOrError = result.getWarningOrError();
+//		return result;
+//
 	}
+
+	@Override
+	final protected TextBlock getTextMainBlock01970(FileFormatOption fileFormatOption) {
+		throw new UnsupportedOperationException();
+	}
+
+//	@Override
+//	protected ImageData exportDiagramInternal01970(OutputStream os, int index, FileFormatOption fileFormatOption)
+//			throws IOException {
+//		if (TeaVM.isTeaVM()) {
+//			throw new UnsupportedOperationException("TEAVM1676");
+//		} else {
+//
+//			final FileFormat fileFormat = fileFormatOption.getFileFormat();
+//
+//			if (fileFormat == FileFormat.ATXT || fileFormat == FileFormat.UTXT) {
+//				createFilesTxt(os, index, fileFormat);
+//				return ImageDataSimple.ok();
+//			}
+//
+//			if (fileFormat == FileFormat.GRAPHML) {
+//				createFilesGraphml(os);
+//				return ImageDataSimple.ok();
+//			}
+//
+//			if (fileFormat.name().startsWith("XMI")) {
+//				createFilesXmi(os, fileFormat);
+//				return ImageDataSimple.ok();
+//			}
+//
+//			if (fileFormat == FileFormat.SCXML) {
+//				createFilesScxml(os);
+//				return ImageDataSimple.ok();
+//			}
+//
+//			if (getUmlDiagramType() == UmlDiagramType.COMPOSITE)
+//				throw new UnsupportedOperationException();
+//
+//			this.eventuallyBuildPhantomGroups(null);
+//			final CucaDiagramFileMaker maker;
+//			if (this.isUseElk())
+//				maker = new CucaDiagramFileMakerElk(this);
+//			else if (this.isUseSmetana())
+//				maker = new CucaDiagramFileMakerSmetana(this);
+//			else
+//				maker = new CucaDiagramFileMakerSvek(this);
+//
+//			final ImageData result = maker.createFile01970(os, getDotStrings(), fileFormatOption);
+//
+//			if (result == null)
+//				return ImageDataSimple.error();
+//
+//			this.warningOrError = result.getWarningOrError();
+//			return result;
+//		}
+//	}
 
 	@Override
 	public String getWarningOrError() {
@@ -509,8 +581,10 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 		return generalWarningOrError + BackSlash.NEWLINE + warningOrError;
 	}
 
+	private static final Pattern NUMBER_PATTERN = Pattern.compile("[+-]?(\\.?\\d+|\\d+\\.\\d*)");
+
 	private static boolean isNumber(String s) {
-		return s.matches("[+-]?(\\.?\\d+|\\d+\\.\\d*)");
+		return NUMBER_PATTERN.matcher(s).matches();
 	}
 
 	public void resetPragmaLabel() {
@@ -791,7 +865,8 @@ public abstract class CucaDiagram extends UmlDiagram implements GroupHierarchy, 
 	private Entity isNoteWithSingleLinkAttachedTo(Entity note) {
 		if (note.getLeafType() != LeafType.NOTE)
 			return null;
-		assert note.getLeafType() == LeafType.NOTE;
+		if (TeaVM.a())
+			assert note.getLeafType() == LeafType.NOTE;
 		Entity other = null;
 		for (Link link : this.getLinks()) {
 			if (link.getType().isInvisible())

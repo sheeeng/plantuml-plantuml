@@ -36,12 +36,14 @@
 package net.sourceforge.plantuml.teavm;
 
 import net.sourceforge.plantuml.klimt.ClipContainer;
+import net.sourceforge.plantuml.klimt.UClip;
 import net.sourceforge.plantuml.klimt.UParam;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.drawing.UDriver;
 import net.sourceforge.plantuml.klimt.shape.UEllipse;
 
 public class DriverEllipseTeaVM implements UDriver<UEllipse, SvgGraphicsTeaVM> {
+	// ::remove file when JAVA8
 
 	private final ClipContainer clipContainer;
 
@@ -51,27 +53,32 @@ public class DriverEllipseTeaVM implements UDriver<UEllipse, SvgGraphicsTeaVM> {
 
 	@Override
 	public void draw(UEllipse ellipse, double x, double y, ColorMapper mapper, UParam param, SvgGraphicsTeaVM svg) {
-		// ::uncomment when __TEAVM__
-//		DriverRectangleTeaVM.applyFillColor(svg, mapper, param);
-//		DriverRectangleTeaVM.applyStrokeColor(svg, mapper, param);
-//		svg.setStrokeWidth(param.getStroke().getThickness());
-//
-//		final double width = ellipse.getWidth();
-//		final double height = ellipse.getHeight();
-//
-//		// UEllipse uses width/height, but SVG ellipse uses rx/ry (radii)
-//		// And x,y is top-left corner for UEllipse, but center for SVG
-//		final double cx = x + width / 2;
-//		final double cy = y + height / 2;
-//		final double rx = width / 2;
-//		final double ry = height / 2;
-//
-//		if (Math.abs(rx - ry) < 0.01)
-//			svg.drawCircle(cx, cy, rx);
-//		else
-//			svg.drawEllipse(cx, cy, rx, ry);
-		
-		// ::done
+		final double width = ellipse.getWidth();
+		final double height = ellipse.getHeight();
+
+		final UClip clip = clipContainer.getClip();
+		if (clip != null) {
+			if (clip.isInside(x, y) == false)
+				return;
+			if (clip.isInside(x + width, y + height) == false)
+				return;
+		}
+
+		DriverRectangleTeaVM.applyFillColor(svg, mapper, param);
+		DriverRectangleTeaVM.applyStrokeColor(svg, mapper, param);
+		svg.setStrokeWidth(param.getStroke().getThickness());
+
+		// UEllipse uses width/height, but SVG ellipse uses rx/ry (radii)
+		// And x,y is top-left corner for UEllipse, but center for SVG
+		final double cx = x + width / 2;
+		final double cy = y + height / 2;
+		final double rx = width / 2;
+		final double ry = height / 2;
+
+		if (Math.abs(rx - ry) < 0.01)
+			svg.drawCircle(cx, cy, rx);
+		else
+			svg.drawEllipse(cx, cy, rx, ry);
 
 	}
 }

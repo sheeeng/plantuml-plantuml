@@ -35,15 +35,14 @@
  */
 package net.sourceforge.plantuml.sequencediagram.teoz;
 
+import net.sourceforge.plantuml.klimt.PngTitler;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontParam;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
-import net.sourceforge.plantuml.png.PngTitler;
 
-public class TeozLayer extends AbstractTextBlock implements TextBlock {
+public class TeozLayer implements TextBlock {
 
 	private final PngTitler titler;
 	private XDimension2D dimension;

@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -142,8 +143,8 @@ final public class UmlSource {
 	 *
 	 * @return the type of the diagram.
 	 */
-	public DiagramType getDiagramType() {
-		return DiagramType.getTypeFromArobaseStart(source.get(0).getString());
+	public Collection<DiagramType> getDiagramTypes() {
+		return DiagramType.getTypesFromArobaseStart(source.get(0).getString());
 	}
 
 	/**
@@ -220,18 +221,19 @@ final public class UmlSource {
 	 *
 	 * @return <code>true</code> if the diagram does not contain information.
 	 */
+	private static final Pattern COMMENT_LINE = Pattern.compile("\\s*'.*");
+
 	public boolean isEmpty() {
-		for (StringLocated s : source) {
-			if (StartUtils.isArobaseStartDiagram(s.getString()))
-				continue;
+		for (StringLocated sl : source) {
+			final String line = sl.getString();
 
-			if (StartUtils.isArobaseEndDiagram(s.getString()))
+			if (StartUtils.isArobaseStartDiagram(line))
 				continue;
-
-			if (s.getString().matches("\\s*'.*"))
+			if (StartUtils.isArobaseEndDiagram(line))
 				continue;
-
-			if (StringUtils.trin(s.getString()).length() != 0)
+			if (COMMENT_LINE.matcher(line).matches())
+				continue;
+			if (StringUtils.trin(line).length() != 0)
 				return false;
 
 		}

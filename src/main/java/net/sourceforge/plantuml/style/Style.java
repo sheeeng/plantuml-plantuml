@@ -53,6 +53,7 @@ import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.UFont;
+import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.font.UFontFactory;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
@@ -188,14 +189,29 @@ public class Style {
 		return signature;
 	}
 
+	/**
+	 * Builds a {@link UFont} from the style properties {@code FontName},
+	 * {@code FontStyle}, {@code FontWeight} and {@code FontSize}.
+	 *
+	 * <p>{@code FontStyle} provides the base face (italic axis + weight via
+	 * keywords like {@code bold}).  If a separate {@code FontWeight} property
+	 * is present (CSS 100-900 or keywords), it overrides only the weight axis,
+	 * preserving the italic setting from {@code FontStyle}.
+	 *
+	 * @return a {@link UFont} for all style-driven text rendering paths
+	 */
 	public UFont getUFont() {
 		final String fontName = value(PName.FontName).asString();
-		// final String family = FontStack.getExistingFontFamily(fontName);
-		final int fontStyle = value(PName.FontStyle).asFontStyle();
 		int size = value(PName.FontSize).asInt(true);
 		if (size == -1)
 			size = 14;
-		return UFontFactory.build(fontName, fontStyle, size);
+
+		UFontFace face = value(PName.FontStyle).asFontFace();
+		final UFontFace weightFace = value(PName.FontWeight).asFontFace();
+		if (weightFace.getCssWeight() != 400)
+			face = face.withWeight(weightFace.getCssWeight());
+
+		return UFontFactory.build(fontName, face, size);
 	}
 
 	public FontConfiguration getFontConfiguration(HColorSet set) {

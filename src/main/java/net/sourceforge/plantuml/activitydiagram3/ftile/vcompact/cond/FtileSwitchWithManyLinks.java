@@ -323,11 +323,11 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 			final XPoint2D mp2b = translate2.getTranslated(p2);
 
 			final Snake snake = Snake.create(skinParam(), arrowColor, skinParam().arrows().asToDown())
-							.withLabel(branch.getTextBlockPositive(), arrowHorizontalAlignment());
+					.withLabel(branch.getTextBlockPositive(), arrowHorizontalAlignment());
 
 			final FtileGeometry dimDiamond1 = diamond1.calculateDimension(stringBounder);
 
-			if(mp1a.getX() > mp2b.getX()) {
+			if (mp1a.getX() > mp2b.getX()) {
 				snake.addPoint(mp1a.getX() - (dimDiamond1.getWidth() / 2), p1.getY() - (dimDiamond1.getHeight() / 2));
 			} else {
 				snake.addPoint(mp1a.getX() + (dimDiamond1.getWidth() / 2), p1.getY() - (dimDiamond1.getHeight() / 2));
@@ -340,12 +340,12 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 
 		private XPoint2D getP1(final StringBounder stringBounder) {
 			return getTranslateDiamond1(stringBounder)
-							.getTranslated(getFtile1().calculateDimension(stringBounder).getPointOut());
+					.getTranslated(getFtile1().calculateDimension(stringBounder).getPointOut());
 		}
 
 		private XPoint2D getP2(final StringBounder stringBounder) {
 			return getTranslateOf(getFtile2(), stringBounder)
-							.getTranslated(getFtile2().calculateDimension(stringBounder).getPointIn());
+					.getTranslated(getFtile2().calculateDimension(stringBounder).getPointIn());
 		}
 	}
 
@@ -370,7 +370,7 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 			final UPolygon arrow;
 			final Direction direction;
 
-			if(mp1a.getX() > mp2b.getX()) {
+			if (mp1a.getX() > mp2b.getX()) {
 				arrow = skinParam().arrows().asToLeft();
 				direction = Direction.LEFT;
 			} else {
@@ -383,10 +383,10 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 			snake.addPoint(mp1a);
 			snake.addPoint(mp1a.getX(), mp2b.getY() + (dimDiamond2.getHeight() / 2));
 
-			if(direction == Direction.LEFT) {
-				snake.addPoint(mp2b.getX() + (dimDiamond2.getWidth() / 2), mp2b.getY() + (dimDiamond2.getHeight() /2));
+			if (direction == Direction.LEFT) {
+				snake.addPoint(mp2b.getX() + (dimDiamond2.getWidth() / 2), mp2b.getY() + (dimDiamond2.getHeight() / 2));
 			} else {
-				snake.addPoint(mp2b.getX() - (dimDiamond2.getWidth() / 2), mp2b.getY() + (dimDiamond2.getHeight() /2));
+				snake.addPoint(mp2b.getX() - (dimDiamond2.getWidth() / 2), mp2b.getY() + (dimDiamond2.getHeight() / 2));
 			}
 
 			ug.draw(snake);
@@ -394,12 +394,12 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 
 		private XPoint2D getP1(final StringBounder stringBounder) {
 			return getTranslateOf(getFtile1(), stringBounder)
-							.getTranslated(getFtile1().calculateDimension(stringBounder).getPointOut());
+					.getTranslated(getFtile1().calculateDimension(stringBounder).getPointOut());
 		}
 
 		private XPoint2D getP2(final StringBounder stringBounder) {
 			return getTranslateDiamond2(stringBounder)
-							.getTranslated(getFtile2().calculateDimension(stringBounder).getPointIn());
+					.getTranslated(getFtile2().calculateDimension(stringBounder).getPointIn());
 		}
 	}
 
@@ -434,7 +434,7 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 		conns.add(new ConnectionHorizontalThenVertical(tiles.get(tiles.size() - 1), branches.get(tiles.size() - 1)));
 		for (int i = 0; i < tiles.size(); i++) {
 			final Ftile tile = tiles.get(i);
-			if(i > 0 && i < tiles.size() - 1) {
+			if (i > 0 && i < tiles.size() - 1) {
 				conns.add(new ConnectionVerticalTop(tile, branches.get(i)));
 			}
 
@@ -445,8 +445,11 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 	}
 
 	private void addOutgoingArrows(StringBounder stringBounder, final List<Connection> conns) {
-		final int firstOutgoingArrow = getFirstOutgoingArrow(stringBounder);
 		final int lastOutgoingArrow = getLastOutgoingArrow(stringBounder);
+		if (lastOutgoingArrow == -1)
+			return;
+
+		final int firstOutgoingArrow = getFirstOutgoingArrow(stringBounder);
 		if (firstOutgoingArrow < tiles.size())
 			conns.add(new ConnectionVerticalThenHorizontal(tiles.get(firstOutgoingArrow),
 					branches.get(firstOutgoingArrow).getTextBlockSpecial()));
@@ -482,7 +485,6 @@ public class FtileSwitchWithManyLinks extends FtileSwitchWithDiamonds {
 		}
 		return null;
 	}
-
 
 	private int getFirstOutgoingArrow(StringBounder stringBounder) {
 		for (int i = 0; i < tiles.size() - 1; i++) {
