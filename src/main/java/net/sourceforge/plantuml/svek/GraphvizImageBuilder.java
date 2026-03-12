@@ -51,6 +51,7 @@ import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.GroupType;
 import net.sourceforge.plantuml.abel.LeafType;
 import net.sourceforge.plantuml.abel.Link;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.crash.GraphvizCrash;
@@ -162,6 +163,8 @@ public final class GraphvizImageBuilder {
 			return backColor;
 		}
 
+		@Fast
+		@Override
 		public XDimension2D calculateDimension(StringBounder stringBounder) {
 			return new XDimension2D(10, 10);
 		}

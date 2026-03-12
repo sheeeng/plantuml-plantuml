@@ -84,7 +84,8 @@ public class EntityImageState extends EntityImageStateCommon {
 
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dim = title.calculateDimension(stringBounder)
 				.mergeTB(fields.calculateDimension(stringBounder));
 		double heightSymbol = 0;

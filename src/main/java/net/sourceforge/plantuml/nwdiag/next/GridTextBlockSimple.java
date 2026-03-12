@@ -34,6 +34,7 @@
  */
 package net.sourceforge.plantuml.nwdiag.next;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -43,10 +44,10 @@ import net.sourceforge.plantuml.klimt.geom.MagneticBorderNone;
 import net.sourceforge.plantuml.klimt.geom.MinMax;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XRectangle2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.style.ISkinParam;
 
-public class GridTextBlockSimple implements TextBlock {
+public class GridTextBlockSimple extends TextBlockMemoized {
 
 	public static final double MINIMUM_WIDTH = 70;
 
@@ -97,7 +98,9 @@ public class GridTextBlockSimple implements TextBlock {
 		return height;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	@Fast
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		if (data.getNbLines() == 0)
 			return new XDimension2D(0, 0);
 

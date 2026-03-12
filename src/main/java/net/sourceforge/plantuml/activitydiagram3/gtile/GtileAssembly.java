@@ -73,7 +73,7 @@ public class GtileAssembly extends GtileTopDown {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D raw = super.calculateDimension(stringBounder);
 		final double textBlockWidth = textBlock.calculateDimension(stringBounder).getWidth();
 		final double pos1 = tile1.getCoord(GPoint.SOUTH_HOOK).compose(getPos1()).getDx();

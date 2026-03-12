@@ -157,7 +157,7 @@ public class GtileIfHexagon extends GtileColumns {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D rawDim = calculateDimensionRaw(stringBounder);
 		if (branches.size() == 2) {
 			final XDimension2D shape1Dim = shape1.calculateDimension(stringBounder);

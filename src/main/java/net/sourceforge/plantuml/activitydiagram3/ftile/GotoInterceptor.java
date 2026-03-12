@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.activitydiagram3.ftile;
 
 import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.UGraphicInterceptorGoto;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
@@ -49,11 +50,13 @@ public class GotoInterceptor implements TextBlock {
 		this.swimlanes = swimlanes;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		new UGraphicInterceptorGoto(ug).draw(swimlanes);
-
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return swimlanes.calculateDimension(stringBounder);
 	}

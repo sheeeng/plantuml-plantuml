@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.svek;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.dot.Neighborhood;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -72,6 +73,8 @@ public class EntityImageProtected implements IEntityImage, Untranslated, WithPor
 		return orig.getBackcolor();
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return orig.calculateDimension(stringBounder).delta(2 * border);
 	}

@@ -52,7 +52,8 @@ public class EntityImageStateEmptyDescription extends EntityImageStateCommon {
 
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dim = title.calculateDimension(stringBounder);
 		final XDimension2D result = dim.delta(MARGIN * 2);
 		return result.atLeast(MIN_WIDTH, MIN_HEIGHT);

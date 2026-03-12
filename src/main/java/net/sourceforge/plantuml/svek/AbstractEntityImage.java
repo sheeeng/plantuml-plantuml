@@ -40,11 +40,12 @@ import java.util.Objects;
 import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.SName;
 
-public abstract class AbstractEntityImage implements IEntityImage {
+public abstract class AbstractEntityImage extends TextBlockMemoized implements IEntityImage {
 
 	private final Entity entity;
 	private final ISkinParam skinParam;

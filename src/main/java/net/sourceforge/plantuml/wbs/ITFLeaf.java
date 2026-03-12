@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.wbs;
 
 import net.sourceforge.plantuml.activitydiagram3.ftile.vertical.FtileBoxOld;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.creole.CreoleMode;
 import net.sourceforge.plantuml.klimt.creole.Display;
@@ -69,6 +70,8 @@ class ITFLeaf implements TextBlock, ITF {
 		}
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return box.calculateDimension(stringBounder);
 	}

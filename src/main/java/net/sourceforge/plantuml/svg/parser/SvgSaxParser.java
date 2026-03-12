@@ -22,6 +22,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import net.atmp.PixelImage;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.emoji.ColorResolver;
 import net.sourceforge.plantuml.emoji.GrayLevelRange;
 import net.sourceforge.plantuml.emoji.UGraphicWithScale;
@@ -132,6 +133,7 @@ public class SvgSaxParser implements ISvgSpriteParser, GrayLevelRange {
                 SvgSaxParser.this.drawU(ug, scale, fontColor, forcedColor);
             }
 
+            @Fast
             public XDimension2D calculateDimension(StringBounder stringBounder) {
                 return new XDimension2D(width, height);
             }

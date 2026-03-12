@@ -44,6 +44,7 @@ import net.sourceforge.plantuml.abel.CucaNote;
 import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.Link;
 import net.sourceforge.plantuml.annotation.DuplicateCode;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.decoration.symbol.USymbolFolder;
 import net.sourceforge.plantuml.elk.proxy.graph.ElkEdge;
@@ -328,6 +329,8 @@ class MyElkDrawing implements TextBlock {
 		return label;
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		if (minMax == null)
 			throw new UnsupportedOperationException();

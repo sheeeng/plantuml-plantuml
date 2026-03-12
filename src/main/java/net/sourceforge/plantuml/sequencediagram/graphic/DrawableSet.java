@@ -48,6 +48,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UClip;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -193,7 +194,8 @@ public class DrawableSet {
 				pending = null;
 				continue;
 			}
-			if (TeaVM.a()) assert englober != null;
+			if (TeaVM.a())
+				assert englober != null;
 			if (pending != null && englober == pending.getParticipantEnglober()) {
 				pending.addParticipant(ent.getKey());
 				continue;
@@ -263,7 +265,8 @@ public class DrawableSet {
 
 		eventsList.add(idx, newpage);
 		events.put(newpage, object);
-		if (TeaVM.a()) assert events.size() == eventsList.size();
+		if (TeaVM.a())
+			assert events.size() == eventsList.size();
 	}
 
 	void setDimension(XDimension2D dim) {
@@ -280,10 +283,13 @@ public class DrawableSet {
 	TextBlock asTextBlock(final double delta, final double width, final Page page, final boolean showTail) {
 		return new TextBlock() {
 
+			@Override
 			public void drawU(UGraphic ug) {
 				drawU22(ug, delta, width, page, showTail);
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				final double height = page.getHeight();
 				return new XDimension2D(width, height);
@@ -464,7 +470,8 @@ public class DrawableSet {
 		int min = -1;
 		for (Participant p : someParticipants) {
 			final int n = list.indexOf(p);
-			if (TeaVM.a()) assert n != -1;
+			if (TeaVM.a())
+				assert n != -1;
 			if (min == -1 || min > n)
 				min = n;
 
@@ -477,7 +484,8 @@ public class DrawableSet {
 		int max = -1;
 		for (Participant p : someParticipants) {
 			final int n = list.indexOf(p);
-			if (TeaVM.a()) assert n != -1;
+			if (TeaVM.a())
+				assert n != -1;
 			if (max == -1 || max < n)
 				max = n;
 

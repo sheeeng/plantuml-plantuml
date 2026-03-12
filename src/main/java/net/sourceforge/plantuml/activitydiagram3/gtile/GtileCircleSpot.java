@@ -95,7 +95,7 @@ public class GtileCircleSpot extends AbstractGtile {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(SIZE, SIZE);
 	}
 

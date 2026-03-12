@@ -107,7 +107,8 @@ class Fork extends WBSTextBlock {
 
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		double width = 0;
 		double height = 0;
 		for (ITF child : right) {

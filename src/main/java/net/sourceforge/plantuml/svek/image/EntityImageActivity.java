@@ -82,7 +82,8 @@ public class EntityImageActivity extends AbstractEntityImage {
 		this.url = entity.getUrl99();
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	final public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dim = desc.calculateDimension(stringBounder);
 		return dim.delta(MARGIN * 2);
 	}

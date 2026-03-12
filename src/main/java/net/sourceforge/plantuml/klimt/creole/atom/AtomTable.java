@@ -82,13 +82,13 @@ public class AtomTable extends AbstractAtom implements Atom {
 	private final List<Line> lines = new ArrayList<>();
 	private final Map<Atom, Position> positions = new HashMap<Atom, Position>();
 	private final HColor lineColor;
-	private Class<? extends StringBounder> lastCaller;
 
 	public AtomTable(HColor lineColor) {
 		this.lineColor = lineColor;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		initMap(stringBounder);
 		final double width = getEndingX(getNbCols() - 1);
 		final double height = getEndingY(getNbLines() - 1);
@@ -167,12 +167,6 @@ public class AtomTable extends AbstractAtom implements Atom {
 	}
 
 	private void initMap(StringBounder stringBounder) {
-		final Class<? extends StringBounder> currentCaller = stringBounder.getClass();
-		if (lastCaller != currentCaller)
-			positions.clear();
-
-		this.lastCaller = currentCaller;
-
 		if (positions.size() > 0)
 			return;
 

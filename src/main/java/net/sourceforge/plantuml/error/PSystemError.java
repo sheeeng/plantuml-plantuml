@@ -45,6 +45,7 @@ import net.atmp.PixelImage;
 import net.sourceforge.plantuml.ErrorUml;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.PlainDiagram;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.crash.ReportLog;
@@ -402,6 +403,8 @@ public abstract class PSystemError extends PlainDiagram {
 				}
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(imWidth + 1, imHeight + 1);
 			}
@@ -451,6 +454,8 @@ public abstract class PSystemError extends PlainDiagram {
 				}
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(imWidth + 1, imHeight + 1);
 			}

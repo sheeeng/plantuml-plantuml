@@ -37,7 +37,9 @@ package net.sourceforge.plantuml.activitydiagram3.ftile;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import net.sourceforge.plantuml.activitydiagram3.Instruction;
@@ -52,6 +54,7 @@ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDele
 import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorRepeat;
 import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorSwitch;
 import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorWhile;
+import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.UGraphicInterceptorAllSwimlanes;
 import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.UGraphicInterceptorOneSwimlane;
 import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.VCompactFactory;
 import net.sourceforge.plantuml.activitydiagram3.gtile.GConnection;
@@ -359,15 +362,19 @@ public class Swimlanes implements TextBlock, Styleable {
 
 	private void computeDrawingWidths(UGraphic ug, TextBlock full) {
 		final StringBounder stringBounder = ug.getStringBounder();
+		final Map<Swimlane, LimitFinder> finders = new LinkedHashMap<>();
+		final Map<Swimlane, UGraphic> swimlaneToUg = new LinkedHashMap<>();
 		for (Swimlane swimlane : swimlanes()) {
 			final LimitFinder limitFinder = LimitFinder.create(stringBounder, false);
-			final UGraphicInterceptorOneSwimlane interceptor = new UGraphicInterceptorOneSwimlane(
-					new UGraphicForSnake(limitFinder), swimlane, swimlanes());
-			full.drawU(interceptor);
-			interceptor.flushUg();
-			final MinMax minMax = limitFinder.getMinMax();
-			swimlane.setMinMax(minMax);
+			finders.put(swimlane, limitFinder);
+			swimlaneToUg.put(swimlane, new UGraphicForSnake(limitFinder));
 		}
+		final UGraphicInterceptorAllSwimlanes interceptor = new UGraphicInterceptorAllSwimlanes(swimlaneToUg,
+				swimlanes(), stringBounder);
+		full.drawU(interceptor);
+		interceptor.flushUg();
+		for (Swimlane swimlane : swimlanes())
+			swimlane.setMinMax(finders.get(swimlane).getMinMax());
 	}
 
 	private void computeSizeInternal(UGraphic ug, TextBlock full) {

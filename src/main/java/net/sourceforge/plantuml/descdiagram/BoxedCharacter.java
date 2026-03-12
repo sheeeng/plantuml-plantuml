@@ -46,6 +46,8 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.UCenteredCharacter;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class BoxedCharacter implements TextBlock {
 
 	private final String c;
@@ -87,6 +89,7 @@ public class BoxedCharacter implements TextBlock {
 		return 2 * radius;
 	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(getPreferredWidth(stringBounder), getPreferredHeight(stringBounder));
 	}

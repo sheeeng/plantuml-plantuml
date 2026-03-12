@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.activitydiagram3.ftile.vcompact;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.LineBreakStrategy;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -100,6 +101,8 @@ public class FloatingNote implements Stencil, TextBlock {
 		opale.drawU(ug);
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return opale.calculateDimension(stringBounder);
 	}

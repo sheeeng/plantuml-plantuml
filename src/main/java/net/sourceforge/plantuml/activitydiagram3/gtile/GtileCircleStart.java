@@ -48,7 +48,7 @@ import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 
 public class GtileCircleStart extends AbstractGtile {
-    // ::remove folder when __HAXE__
+	// ::remove folder when __HAXE__
 
 	private static final int SIZE = 20;
 
@@ -75,7 +75,7 @@ public class GtileCircleStart extends AbstractGtile {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(SIZE, SIZE);
 	}
 

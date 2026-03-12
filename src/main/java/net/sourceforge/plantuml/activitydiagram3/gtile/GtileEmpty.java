@@ -79,7 +79,7 @@ public class GtileEmpty extends AbstractGtile {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(width, height);
 	}
 

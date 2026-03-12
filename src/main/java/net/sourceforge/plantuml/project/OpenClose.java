@@ -56,6 +56,8 @@ public class OpenClose {
 	private LocalDate offBefore;
 	private LocalDate offAfter;
 
+	private PiecewiseConstant cachedPiecewiseConstant;
+
 	public OpenClose mutateMe(final OpenClose except) {
 		final OpenClose result = new OpenClose();
 		result.weekdayStatus.putAll(this.weekdayStatus);
@@ -128,18 +130,22 @@ public class OpenClose {
 
 	public void close(DayOfWeek day) {
 		weekdayStatus.put(day, DayStatus.CLOSE);
+		cachedPiecewiseConstant = null;
 	}
 
 	public void open(DayOfWeek day) {
 		weekdayStatus.put(day, DayStatus.OPEN);
+		cachedPiecewiseConstant = null;
 	}
 
 	public void close(LocalDate day) {
 		dayStatus.put(day, DayStatus.CLOSE);
+		cachedPiecewiseConstant = null;
 	}
 
 	public void open(LocalDate day) {
 		dayStatus.put(day, DayStatus.OPEN);
+		cachedPiecewiseConstant = null;
 	}
 
 	public int getLoadAtDUMMY(LocalDate day) {
@@ -148,10 +154,12 @@ public class OpenClose {
 
 	public void setOffBeforeDate(LocalDate day) {
 		this.offBefore = day;
+		cachedPiecewiseConstant = null;
 	}
 
 	public void setOffAfterDate(LocalDate day) {
 		this.offAfter = day;
+		cachedPiecewiseConstant = null;
 	}
 
 	private int getLoatAtInternal(LocalDate day) {
@@ -166,6 +174,9 @@ public class OpenClose {
 	}
 
 	public PiecewiseConstant asPiecewiseConstant() {
+		if (cachedPiecewiseConstant != null)
+			return cachedPiecewiseConstant;
+
 		PiecewiseConstantWeekday weekPattern = PiecewiseConstantWeekday.of(Fraction.ONE);
 
 		for (DayOfWeek day : weekdayStatus.keySet())
@@ -175,35 +186,44 @@ public class OpenClose {
 		PiecewiseConstant result = weekPattern;
 
 		if (dayStatus.isEmpty() == false) {
-			PiecewiseConstantSpecificDays specificDaysClosed = PiecewiseConstantSpecificDays.of(Fraction.ONE);
-			PiecewiseConstantSpecificDays specificDaysOpen = PiecewiseConstantSpecificDays.of(Fraction.ZERO);
+			final Map<LocalDate, Fraction> closedDays = new HashMap<>();
+			final Map<LocalDate, Fraction> openDays = new HashMap<>();
 
 			for (Map.Entry<LocalDate, DayStatus> entry : dayStatus.entrySet()) {
 				final LocalDate date = entry.getKey();
 
 				if (entry.getValue() == DayStatus.CLOSE)
-					specificDaysClosed = specificDaysClosed.withDay(date, Fraction.ZERO);
+					closedDays.put(date, Fraction.ZERO);
 				else
-					specificDaysOpen = specificDaysOpen.withDay(date, Fraction.ONE);
+					openDays.put(date, Fraction.ONE);
 			}
+
+			final PiecewiseConstantSpecificDays specificDaysClosed = PiecewiseConstantSpecificDays.of(Fraction.ONE, closedDays);
+			final PiecewiseConstantSpecificDays specificDaysOpen = PiecewiseConstantSpecificDays.of(Fraction.ZERO, openDays);
 
 			result = Combiner.max(specificDaysOpen, Combiner.product(weekPattern, specificDaysClosed));
 		}
 
-		if (offBefore == null && offAfter == null)
-			return result;
+		if (offBefore == null && offAfter == null) {
+			cachedPiecewiseConstant = result;
+			return cachedPiecewiseConstant;
+		}
 
-		if (offBefore == null)
-			return Combiner.product(result,
+		if (offBefore == null) {
+			cachedPiecewiseConstant = Combiner.product(result,
 					new PiecewiseConstantTimeWindow(LocalDateTime.MIN, offAfter.plusDays(1).atStartOfDay()));
+			return cachedPiecewiseConstant;
+		}
 
-		if (offAfter == null)
-			return Combiner.product(result,
+		if (offAfter == null) {
+			cachedPiecewiseConstant = Combiner.product(result,
 					new PiecewiseConstantTimeWindow(offBefore.atStartOfDay(), LocalDateTime.MAX));
+			return cachedPiecewiseConstant;
+		}
 
-		return Combiner.product(result,
+		cachedPiecewiseConstant = Combiner.product(result,
 				new PiecewiseConstantTimeWindow(offBefore.atStartOfDay(), offAfter.plusDays(1).atStartOfDay()));
-
+		return cachedPiecewiseConstant;
 	}
 
 }

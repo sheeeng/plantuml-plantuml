@@ -115,7 +115,7 @@ public class EntityImageChenCircle extends AbstractEntityImage {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(25, 25);
 	}
 

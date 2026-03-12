@@ -54,6 +54,8 @@ import net.sourceforge.plantuml.klimt.shape.UImage;
 import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.Log;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class CrashImage implements TextBlock {
 
 	private final PortableImage flashcodeImage;
@@ -70,6 +72,7 @@ public class CrashImage implements TextBlock {
 
 	}
 
+	@Fast
 	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		XDimension2D dim = graphicStrings.calculateDimension(stringBounder);

@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.klimt.shape;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -48,7 +49,7 @@ import net.sourceforge.plantuml.klimt.geom.XRectangle2D;
 import net.sourceforge.plantuml.svek.Ports;
 import net.sourceforge.plantuml.svek.WithPorts;
 
-public class TextBlockVertical2 implements TextBlock, WithPorts {
+public class TextBlockVertical2 extends TextBlockMemoized implements WithPorts {
 
 	private final List<TextBlock> blocks = new ArrayList<>();
 	private final HorizontalAlignment horizontalAlignment;
@@ -70,6 +71,8 @@ public class TextBlockVertical2 implements TextBlock, WithPorts {
 				ug.draw(image);
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(image.getWidth(), image.getHeight());
 			}
@@ -84,7 +87,8 @@ public class TextBlockVertical2 implements TextBlock, WithPorts {
 		this.horizontalAlignment = horizontalAlignment;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		XDimension2D dim = blocks.get(0).calculateDimension(stringBounder);
 		for (int i = 1; i < blocks.size(); i++)
 			dim = dim.mergeTB(blocks.get(i).calculateDimension(stringBounder));

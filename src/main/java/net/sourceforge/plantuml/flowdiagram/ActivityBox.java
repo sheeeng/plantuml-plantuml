@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.flowdiagram;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.golem.Tile;
 import net.sourceforge.plantuml.klimt.Shadowable;
 import net.sourceforge.plantuml.klimt.UStroke;
@@ -83,6 +84,7 @@ public class ActivityBox implements TextBlock {
 		return label;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		final XDimension2D dimTotal = calculateDimension(ug.getStringBounder());
 		// final Dimension2D dimDesc = tb.calculateDimension(ug.getStringBounder());
@@ -97,10 +99,12 @@ public class ActivityBox implements TextBlock {
 		tb.drawU(ug.apply(new UTranslate(MARGIN, MARGIN)));
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final XDimension2D dim = tb.calculateDimension(stringBounder);
 
-		return dim.delta((2 * MARGIN), (2 * MARGIN));
+		return dim.delta(2 * MARGIN, 2 * MARGIN);
 	}
 
 }

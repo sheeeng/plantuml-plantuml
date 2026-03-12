@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.skin;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UPath;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -64,6 +65,7 @@ public class ActorStickMan implements TextBlock {
 		this.actorBusiness = actorBusiness;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 
 		final double startX = Math.max(armsLenght, legsX) - headDiam / 2.0 + thickness();
@@ -119,6 +121,8 @@ public class ActorStickMan implements TextBlock {
 		return headDiam + bodyLenght + legsY + 2 * thickness() + fashion.getDeltaShadow() + 1;
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(getPreferredWidth(), getPreferredHeight());
 	}

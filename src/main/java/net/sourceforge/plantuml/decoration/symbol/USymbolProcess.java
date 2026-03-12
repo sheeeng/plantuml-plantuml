@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.decoration.symbol;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -92,6 +93,8 @@ class USymbolProcess extends USymbol {
 				tb.drawU(ug.apply(new UTranslate(margin.getX1(), margin.getY1())));
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				final XDimension2D dimLabel = label.calculateDimension(stringBounder);
 				final XDimension2D dimStereo = stereotype.calculateDimension(stringBounder);
@@ -131,6 +134,8 @@ class USymbolProcess extends USymbol {
 				stereotype.drawU(ug.apply(new UTranslate(4 + posStereo, 2 + getHTitle(dimTitle))));
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(width, height);
 			}

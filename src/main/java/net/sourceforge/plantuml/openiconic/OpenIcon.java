@@ -51,6 +51,7 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.openiconic.data.DummyIcon;
 import net.sourceforge.plantuml.security.SFile;
@@ -155,14 +156,15 @@ public class OpenIcon {
 	}
 
 	public TextBlock asTextBlock(final HColor color, final double factor) {
-		return new TextBlock() {
+		return new TextBlockMemoized() {
 			public void drawU(UGraphic ug) {
 				final HColor textColor = color.getAppropriateColor(ug.getParam().getBackcolor());
 				ug = ug.apply(textColor).apply(textColor.bg());
 				svgPath.drawMe(ug, factor);
 			}
 
-			public XDimension2D calculateDimension(StringBounder stringBounder) {
+			@Override
+			public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 				return getDimension(factor);
 			}
 		};

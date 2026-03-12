@@ -53,6 +53,8 @@ import net.sourceforge.plantuml.svek.Bibliotekon;
 import net.sourceforge.plantuml.svek.Cluster;
 import net.sourceforge.plantuml.svek.ShapeType;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public abstract class AbstractEntityImageBorder extends AbstractEntityImage {
 	public final EntityPosition entityPosition;
 	protected final Cluster parent;
@@ -85,7 +87,8 @@ public abstract class AbstractEntityImageBorder extends AbstractEntityImage {
 		return leaf.getDisplay().create(fc, HorizontalAlignment.CENTER, getSkinParam());
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return entityPosition.getDimension(rankdir);
 	}
 

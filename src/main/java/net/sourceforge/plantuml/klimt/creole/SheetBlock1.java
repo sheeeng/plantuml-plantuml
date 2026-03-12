@@ -51,12 +51,12 @@ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.MinMax;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XRectangle2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.Style;
 
-public class SheetBlock1 implements TextBlock, Atom, Stencil {
+public class SheetBlock1 extends TextBlockMemoized implements Atom, Stencil {
 
 	private final Sheet sheet;
 	private List<Stripe> stripes;
@@ -192,7 +192,8 @@ public class SheetBlock1 implements TextBlock, Atom, Stencil {
 		}
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		initMap(stringBounder);
 		return minMax.getDimension().delta(padding.getBottom() + padding.getTop());
 	}
@@ -202,6 +203,7 @@ public class SheetBlock1 implements TextBlock, Atom, Stencil {
 		return null;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		initMap(ug.getStringBounder());
 		if (padding.getLeft() > 0 || padding.getTop() > 0)

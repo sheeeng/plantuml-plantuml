@@ -75,7 +75,8 @@ public class BodierLikeClassOrObject extends BodierAbstract {
 			throw new IllegalArgumentException();
 
 		this.type = Objects.requireNonNull(type);
-		if (TeaVM.a()) assert type.isLikeClass() || type == LeafType.OBJECT;
+		if (TeaVM.a())
+			assert type.isLikeClass() || type == LeafType.OBJECT;
 		this.hideVisibilityModifier = hideVisibilityModifier;
 	}
 
@@ -121,7 +122,8 @@ public class BodierLikeClassOrObject extends BodierAbstract {
 					continue;
 
 				final Member m = Member.method(s);
-				if (hideVisibilityModifier == null || hideVisibilityModifier.contains(m.getVisibilityModifier()) == false)
+				if (hideVisibilityModifier == null
+						|| hideVisibilityModifier.contains(m.getVisibilityModifier()) == false)
 					methodsToDisplay.add(m);
 
 			}
@@ -150,7 +152,8 @@ public class BodierLikeClassOrObject extends BodierAbstract {
 					continue;
 
 				final Member m = Member.field(s);
-				if (hideVisibilityModifier == null || hideVisibilityModifier.contains(m.getVisibilityModifier()) == false)
+				if (hideVisibilityModifier == null
+						|| hideVisibilityModifier.contains(m.getVisibilityModifier()) == false)
 					fieldsToDisplay.add(m);
 
 			}
@@ -206,7 +209,7 @@ public class BodierLikeClassOrObject extends BodierAbstract {
 			Style style, FontConfiguration fontConfiguration) {
 
 		if (BodyFactory.BODY3)
-			return new Body3(rawBody, skinParam, stereotype, style);
+			return new Body3(rawBody, skinParam, style);
 
 		if (type.isLikeClass() && isBodyEnhanced()) {
 			if (showMethods || showFields)
@@ -227,7 +230,8 @@ public class BodierLikeClassOrObject extends BodierAbstract {
 			return BodyFactory.create1(skinParam.getDefaultTextAlignment(HorizontalAlignment.LEFT),
 					rawBodyWithoutHidden(), skinParam, stereotype, leaf, style);
 		}
-		if (TeaVM.a()) assert type.isLikeClass();
+		if (TeaVM.a())
+			assert type.isLikeClass();
 
 		final MethodsOrFieldsArea fields = new MethodsOrFieldsArea(getFieldsToDisplay(), skinParam, leaf, style);
 

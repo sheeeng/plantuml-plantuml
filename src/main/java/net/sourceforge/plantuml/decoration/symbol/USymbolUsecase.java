@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.decoration.symbol;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -112,6 +113,8 @@ class USymbolUsecase extends USymbol {
 
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new TextBlockInEllipse(desc, stringBounder).calculateDimension(stringBounder);
 			}

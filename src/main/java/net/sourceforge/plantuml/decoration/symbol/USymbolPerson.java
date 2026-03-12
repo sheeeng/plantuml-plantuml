@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.decoration.symbol;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -93,6 +94,8 @@ class USymbolPerson extends USymbol {
 				tb.drawU(ug.apply(new UTranslate(margin.getX1(), margin.getY1() + headSize)));
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				final XDimension2D body = bodyDimension(stringBounder);
 				return body.delta(0, headSize(body));

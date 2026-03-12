@@ -109,7 +109,7 @@ public class EntityImageChenRelationship extends AbstractEntityImage {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dimTitle = title.calculateDimension(stringBounder);
 
 		// Fit a diamond with aspect ratio 2 around the text

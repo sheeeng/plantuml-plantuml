@@ -104,7 +104,8 @@ public class EntityImageTips extends AbstractEntityImage {
 		return ShapeType.RECTANGLE;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		double width = 0;
 		double height = 0;
 		for (Map.Entry<String, Display> ent : getEntity().getTips().entrySet()) {

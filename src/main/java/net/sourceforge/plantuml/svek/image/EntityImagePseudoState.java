@@ -83,7 +83,8 @@ public class EntityImagePseudoState extends AbstractEntityImage {
 		this.desc = Display.create(historyText).create(fontConfiguration, HorizontalAlignment.CENTER, getSkinParam());
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(SIZE, SIZE);
 	}
 

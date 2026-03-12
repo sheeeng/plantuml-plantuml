@@ -48,6 +48,8 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
 import net.sourceforge.plantuml.style.ISkinParam;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class CardBox implements TextBlock {
 
 	private final Display label;
@@ -62,6 +64,7 @@ public class CardBox implements TextBlock {
 //		return StyleSignature.of(SName.root, SName.element, SName.mindmapDiagram, SName.node);
 //	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(150, 70);
 	}

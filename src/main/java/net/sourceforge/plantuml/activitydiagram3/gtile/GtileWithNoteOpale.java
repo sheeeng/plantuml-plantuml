@@ -143,7 +143,7 @@ public class GtileWithNoteOpale extends AbstractGtile implements Stencil, Stylea
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final double height = Math.max(dimNote.getHeight(), dimTile.getHeight());
 		return new XDimension2D(dimTile.getWidth() + dimNote.getWidth() + suppSpace, height);
 	}

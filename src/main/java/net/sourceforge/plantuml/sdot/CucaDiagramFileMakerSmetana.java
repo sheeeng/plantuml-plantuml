@@ -68,6 +68,7 @@ import net.sourceforge.plantuml.abel.LeafType;
 import net.sourceforge.plantuml.abel.Link;
 import net.sourceforge.plantuml.abel.LinkArrow;
 import net.sourceforge.plantuml.annotation.DuplicateCode;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -203,6 +204,8 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 
 		}
 
+		@Fast
+		@Override
 		public XDimension2D calculateDimension(StringBounder stringBounder) {
 			return minMax.getDimension().delta(16, 6);
 		}
@@ -495,8 +498,7 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 	}
 
 	private Style getStyle() {
-		return StyleSignatureBasic
-				.of(SName.root, SName.element, diagram.getDiagramType().getStyleName(), SName.arrow)
+		return StyleSignatureBasic.of(SName.root, SName.element, diagram.getDiagramType().getStyleName(), SName.arrow)
 				.getMergedStyle(diagram.getSkinParam().getCurrentStyleBuilder());
 	}
 

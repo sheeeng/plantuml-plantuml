@@ -76,7 +76,8 @@ public class EntityImageLollipopInterfaceEye1 extends AbstractEntityImage {
 
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(SIZE, SIZE);
 	}
 

@@ -41,12 +41,12 @@ import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 
-public abstract class ETile implements TextBlock {
+public abstract class ETile extends TextBlockMemoized {
 
 	protected final boolean TRACE = false;
 
@@ -57,7 +57,7 @@ public abstract class ETile implements TextBlock {
 	public abstract void push(ETile tile);
 
 	@Override
-	final public XDimension2D calculateDimension(StringBounder stringBounder) {
+	final public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final double width = getWidth(stringBounder);
 		final double h1 = getH1(stringBounder);
 		final double h2 = getH2(stringBounder);

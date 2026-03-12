@@ -55,6 +55,7 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
@@ -68,7 +69,7 @@ import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.yaml.Highlighted;
 
 //See TextBlockMap
-public class TextBlockJson implements TextBlock {
+public class TextBlockJson extends TextBlockMemoized {
 
 	private static final double MIN_WIDTH = 30;
 	private static final double MIN_HEIGHT = 15;
@@ -232,7 +233,8 @@ public class TextBlockJson implements TextBlock {
 		return Collections.unmodifiableList(result);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final double width = getWidthColA(stringBounder) + getWidthColB(stringBounder);
 		final double height = getTotalHeight(stringBounder);
 		return new XDimension2D(width, height);

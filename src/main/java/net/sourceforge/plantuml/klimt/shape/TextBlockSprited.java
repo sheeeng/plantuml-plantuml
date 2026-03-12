@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -50,6 +51,8 @@ public class TextBlockSprited implements TextBlock {
 		this.parent = parent;
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final double widthCircledCharacter = getCircledCharacterWithAndMargin(stringBounder);
 		final double heightCircledCharacter = sprite.calculateDimension(stringBounder).getHeight();

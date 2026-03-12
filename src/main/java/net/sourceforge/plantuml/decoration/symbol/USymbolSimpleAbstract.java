@@ -37,6 +37,7 @@ package net.sourceforge.plantuml.decoration.symbol;
 
 import java.util.Objects;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -77,6 +78,8 @@ abstract class USymbolSimpleAbstract extends USymbol {
 				stereotype.drawU(ug.apply(UTranslate.dx(stereoX)));
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				final XDimension2D dimLabel = label.calculateDimension(stringBounder);
 				final XDimension2D dimStereo = stereotype.calculateDimension(stringBounder);

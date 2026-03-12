@@ -36,10 +36,7 @@
 package net.sourceforge.plantuml.project.ngm.math;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 /**
  * Utilities to combine multiple {@link PiecewiseConstant} functions.
@@ -58,12 +55,12 @@ import java.util.stream.Collectors;
  */
 public class Combiner extends AbstractPiecewiseConstant {
 
-	private final List<PiecewiseConstant> elements;
+	private final PiecewiseConstant[] elements;
 
 	private final BiFunction<Fraction, Fraction, Fraction> operation;
 
 	private Combiner(BiFunction<Fraction, Fraction, Fraction> operation, PiecewiseConstant... elements) {
-		this.elements = Arrays.asList(elements);
+		this.elements = elements;
 		this.operation = operation;
 	}
 
@@ -93,11 +90,12 @@ public class Combiner extends AbstractPiecewiseConstant {
 
 	@Override
 	public Segment segmentAt(LocalDateTime instant, TimeDirection direction) {
-		if (elements.size() < 2)
+		if (elements.length < 2)
 			throw new IllegalStateException("At least two functions are required for combination");
 
-		final List<Segment> segments = elements.stream().map(f -> f.segmentAt(instant, direction))
-				.collect(Collectors.toList());
+		final Segment[] segments = new Segment[elements.length];
+		for (int i = 0; i < elements.length; i++)
+			segments[i] = elements[i].segmentAt(instant, direction);
 
 		return Segment.intersection(segments, operation);
 	}

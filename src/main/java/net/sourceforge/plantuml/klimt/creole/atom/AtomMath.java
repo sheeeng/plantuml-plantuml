@@ -61,7 +61,8 @@ public class AtomMath extends AbstractAtom implements Atom {
 		this.background = background;
 	}
 
-	private XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		if (stringBounder.matchesProperty("TIKZ")) {
 			return stringBounder.calculateDimension(null, math.getSource());
 		}
@@ -69,22 +70,11 @@ public class AtomMath extends AbstractAtom implements Atom {
 		return new XDimension2D(image.getWidth(), image.getHeight());
 	}
 
-	private XDimension2D dim;
-
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
-		if (stringBounder instanceof StringBounderDebug) {
-			return calculateDimensionSlow(stringBounder);
-		}
-		if (dim == null) {
-			dim = calculateDimensionSlow(stringBounder);
-		}
-		return dim;
-	}
-
 	public double getStartingAltitude(StringBounder stringBounder) {
 		return 0;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		if (!TeaVM.isTeaVM()) {
 			final ColorMapper colorMapper = ug.getColorMapper();

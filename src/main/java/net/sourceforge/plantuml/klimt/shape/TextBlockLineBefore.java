@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -66,6 +67,8 @@ public class TextBlockLineBefore implements TextBlock, WithPorts {
 		this(defaultThickness, textBlock, '\0');
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final XDimension2D dim = textBlock.calculateDimension(stringBounder);
 		if (title != null) {

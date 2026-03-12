@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -68,6 +69,8 @@ public class TextBlockWithUrl implements TextBlock {
 		ug.closeUrl();
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return block.calculateDimension(stringBounder);
 	}

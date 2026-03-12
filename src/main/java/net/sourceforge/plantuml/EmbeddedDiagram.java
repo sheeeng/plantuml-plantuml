@@ -54,6 +54,7 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.Line;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.UImage;
 import net.sourceforge.plantuml.klimt.shape.UImageSvg;
 import net.sourceforge.plantuml.log.Logme;
@@ -64,7 +65,7 @@ import net.sourceforge.plantuml.style.ISkinSimple;
 import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
 
-public class EmbeddedDiagram implements Line, Atom {
+public class EmbeddedDiagram extends TextBlockMemoized implements Line, Atom {
 
 	public static final String EMBEDDED_START = "{{";
 	public static final String EMBEDDED_END = "}}";
@@ -112,7 +113,8 @@ public class EmbeddedDiagram implements Line, Atom {
 		return 0;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		try {
 			if (stringBounder.matchesProperty("SVG")) {
 				final String imageSvg = getImageSvg();

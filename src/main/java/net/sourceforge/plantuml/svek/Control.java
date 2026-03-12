@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.svek;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -81,6 +82,8 @@ public class Control implements TextBlock {
 		ug.apply(new UTranslate(x + radius - xContact, y)).draw(polygon);
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(radius * 2 + 2 * margin, radius * 2 + 2 * margin);
 	}

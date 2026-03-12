@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.creole.Display;
@@ -91,6 +92,8 @@ public class Tile implements TextBlock {
 		ug.apply(new UTranslate(diffx2 / 2, diffy2 / 2)).draw(UEllipse.build(radius, radius));
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(SIZE, SIZE);
 	}

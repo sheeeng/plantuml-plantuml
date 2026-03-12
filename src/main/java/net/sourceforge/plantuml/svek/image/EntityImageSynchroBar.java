@@ -62,7 +62,8 @@ public class EntityImageSynchroBar extends AbstractEntityImage {
 		return StyleSignatureBasic.of(SName.root, SName.element, SName.activityDiagram, SName.activityBar);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		if (getSkinParam().getRankdir() == Rankdir.LEFT_TO_RIGHT)
 			return new XDimension2D(8, 80);
 

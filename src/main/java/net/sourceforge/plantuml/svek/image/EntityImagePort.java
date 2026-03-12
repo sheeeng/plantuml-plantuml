@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.svek.image;
 
 import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.EntityPosition;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Shadowable;
 import net.sourceforge.plantuml.klimt.UGroup;
 import net.sourceforge.plantuml.klimt.UGroupType;
@@ -78,7 +79,8 @@ public class EntityImagePort extends AbstractEntityImageBorder {
 		return node.getMinY() < clusterCenter.getY();
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	final public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		double sp = EntityPosition.RADIUS * 2;
 		return new XDimension2D(sp, sp);
 	}

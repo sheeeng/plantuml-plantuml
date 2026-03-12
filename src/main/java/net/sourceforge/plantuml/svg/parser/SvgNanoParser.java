@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.emoji.ColorResolver;
 import net.sourceforge.plantuml.emoji.GrayLevelRange;
 import net.sourceforge.plantuml.emoji.UGraphicWithScale;
@@ -476,6 +477,8 @@ public class SvgNanoParser implements ISvgSpriteParser, GrayLevelRange {
 				SvgNanoParser.this.drawU(ug, scale, fontColor, forcedColor);
 			}
 
+			@Override
+			@Fast
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(width, height);
 			}

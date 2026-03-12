@@ -64,7 +64,8 @@ public class AtomOpenIcon extends AbstractAtom implements Atom {
 		return TextBlockUtils.withMargin(openIcon.asTextBlock(color, factor), 1, 0);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return asTextBlock().calculateDimension(stringBounder);
 	}
 

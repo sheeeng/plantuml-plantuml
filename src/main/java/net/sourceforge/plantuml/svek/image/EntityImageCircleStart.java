@@ -62,7 +62,8 @@ public class EntityImageCircleStart extends AbstractEntityImage {
 		this.circle = new CircleStart(getSkinParam(), style, entity.getColors());
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return circle.calculateDimension(stringBounder);
 	}
 

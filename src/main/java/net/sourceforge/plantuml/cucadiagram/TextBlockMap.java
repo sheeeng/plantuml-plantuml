@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.LineBreakStrategy;
 import net.sourceforge.plantuml.klimt.UShape;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -53,6 +54,7 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.klimt.shape.UEllipse;
 import net.sourceforge.plantuml.klimt.shape.ULine;
@@ -61,7 +63,7 @@ import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.svek.Ports;
 import net.sourceforge.plantuml.svek.WithPorts;
 
-public class TextBlockMap implements WithPorts, TextBlock {
+public class TextBlockMap extends TextBlockMemoized implements WithPorts {
 
 	private final ISkinParam skinParam;
 	private final FontConfiguration fontConfiguration;
@@ -101,7 +103,8 @@ public class TextBlockMap implements WithPorts, TextBlock {
 		return ports;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(getWidthColA(stringBounder) + getWidthColB(stringBounder),
 				getTotalHeight(stringBounder));
 	}
@@ -182,6 +185,8 @@ public class TextBlockMap implements WithPorts, TextBlock {
 			this.color = color;
 		}
 
+		@Fast
+		@Override
 		public XDimension2D calculateDimension(StringBounder stringBounder) {
 			return new XDimension2D(getDiameter(), getDiameter());
 		}

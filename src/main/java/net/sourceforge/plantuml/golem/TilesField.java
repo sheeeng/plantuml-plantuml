@@ -48,11 +48,11 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XPoint2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.teavm.TeaVM;
 
-public class TilesField implements TextBlock {
+public class TilesField extends TextBlockMemoized {
 
 	private int size = 1;
 	private final Tile root = new Tile(0);
@@ -80,9 +80,9 @@ public class TilesField implements TextBlock {
 	}
 
 	private Path buildPath(TileArea tileArea1, TileArea tileArea2) {
-		if (isAdjoining(tileArea1, tileArea2)) {
+		if (isAdjoining(tileArea1, tileArea2))
 			return Path.build(tileArea1, tileArea2);
-		}
+
 		final Tile tile1 = tileArea1.getTile();
 		final Tile tile2 = tileArea2.getTile();
 		final Position pos1 = getPosition(tile1);
@@ -105,7 +105,8 @@ public class TilesField implements TextBlock {
 		final TileGeometry geom1 = tileArea1.getGeometry();
 		final TileGeometry geom2 = tileArea2.getGeometry();
 		if (pos1.equals(pos2)) {
-			if (TeaVM.a()) assert tile1 == tile2;
+			if (TeaVM.a())
+				assert tile1 == tile2;
 			if (geom1 == geom2) {
 				throw new IllegalArgumentException();
 			}
@@ -286,7 +287,8 @@ public class TilesField implements TextBlock {
 		return new XPoint2D(xt, yt);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final int xmin = getXmin();
 		final int xmax = getXmax();
 		final int ymin = getYmin();

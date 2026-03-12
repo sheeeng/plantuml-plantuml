@@ -45,7 +45,7 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 
-public class SingleLine implements TextBlock, Line {
+public class SingleLine extends TextBlockMemoized implements Line {
 
 	private final List<TextBlock> blocs = new ArrayList<>();
 	private final HorizontalAlignment horizontalAlignment;
@@ -63,7 +63,8 @@ public class SingleLine implements TextBlock, Line {
 		this.horizontalAlignment = horizontalAlignment;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		double width = 0;
 		double height = 0;
 		for (TextBlock b : blocs) {

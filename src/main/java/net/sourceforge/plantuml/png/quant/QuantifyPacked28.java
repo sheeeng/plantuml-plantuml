@@ -77,14 +77,11 @@ public final class QuantifyPacked28 {
 					+ memBeforeExtract + " -> " + memAfterExtract + " MB (delta: "
 					+ (memAfterExtract - memBeforeExtract) + " MB)");
 
-			// Step 3: Compress pixels
+			// Step 3: Compress pixels in place
 			final long startCompress = System.currentTimeMillis();
 			final long memBeforeCompress = PngIO.getUsedMemoryMB();
-			final int[] out = new int[pixels.length];
-			for (int i = 0; i < pixels.length; i++) {
-				final int argb = pixels[i];
-				out[i] = QuantUtils.compressPackedARGB(argb);
-			}
+			for (int i = 0; i < pixels.length; i++)
+				pixels[i] = QuantUtils.compressPackedARGB(pixels[i]);
 			final long compressDuration = System.currentTimeMillis() - startCompress;
 			final long memAfterCompress = PngIO.getUsedMemoryMB();
 			Log.info(() -> "QuantifyPacked28: pixel compression in " + compressDuration + " ms, memory: "
@@ -94,7 +91,7 @@ public final class QuantifyPacked28 {
 			// Step 4: Write to destination
 			final long startWrite = System.currentTimeMillis();
 			final long memBeforeWrite = PngIO.getUsedMemoryMB();
-			dst.setRGB(0, 0, w, h, out, 0, w);
+			dst.setRGB(0, 0, w, h, pixels, 0, w);
 			final long writeDuration = System.currentTimeMillis() - startWrite;
 			final long memAfterWrite = PngIO.getUsedMemoryMB();
 			Log.info(() -> "QuantifyPacked28: pixel write in " + writeDuration + " ms, memory: " + memBeforeWrite

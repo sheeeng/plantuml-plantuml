@@ -116,7 +116,7 @@ public class EntityImageChenAttribute extends AbstractEntityImage {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final TextBlockInEllipse ellipse = new TextBlockInEllipse(title, stringBounder);
 
 		return ellipse.calculateDimension(stringBounder);

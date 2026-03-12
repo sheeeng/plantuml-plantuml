@@ -131,7 +131,7 @@ public class GtileGroup extends AbstractGtileRoot {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D orig = inner.calculateDimension(stringBounder);
 		return orig.delta(18, suppHeight(stringBounder));
 	}

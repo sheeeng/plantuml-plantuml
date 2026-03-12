@@ -45,6 +45,8 @@ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.UEllipse;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class Boundary implements TextBlock {
 
 	private final double margin = 4;
@@ -91,6 +93,7 @@ public class Boundary implements TextBlock {
 
 	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(radius * 2 + left + 2 * margin, radius * 2 + 2 * margin);
 	}

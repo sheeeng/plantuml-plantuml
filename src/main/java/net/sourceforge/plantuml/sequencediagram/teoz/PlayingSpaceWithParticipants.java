@@ -46,15 +46,16 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.real.Real;
 import net.sourceforge.plantuml.skin.Context2D;
 import net.sourceforge.plantuml.skin.SimpleContext2D;
 
-public class PlayingSpaceWithParticipants implements TextBlock {
+public class PlayingSpaceWithParticipants extends TextBlockMemoized {
 
 	private final PlayingSpace playingSpace;
-	private XDimension2D cacheDimension;
+
 	private double ymin;
 	private double ymax;
 
@@ -62,18 +63,16 @@ public class PlayingSpaceWithParticipants implements TextBlock {
 		this.playingSpace = Objects.requireNonNull(playingSpace);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
-		if (cacheDimension == null) {
-			final double width = playingSpace.getMaxX(stringBounder).getCurrentValue()
-					- playingSpace.getMinX(stringBounder).getCurrentValue();
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+		final double width = playingSpace.getMaxX(stringBounder).getCurrentValue()
+				- playingSpace.getMinX(stringBounder).getCurrentValue();
 
-			final int factor = playingSpace.isShowFootbox() ? 2 : 1;
-			final double height = playingSpace.getPreferredHeight(stringBounder)
-					+ factor * playingSpace.getLivingSpaces().getHeadHeight(stringBounder);
+		final int factor = playingSpace.isShowFootbox() ? 2 : 1;
+		final double height = playingSpace.getPreferredHeight(stringBounder)
+				+ factor * playingSpace.getLivingSpaces().getHeadHeight(stringBounder);
 
-			cacheDimension = new XDimension2D(width, height);
-		}
-		return cacheDimension;
+		return new XDimension2D(width, height);
 	}
 
 	public void drawU(UGraphic ug) {

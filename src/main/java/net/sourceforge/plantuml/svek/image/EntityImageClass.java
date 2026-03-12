@@ -95,7 +95,8 @@ public class EntityImageClass extends AbstractEntityImage implements Stencil, Wi
 		this.url = entity.getUrl99();
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dimHeader = header.calculateDimension(stringBounder);
 		final XDimension2D dimBody = body == null ? new XDimension2D(0, 0) : body.calculateDimension(stringBounder);
 		double width = Math.max(dimBody.getWidth(), dimHeader.getWidth());

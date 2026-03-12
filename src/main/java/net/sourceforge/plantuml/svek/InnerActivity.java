@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.svek;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -73,6 +74,8 @@ public final class InnerActivity implements IEntityImage {
 		return im.getBackcolor();
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final XDimension2D img = im.calculateDimension(stringBounder);
 		return img;

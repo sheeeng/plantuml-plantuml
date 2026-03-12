@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.LimitFinder;
@@ -87,6 +88,7 @@ public class TextBlockUtils {
 			public void drawU(UGraphic ug) {
 			}
 
+			@Fast
 			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(width, height);
@@ -170,6 +172,8 @@ public class TextBlockUtils {
 				return text.getInnerPosition(member, stringBounder);
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return text.calculateDimension(stringBounder);
 			}
@@ -191,6 +195,8 @@ public class TextBlockUtils {
 				ug.draw(image);
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(image.getWidth(), image.getHeight());
 			}

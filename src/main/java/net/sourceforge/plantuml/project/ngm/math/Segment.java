@@ -334,7 +334,7 @@ public final class Segment {
 	 *                                  overlapping range exists among the segments
 	 * @throws NullPointerException     if {@code segments} is {@code null}
 	 */
-	public static Segment intersection(List<Segment> segments) {
+	public static Segment intersection(Segment[] segments) {
 		return intersection(segments, Fraction.PRODUCT);
 	}
 
@@ -369,23 +369,23 @@ public final class Segment {
 	 * @throws NullPointerException     if {@code segments} or {@code valueFunction}
 	 *                                  is {@code null}
 	 */
-	public static Segment intersection(List<Segment> segments, BiFunction<Fraction, Fraction, Fraction> valueFunction) {
+	public static Segment intersection(Segment[] segments, BiFunction<Fraction, Fraction, Fraction> valueFunction) {
 		Objects.requireNonNull(valueFunction, "valueFunction must not be null");
 
-		if (segments.isEmpty())
+		if (segments.length == 0)
 			throw new IllegalArgumentException("No segments to intersect");
 
-		if (segments.size() == 1)
-			return segments.get(0);
+		if (segments.length == 1)
+			return segments[0];
 
-		final TimeDirection direction = segments.get(0).getTimeDirection();
+		final TimeDirection direction = segments[0].getTimeDirection();
 
-		LocalDateTime start = segments.get(0).startExclusive();
-		LocalDateTime end = segments.get(0).endExclusive();
-		Fraction combinedValue = segments.get(0).getValue();
+		LocalDateTime start = segments[0].startExclusive();
+		LocalDateTime end = segments[0].endExclusive();
+		Fraction combinedValue = segments[0].getValue();
 
-		for (int i = 1; i < segments.size(); i++) {
-			final Segment segment = segments.get(i);
+		for (int i = 1; i < segments.length; i++) {
+			final Segment segment = segments[i];
 
 			if (segment.getTimeDirection() != direction)
 				throw new IllegalArgumentException("All segments must have the same direction");
@@ -415,6 +415,7 @@ public final class Segment {
 			return Segment.backward(start, end, combinedValue);
 		}
 	}
+
 
 	public LocalDateTime computeClampedStart(LocalDateTime current) {
 		if (direction == TimeDirection.FORWARD)

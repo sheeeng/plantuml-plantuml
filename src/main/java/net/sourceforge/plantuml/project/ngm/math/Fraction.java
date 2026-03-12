@@ -180,6 +180,17 @@ public final class Fraction implements Comparable<Fraction> {
 	}
 
 	/**
+	 * Multiplies this fraction by a long integer, avoiding the overhead of
+	 * creating an intermediate {@link Fraction} object.
+	 *
+	 * @param scalar the integer to multiply with
+	 * @return the product of this fraction and the scalar
+	 */
+	public Fraction multiplyByLong(long scalar) {
+		return new Fraction(this.num * scalar, this.den);
+	}
+
+	/**
 	 * Divides this fraction by another fraction.
 	 * 
 	 * @param other the other fraction to divide by

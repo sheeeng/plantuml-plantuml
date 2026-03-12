@@ -46,6 +46,7 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.UImage;
 import net.sourceforge.plantuml.klimt.sprite.Sprite;
 
@@ -60,7 +61,7 @@ public class SpriteSvgNanoParser implements Sprite {
 	@Override
 	public TextBlock asTextBlock(final HColor fontColor, final HColor forcedColor, final double scale,
 			final HColor backColor) {
-		return new TextBlock() {
+		return new TextBlockMemoized() {
 
 			public void drawU(UGraphic ug) {
 				final ColorMapper colorMapper = ug.getColorMapper();
@@ -73,7 +74,8 @@ public class SpriteSvgNanoParser implements Sprite {
 
 			}
 
-			public XDimension2D calculateDimension(StringBounder stringBounder) {
+			@Override
+			public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 				return new XDimension2D(img.getWidth() * scale, img.getHeight() * scale);
 			}
 		};

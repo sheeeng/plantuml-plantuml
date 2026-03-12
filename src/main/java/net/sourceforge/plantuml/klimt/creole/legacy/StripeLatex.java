@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.klimt.creole.legacy;
 import java.util.Collections;
 import java.util.List;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.creole.Neutron;
 import net.sourceforge.plantuml.klimt.creole.Parser;
 import net.sourceforge.plantuml.klimt.creole.atom.Atom;
@@ -95,6 +96,8 @@ public class StripeLatex implements StripeRaw {
 			return null;
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return getAtom().calculateDimension(stringBounder);
 	}

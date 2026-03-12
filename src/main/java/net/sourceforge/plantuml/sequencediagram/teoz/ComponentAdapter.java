@@ -43,6 +43,8 @@ import net.sourceforge.plantuml.skin.Area;
 import net.sourceforge.plantuml.skin.Component;
 import net.sourceforge.plantuml.skin.SimpleContext2D;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class ComponentAdapter implements TextBlock {
 
 	private final Component component;
@@ -59,6 +61,7 @@ public class ComponentAdapter implements TextBlock {
 
 	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		if (component == null) {
 			return new XDimension2D(0, 0);

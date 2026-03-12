@@ -108,7 +108,7 @@ public class LoadIntegrator {
 
 			final long segmentSeconds = Math.abs(Duration.between(effectiveStart, segment.endExclusive()).getSeconds());
 			// Load consumed in this segment = loadRate * duration (in seconds)
-			final Fraction segmentLoad = loadRate.multiply(new Fraction(segmentSeconds, 1));
+			final Fraction segmentLoad = loadRate.multiplyByLong(segmentSeconds);
 
 			if (segmentLoad.compareTo(remainingLoad) >= 0) {
 				// This segment completes the work

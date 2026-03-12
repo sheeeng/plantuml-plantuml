@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.activitydiagram3;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -64,6 +65,8 @@ class Recentred implements TextBlock {
 		return minMax;
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final MinMax minMax = getMinMax(stringBounder);
 		return minMax.getDimension();

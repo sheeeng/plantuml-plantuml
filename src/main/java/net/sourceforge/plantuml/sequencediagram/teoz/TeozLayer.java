@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.sequencediagram.teoz;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.PngTitler;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontParam;
@@ -58,6 +59,8 @@ public class TeozLayer implements TextBlock {
 		}
 	}
 
+	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return dimension;
 	}
@@ -67,9 +70,9 @@ public class TeozLayer implements TextBlock {
 	}
 
 	public void drawU(UGraphic ug) {
-		if (titler != null) {
+		if (titler != null)
 			titler.getRibbonBlock().drawU(ug);
-		}
+
 	}
 
 }

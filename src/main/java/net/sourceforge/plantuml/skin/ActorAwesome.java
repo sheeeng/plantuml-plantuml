@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.skin;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.UPath;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -59,6 +60,7 @@ public class ActorAwesome implements TextBlock {
 		this.fashion = fashion;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 
 		final UEllipse head = UEllipse.build(headDiam, headDiam);
@@ -101,6 +103,8 @@ public class ActorAwesome implements TextBlock {
 		return headDiam + bodyHeight + thickness() * 2;
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(getPreferredWidth(), getPreferredHeight());
 	}

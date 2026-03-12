@@ -121,7 +121,8 @@ class ITFComposed extends WBSTextBlock implements ITF {
 		return new XPoint2D(x, y);
 	}
 
-	public final XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public final XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D mainDim = main.calculateDimension(stringBounder);
 		final double mainWidth = mainDim.getWidth();
 		final double height = mainDim.getHeight() + Math.max(getCollHeight(stringBounder, left, marginBottom),

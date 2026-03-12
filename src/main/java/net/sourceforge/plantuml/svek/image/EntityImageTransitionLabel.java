@@ -75,7 +75,8 @@ public class EntityImageTransitionLabel extends AbstractEntityImage {
 		}
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		try {
 			// Return dimensions based on the text content plus margins
 			XDimension2D textDim = textBlock.calculateDimension(stringBounder);

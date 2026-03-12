@@ -107,6 +107,24 @@ public final class PiecewiseConstantSpecificDays extends AbstractPiecewiseConsta
 	}
 
 	/**
+	 * Creates a PiecewiseConstantSpecificDays with the given default value and
+	 * a pre-built day-to-fraction mapping.
+	 *
+	 * <p>
+	 * This factory method avoids the O(N²) cost of chaining N calls to
+	 * {@link #withDay(LocalDate, Fraction)}, each of which copies the internal
+	 * map. Instead, the caller builds the map once and passes it in.
+	 * </p>
+	 *
+	 * @param defaultValue  The default workload fraction.
+	 * @param dayToFraction Mapping of specific dates to their workload fractions.
+	 * @return A new PiecewiseConstantSpecificDays instance.
+	 */
+	public static PiecewiseConstantSpecificDays of(Fraction defaultValue, Map<LocalDate, Fraction> dayToFraction) {
+		return new PiecewiseConstantSpecificDays(defaultValue, new HashMap<>(dayToFraction));
+	}
+
+	/**
 	 * Returns a new PiecewiseConstantSpecificDays with the specified day associated
 	 * with the given fraction.
 	 * 

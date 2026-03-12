@@ -40,6 +40,7 @@ import java.util.Objects;
 
 import net.atmp.PixelImage;
 import net.sourceforge.plantuml.FileUtils;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.AffineTransformType;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
@@ -81,6 +82,7 @@ public class SpriteImage implements Sprite {
 					ug.draw(img.muteColor(usedColor.toColor(colorMapper)).scale(scale));
 			}
 
+			@Fast
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(img.getWidth() * scale, img.getHeight() * scale);
 			}

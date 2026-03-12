@@ -61,7 +61,8 @@ public class AtomSprite extends AbstractAtom implements Atom {
 		this.backColor = backColor;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return sprite.asTextBlock(fontColor, forcedColor, scale, null).calculateDimension(stringBounder);
 	}
 

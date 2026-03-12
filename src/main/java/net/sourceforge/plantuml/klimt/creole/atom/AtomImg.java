@@ -218,7 +218,8 @@ public class AtomImg extends AbstractAtom implements Atom {
 
 	// End
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(image.getWidth() * scale, image.getHeight() * scale);
 	}
 

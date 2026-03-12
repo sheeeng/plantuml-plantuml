@@ -56,6 +56,7 @@ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.GraphicStrings;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.klimt.shape.UImage;
 import net.sourceforge.plantuml.svek.IEntityImage;
@@ -64,7 +65,7 @@ import net.sourceforge.plantuml.svek.ShapeType;
 import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.version.PSystemVersion;
 
-public class GraphvizCrash implements IEntityImage {
+public class GraphvizCrash extends TextBlockMemoized implements IEntityImage {
 
 	private final TextBlock text1;
 	private final String flash;
@@ -141,10 +142,12 @@ public class GraphvizCrash implements IEntityImage {
 		return HColors.WHITE;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return getMain().calculateDimension(stringBounder);
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		getMain().drawU(ug);
 	}

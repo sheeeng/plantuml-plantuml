@@ -48,6 +48,8 @@ import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class DecorateEntityImage implements TextBlock {
 
 	private final TextBlock original;
@@ -155,6 +157,7 @@ public class DecorateEntityImage implements TextBlock {
 		return original.getBackcolor();
 	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final XDimension2D dimOriginal = original.calculateDimension(stringBounder);
 		final XDimension2D dim1 = getTextDim(text1, stringBounder);

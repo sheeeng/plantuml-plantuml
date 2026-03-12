@@ -89,7 +89,8 @@ public class EntityImageState2 extends AbstractEntityImage {
 		return ShapeType.RECTANGLE;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return asSmall.calculateDimension(stringBounder);
 	}
 

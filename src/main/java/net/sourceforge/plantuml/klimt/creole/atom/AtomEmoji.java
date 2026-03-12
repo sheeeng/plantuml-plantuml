@@ -53,7 +53,8 @@ public class AtomEmoji extends AbstractAtom implements Atom {
 		this.color = color;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final double size = 36 * factor;
 		return new XDimension2D(size, size);
 	}

@@ -51,8 +51,9 @@ import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 
-public final class ConcurrentStates implements IEntityImage, TextBlock {
+public final class ConcurrentStates extends TextBlockMemoized implements IEntityImage {
 
 	private final List<IEntityImage> inners;
 	private final Separator separator;
@@ -132,7 +133,8 @@ public final class ConcurrentStates implements IEntityImage, TextBlock {
 
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		XDimension2D result = new XDimension2D(0, 0);
 		for (IEntityImage inner : inners) {
 			final XDimension2D dim = inner.calculateDimension(stringBounder);

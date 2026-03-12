@@ -58,7 +58,8 @@ import net.sourceforge.plantuml.svek.IEntityImage;
 import net.sourceforge.plantuml.svek.Margins;
 import net.sourceforge.plantuml.svek.ShapeType;
 
-public class GraphicStrings implements IEntityImage {
+public class GraphicStrings extends TextBlockMemoized implements IEntityImage {
+
 	private final double margin = 5;
 
 	private final HColor background;
@@ -153,7 +154,7 @@ public class GraphicStrings implements IEntityImage {
 
 	public void drawU(UGraphic ug) {
 		ug = ug.apply(new UTranslate(margin, margin));
-		final XDimension2D size = calculateDimensionInternal(ug.getStringBounder());
+		final XDimension2D size = calculateDimension(ug.getStringBounder()).delta(-2 * margin);
 		getTextBlock().drawU(ug.apply(fontConfiguration.getColor()));
 
 		if (image != null) {
@@ -170,11 +171,12 @@ public class GraphicStrings implements IEntityImage {
 		}
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
-		return calculateDimensionInternal(stringBounder).delta(2 * margin);
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+		return calculateDimensionInternal22(stringBounder).delta(2 * margin);
 	}
 
-	private XDimension2D calculateDimensionInternal(StringBounder stringBounder) {
+	private XDimension2D calculateDimensionInternal22(StringBounder stringBounder) {
 		XDimension2D dim = getTextBlock().calculateDimension(stringBounder);
 		if (image != null) {
 			if (position == GraphicPosition.BOTTOM)

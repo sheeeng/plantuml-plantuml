@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.klimt.sprite;
 
 import net.atmp.PixelImage;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.AffineTransformType;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
 import net.sourceforge.plantuml.klimt.awt.PortableImageFactory;
@@ -130,6 +131,7 @@ public class SpriteColor implements Sprite {
 				ug.draw(image.scale(scale));
 			}
 
+			@Fast
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(getWidth() * scale, getHeight() * scale);
 			}

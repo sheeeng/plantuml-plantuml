@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.packetdiag;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.Fashion;
 import net.sourceforge.plantuml.klimt.LineBreakStrategy;
 import net.sourceforge.plantuml.klimt.Shadowable;
@@ -182,6 +183,7 @@ public class PacketBlock {
 		// Basically it's URectangle#asSmall, but without horizontal margin
 		return new TextBlock() {
 			@Override
+			@Fast
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				final XDimension2D dimLabel = label.calculateDimension(stringBounder);
 				final XDimension2D dimStereo = stereo.calculateDimension(stringBounder);

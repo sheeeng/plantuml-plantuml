@@ -57,7 +57,8 @@ public class EntityImageAssociation extends AbstractEntityImage {
 		super(entity);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new XDimension2D(SIZE * 2, SIZE * 2);
 	}
 

@@ -98,7 +98,7 @@ public class GtileColumns extends AbstractGtile {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		XDimension2D result = new XDimension2D(0, 0);
 		for (int i = 0; i < gtiles.size(); i++) {
 			final XDimension2D dim = gtiles.get(i).calculateDimension(stringBounder);

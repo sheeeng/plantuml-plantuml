@@ -86,11 +86,6 @@ public final class GanttLayout {
 		this.totalHeight = drawRegistry.getTotalHeightWithoutFooter() + this.footerHeight;
 	}
 
-	public XDimension2D calculateDimension() {
-		final double width = titlesWidth + barsWidth;
-		return new XDimension2D(width, totalHeight);
-	}
-
 	public double getTitlesWidth() {
 		return titlesWidth;
 	}

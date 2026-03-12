@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -53,6 +54,7 @@ class TextBlockMinWidth implements TextBlock {
 		this.horizontalAlignment = horizontalAlignment;
 	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final XDimension2D dim = textBlock.calculateDimension(stringBounder);
 		return dim.atLeast(minWidth, 0);

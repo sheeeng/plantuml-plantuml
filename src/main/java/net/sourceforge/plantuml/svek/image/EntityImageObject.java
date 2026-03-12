@@ -137,7 +137,8 @@ public class EntityImageObject extends AbstractEntityImage implements Stencil, W
 
 	private int marginEmptyFieldsOrMethod = 13;
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dimTitle = getTitleDimension(stringBounder);
 		final XDimension2D dimFields = fields.calculateDimension(stringBounder);
 		double width = Math.max(dimFields.getWidth(), dimTitle.getWidth() + 2 * xMarginCircle);

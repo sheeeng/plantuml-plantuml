@@ -40,10 +40,10 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.style.ISkinParam;
 
-public class FilesListing implements TextBlock {
+public class FilesListing extends TextBlockMemoized {
 
 	private final ISkinParam skinParam;
 	private final FontConfiguration fontConfiguration;
@@ -57,7 +57,7 @@ public class FilesListing implements TextBlock {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		double width = 0;
 		double height = 0;
 		for (FEntry ent : root) {

@@ -60,10 +60,10 @@ public class Solver {
 //	}
 
 	public final void setData(TaskAttribute attribute, PValue value) {
-		if (value instanceof TimePoint) {
-			if (value.toString().endsWith("T00:00") == false)
-				throw new IllegalArgumentException(value.toString());
-		}
+//		if (value instanceof TimePoint) {
+//			if (value.toString().endsWith("T00:00") == false)
+//				throw new IllegalArgumentException(value.toString());
+//		}
 		final PValue previous = values.remove(attribute);
 		if (previous != null && attribute == TaskAttribute.START) {
 			final TimePoint previousInstant = (TimePoint) previous;

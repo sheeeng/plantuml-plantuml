@@ -148,7 +148,9 @@ public final class Quantify555 {
 			final long memBeforeCubes = PngIO.getUsedMemoryMB();
 			final Cube555[] cubes = new Cube555[TOTAL_CUBE_SLOTS];
 			for (int argb : pixels) {
-				final int cubeIndex = getCubeIndex(argb);
+				final long packed = cubeAndSub(argb);
+				final int cubeIndex = (int) (packed >>> 32);
+				final int sub = (int) packed;
 
 				Cube555 cube = cubes[cubeIndex];
 				if (cube == null) {
@@ -162,9 +164,6 @@ public final class Quantify555 {
 					cubes[cubeIndex] = cube;
 				}
 
-				// for transparent pixels, we don't care about sub-color distribution;
-				// just increment bucket 0 (or any fixed slot).
-				final int sub = cubeIndex == TRANSPARENT_CUBE ? 0 : subColorIndex512(argb);
 				cube.increment(sub);
 
 			}
@@ -185,7 +184,7 @@ public final class Quantify555 {
 			// Step 3: Build the final indexed image
 			final long startBuild = System.currentTimeMillis();
 			final long memBeforeBuild = PngIO.getUsedMemoryMB();
-			final BufferedImage result = buildIndexedImageFromCubes(src, cubes);
+			final BufferedImage result = buildIndexedImageFromCubes(src, cubes, pixels);
 			final long buildDuration = System.currentTimeMillis() - startBuild;
 			final long memAfterBuild = PngIO.getUsedMemoryMB();
 			Log.info(() -> "Quantify555: indexed image built in " + buildDuration + " ms, memory: " + memBeforeBuild
@@ -214,7 +213,7 @@ public final class Quantify555 {
 	 * @param cubes array of Cube555 (null for empty cubes)
 	 * @return an indexed (8-bit) {@link BufferedImage}
 	 */
-	private static BufferedImage buildIndexedImageFromCubes(BufferedImage src, Cube555[] cubes) {
+	private static BufferedImage buildIndexedImageFromCubes(BufferedImage src, Cube555[] cubes, int[] pixels) {
 		final int w = src.getWidth();
 		final int h = src.getHeight();
 
@@ -244,11 +243,9 @@ public final class Quantify555 {
 		final WritableRaster raster = dst.getRaster();
 
 		// Step 3: Replace each pixel in the source with its palette index
-		final int[] line = new int[w];
 		for (int y = 0; y < h; y++) {
-			src.getRGB(0, y, w, 1, line, 0, w);
 			for (int x = 0; x < w; x++) {
-				final int argb = line[x];
+				final int argb = pixels[y * w + x];
 				final int cubeIndex = getCubeIndex(argb);
 				final int p = cubeToPal[cubeIndex];
 				if (p < 0)
@@ -315,45 +312,44 @@ public final class Quantify555 {
 		return (0xFF << 24) | (r8 << 16) | (g8 << 8) | b8;
 	}
 
+	/**
+	 * Computes both the cube index (RGB555) and sub-color index (9-bit) in a
+	 * single pass over the ARGB components.
+	 * <p>
+	 * Returns a packed {@code long}: cube index in the upper 32 bits,
+	 * sub-color index in the lower 32 bits.
+	 * </p>
+	 *
+	 * @param argb 32-bit ARGB color
+	 * @return packed long: {@code (cubeIndex << 32) | subColorIndex}
+	 */
+	private static long cubeAndSub(int argb) {
+
+		if (isTransparent(argb))
+			return ((long) TRANSPARENT_CUBE << 32);
+
+		final int r8 = (argb >>> 16) & 0xFF;
+		final int g8 = (argb >>> 8) & 0xFF;
+		final int b8 = argb & 0xFF;
+
+		// Upper 5 bits of each channel -> cube index (15-bit RGB555)
+		final int cubeIndex = ((r8 >>> 3) << 10) | ((g8 >>> 3) << 5) | (b8 >>> 3);
+
+		// Lower 3 bits of each channel -> sub-color index (9-bit)
+		final int sub = ((r8 & 0x07) << 6) | ((g8 & 0x07) << 3) | (b8 & 0x07);
+
+		return ((long) cubeIndex << 32) | sub;
+	}
+
 	private static int getCubeIndex(int argb) {
 
 		if (isTransparent(argb))
 			return TRANSPARENT_CUBE;
 
-		/*
-		 * Compacts a 24-bit ARGB color into a 15-bit RGB555 index.
-		 * 
-		 * Formula: r5:g5:b5 -> (r5 << 10) | (g5 << 5) | b5 </p>
-		 */
-
 		final int r5 = (argb >>> 19) & 0x1F; // bits 23..19
 		final int g5 = (argb >>> 11) & 0x1F; // bits 15..11
 		final int b5 = (argb >>> 3) & 0x1F; // bits 7..3
 		return (r5 << 10) | (g5 << 5) | b5;
-	}
-
-	/**
-	 * Computes the 9-bit sub-color index (0..511) of a pixel inside its RGB555
-	 * cube.
-	 * <p>
-	 * Takes the 3 least significant bits of each 8-bit channel:
-	 * 
-	 * sub = (rLow3 << 6) | (gLow3 << 3) | bLow3
-	 * </p>
-	 *
-	 * @param argb 32-bit ARGB color
-	 * @return sub-color index (0..511)
-	 */
-	private static int subColorIndex512(int argb) {
-		final int r8 = (argb >>> 16) & 0xFF;
-		final int g8 = (argb >>> 8) & 0xFF;
-		final int b8 = argb & 0xFF;
-
-		final int rLow3 = r8 & 0x07; // 3 least significant bits
-		final int gLow3 = g8 & 0x07;
-		final int bLow3 = b8 & 0x07;
-
-		return (rLow3 << 6) | (gLow3 << 3) | bLow3; // 0..511
 	}
 
 }

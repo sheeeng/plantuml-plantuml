@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.skin;
 
 import net.sourceforge.plantuml.StringUtils;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UGroup;
 import net.sourceforge.plantuml.klimt.UGroupType;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -94,6 +95,8 @@ public enum VisibilityModifier {
 			final boolean withInvisibleRectanble) {
 		return new TextBlock() {
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(size + 1, size + 1);
 			}

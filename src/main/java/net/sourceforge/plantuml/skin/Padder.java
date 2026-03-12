@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.skin;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColors;
@@ -104,10 +105,11 @@ public class Padder {
 	}
 
 	public TextBlock apply(final TextBlock orig) {
-		if (this == NONE) {
+		if (this == NONE)
 			return orig;
-		}
+
 		return new TextBlock() {
+			@Fast
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return orig.calculateDimension(stringBounder).delta(2 * (margin + padding));
 			}
@@ -115,16 +117,16 @@ public class Padder {
 			public void drawU(UGraphic ug) {
 				ug = ug.apply(new UTranslate(margin, margin));
 				UGraphic ug2 = ug;
-				if (borderColor == null) {
+				if (borderColor == null)
 					ug2 = ug2.apply(HColors.none());
-				} else {
+				else
 					ug2 = ug2.apply(borderColor);
-				}
-				if (backgroundColor == null) {
+
+				if (backgroundColor == null)
 					ug2 = ug2.apply(HColors.none().bg());
-				} else {
+				else
 					ug2 = ug2.apply(backgroundColor.bg());
-				}
+
 				final XDimension2D originalDim = orig.calculateDimension(ug.getStringBounder());
 				final URectangle rect = URectangle.build(originalDim.delta(2 * padding)).rounded(roundCorner);
 				ug2.draw(rect);

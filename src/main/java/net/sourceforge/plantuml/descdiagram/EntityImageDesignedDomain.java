@@ -150,7 +150,8 @@ public class EntityImageDesignedDomain extends AbstractEntityImage {
 		return ShapeType.RECTANGLE;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dimTitle = getTitleDimension(stringBounder);
 		final double width = dimTitle.getWidth();
 		final double height = dimTitle.getHeight();

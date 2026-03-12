@@ -105,7 +105,8 @@ public class EntityImageRequirement extends AbstractEntityImage {
 		return stroke;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return new TextBlockInEllipse(desc, stringBounder).calculateDimension(stringBounder);
 	}
 

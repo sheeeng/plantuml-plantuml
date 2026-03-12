@@ -39,6 +39,7 @@ package net.sourceforge.plantuml.sudoku;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.creole.Display;
@@ -82,6 +83,7 @@ public class GraphicsSudoku implements TextBlock {
 	final private int sudoWidth = 9 * cellWidth + 2 * xOffset + boldWidth;
 
 	@Override
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(sudoWidth, sudoHeight + textTotalHeight);
 	}

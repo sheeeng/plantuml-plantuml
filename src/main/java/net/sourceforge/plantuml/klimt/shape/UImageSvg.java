@@ -43,10 +43,11 @@ import net.sourceforge.plantuml.klimt.UShape;
 import net.sourceforge.plantuml.utils.SignatureUtils;
 
 public class UImageSvg implements UShape {
-	// ::remove file when __HAXE__
 
 	private final String svg;
 	private final double scale;
+	private int cachedWidth = -1;
+	private int cachedHeight = -1;
 
 	public UImageSvg(String svg, double scale) {
 		this.svg = Objects.requireNonNull(svg);
@@ -139,11 +140,15 @@ public class UImageSvg implements UShape {
 	}
 
 	public double getHeight() {
-		return this.getData("height") * scale;
+		if (cachedHeight == -1)
+			cachedHeight = getData("height");
+		return cachedHeight * scale;
 	}
 
 	public double getWidth() {
-		return this.getData("width") * scale;
+		if (cachedWidth == -1)
+			cachedWidth = getData("width");
+		return cachedWidth * scale;
 	}
 
 	public double getScale() {

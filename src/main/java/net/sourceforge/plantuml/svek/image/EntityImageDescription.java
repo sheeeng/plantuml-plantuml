@@ -224,7 +224,8 @@ public class EntityImageDescription extends AbstractEntityImage {
 		return name.calculateDimension(stringBounder);
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return asSmall.calculateDimension(stringBounder);
 	}
 

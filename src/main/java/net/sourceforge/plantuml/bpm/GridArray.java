@@ -41,11 +41,11 @@ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XPoint2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.style.ISkinParam;
 
-public class GridArray implements TextBlock {
+public class GridArray extends TextBlockMemoized {
 
 	private final int lines;
 	private final int cols;
@@ -108,7 +108,8 @@ public class GridArray implements TextBlock {
 
 	private final double margin = 30;
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		double heightMax = 0;
 		for (int l = 0; l < lines; l++)
 			heightMax += getHeightOfLine(stringBounder, l) + margin;

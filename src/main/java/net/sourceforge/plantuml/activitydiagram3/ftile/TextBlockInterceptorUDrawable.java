@@ -37,6 +37,7 @@ package net.sourceforge.plantuml.activitydiagram3.ftile;
 
 import java.util.HashMap;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -56,6 +57,7 @@ public class TextBlockInterceptorUDrawable implements TextBlock {
 		this.isDebug = isDebug;
 	}
 
+	@Fast
 	public void drawU(UGraphic ug) {
 		new UGraphicInterceptorUDrawable2(ug, emptyHashMap(), gotoColor, isDebug).draw(textBlock);
 		ug.flushUg();
@@ -65,6 +67,8 @@ public class TextBlockInterceptorUDrawable implements TextBlock {
 		return new HashMap<>();
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		throw new UnsupportedOperationException();
 	}

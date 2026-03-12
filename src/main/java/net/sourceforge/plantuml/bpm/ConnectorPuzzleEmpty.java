@@ -49,6 +49,8 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.style.ISkinParam;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class ConnectorPuzzleEmpty extends AbstractConnectorPuzzle implements Placeable, TextBlock, ConnectorPuzzle {
 
 	public static ConnectorPuzzleEmpty get(String value) {
@@ -112,6 +114,7 @@ public class ConnectorPuzzleEmpty extends AbstractConnectorPuzzle implements Pla
 		}
 	}
 
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(20, 20);
 	}

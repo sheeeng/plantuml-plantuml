@@ -129,7 +129,8 @@ public class EntityImageEmptyPackage extends AbstractEntityImage {
 
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dimDesc = desc.calculateDimension(stringBounder);
 		XDimension2D dim = TextBlockUtils.mergeTB(desc, stereoBlock, HorizontalAlignment.LEFT)
 				.calculateDimension(stringBounder);

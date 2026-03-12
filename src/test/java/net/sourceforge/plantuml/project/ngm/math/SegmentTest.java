@@ -40,7 +40,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -198,7 +197,7 @@ class SegmentTest {
 	@Test
 	void intersectionOfNoSegments() throws Exception {
 		assertThrows(IllegalArgumentException.class, 
-				() -> Segment.intersection(List.of()));
+				() -> Segment.intersection(new Segment[0]));
 	}
 	
 	@Test
@@ -208,7 +207,7 @@ class SegmentTest {
 				LocalDateTime.of(2024, 6, 1, 17, 0),
 				Fraction.of(1));
 		
-		Segment result = Segment.intersection(List.of(segment));
+		Segment result = Segment.intersection(new Segment[] { segment });
 		
 		assertThat(result).isSameAs(segment);
 	}
@@ -226,7 +225,7 @@ class SegmentTest {
 				Fraction.of(1));
 		
 		assertThrows(IllegalArgumentException.class, 
-				() -> Segment.intersection(List.of(segment1, segment2)));
+				() -> Segment.intersection(new Segment[] { segment1, segment2 }));
 		
 	}
 	
@@ -242,7 +241,7 @@ class SegmentTest {
 				LocalDateTime.of(2025, 7, 1, 17, 0),
 				new Fraction(1, 2));
 		
-		Segment result = Segment.intersection(List.of(segment1, segment2));	
+		Segment result = Segment.intersection(new Segment[] { segment1, segment2 });	
 		
 		assertThat(result.startExclusive()).isEqualTo(LocalDateTime.of(2025, 7, 1, 12, 0));
 		assertThat(result.endExclusive()).isEqualTo(LocalDateTime.of(2025, 7, 1, 13, 0));
@@ -252,7 +251,7 @@ class SegmentTest {
 	
 	@Test
 	void intersectionOfMultipleSegmentsWithSumFunction() throws Exception {
-		List<Segment> segments = List.of(
+		Segment[] segments = new Segment[] {
 				Segment.forward(
 						LocalDateTime.of(2025, 7, 1, 8, 0),
 						LocalDateTime.of(2025, 7, 1, 16, 0),
@@ -265,7 +264,7 @@ class SegmentTest {
 						LocalDateTime.of(2025, 7, 1, 10, 0),
 						LocalDateTime.of(2025, 7, 1, 18, 0),
 						new Fraction(3, 4))
-		);
+		};
 		
 		Segment result = Segment.intersection(segments, Fraction.SUM);	
 		
@@ -460,7 +459,7 @@ class SegmentTest {
 				LocalDateTime.of(2025, 7, 1, 10, 0),
 				new Fraction(1, 2));
 		
-		Segment result = Segment.intersection(List.of(segment1, segment2));
+		Segment result = Segment.intersection(new Segment[] { segment1, segment2 });
 		
 		assertThat(result.startExclusive()).isEqualTo(LocalDateTime.of(2025, 7, 1, 15, 0));
 		assertThat(result.endExclusive()).isEqualTo(LocalDateTime.of(2025, 7, 1, 10, 0));
@@ -470,7 +469,7 @@ class SegmentTest {
 	
 	@Test
 	void intersectionOfMultipleBackwardSegmentsWithSumFunction() throws Exception {
-		List<Segment> segments = List.of(
+		Segment[] segments = new Segment[] {
 				Segment.backward(
 						LocalDateTime.of(2025, 7, 1, 18, 0),
 						LocalDateTime.of(2025, 7, 1, 8, 0),
@@ -483,7 +482,7 @@ class SegmentTest {
 						LocalDateTime.of(2025, 7, 1, 16, 0),
 						LocalDateTime.of(2025, 7, 1, 10, 0),
 						new Fraction(3, 4))
-		);
+		};
 		
 		Segment result = Segment.intersection(segments, Fraction.SUM);
 		
@@ -506,7 +505,7 @@ class SegmentTest {
 				LocalDateTime.of(2025, 7, 1, 9, 0),
 				Fraction.of(1));
 		
-		assertThatThrownBy(() -> Segment.intersection(List.of(segment1, segment2)))
+		assertThatThrownBy(() -> Segment.intersection(new Segment[] { segment1, segment2 }))
 			.isInstanceOf(IllegalArgumentException.class);
 	}
 	
@@ -522,7 +521,7 @@ class SegmentTest {
 				LocalDateTime.of(2025, 7, 1, 9, 0),
 				Fraction.of(1));
 		
-		assertThatThrownBy(() -> Segment.intersection(List.of(forwardSegment, backwardSegment)))
+		assertThatThrownBy(() -> Segment.intersection(new Segment[] { forwardSegment, backwardSegment }))
 			.isInstanceOf(IllegalArgumentException.class)
 			.hasMessageContaining("same direction");
 	}

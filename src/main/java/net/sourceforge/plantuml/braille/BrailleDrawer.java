@@ -45,6 +45,8 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.UEllipse;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public class BrailleDrawer implements TextBlock {
 
 	private final BrailleGrid grid;
@@ -55,6 +57,7 @@ public class BrailleDrawer implements TextBlock {
 		this.grid = grid;
 	}
 
+	@Fast
 	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final double width = (grid.getMaxX() - grid.getMinX()) * step + spotSize + 2;

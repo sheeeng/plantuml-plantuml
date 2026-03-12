@@ -177,7 +177,8 @@ public class EntityImageNote extends AbstractEntityImage implements Stencil {
 		return getPureTextWidth(stringBounder) + marginX1 + marginX2;
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final double height = getPreferredHeight(stringBounder);
 		final double width = getPreferredWidth(stringBounder);
 		return new XDimension2D(width, height);

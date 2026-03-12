@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -68,6 +69,8 @@ class TextBlockMarged implements TextBlock, WithPorts {
 		this.left = margins.getLeft();
 	}
 
+
+	@Fast
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		final XDimension2D dim = textBlock.calculateDimension(stringBounder);
 		return dim.delta(left + right, top + bottom);

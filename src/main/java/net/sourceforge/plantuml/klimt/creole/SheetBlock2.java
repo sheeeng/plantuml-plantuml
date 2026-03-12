@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.klimt.creole;
 import java.util.List;
 import java.util.Objects;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.creole.atom.Atom;
@@ -86,10 +87,13 @@ final public class SheetBlock2 implements TextBlock, Atom, WithPorts {
 		return block.toString();
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return block.calculateDimension(stringBounder);
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		if (stencil != null)
 			ug = UGraphicStencil.create(ug, stencil, defaultStroke);

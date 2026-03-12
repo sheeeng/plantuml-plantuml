@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.svek;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -51,10 +52,13 @@ public class DecorateEntityImage3 implements TextBlock {
 		this.color = color;
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return original.calculateDimension(stringBounder);
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		original.drawU(ug);
 	}

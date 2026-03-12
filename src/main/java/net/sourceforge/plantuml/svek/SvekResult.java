@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.svek;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.annotation.PerformanceIssue;
 import net.sourceforge.plantuml.dot.DotData;
 import net.sourceforge.plantuml.klimt.UTranslate;
@@ -124,6 +125,8 @@ public final class SvekResult implements IEntityImage {
 	private MinMax minMax;
 
 	@PerformanceIssue
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		if (minMax == null) {
 			minMax = TextBlockUtils.getMinMax(this, stringBounder, false);

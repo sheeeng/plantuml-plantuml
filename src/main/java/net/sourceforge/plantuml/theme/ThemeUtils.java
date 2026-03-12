@@ -134,7 +134,7 @@ public class ThemeUtils {
 	}
 
 	private static Theme loadFileTheme(PathSystem pathSystem, String name, String from) throws IOException {
-		final InputFile file = pathSystem.getInputFile(from + getFilename(name));
+		final InputFile file = pathSystem.getInputFile(getFullPath(from, name));
 		final InputStream is = file.newInputStream();
 		if (is == null)
 			return null;

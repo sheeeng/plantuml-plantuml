@@ -51,6 +51,7 @@ import javax.xml.transform.TransformerException;
 import net.atmp.SvgOption;
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.core.TextBlockExporter12026;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
@@ -181,10 +182,13 @@ public class FontChecker {
 
 		final double dim = 20;
 		final TextBlock textBlock = new TextBlock() {
+			@Override
+			@Fast
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(dim, dim);
 			}
 
+			@Override
 			public void drawU(UGraphic ug) {
 				ug = ug.apply(HColors.BLACK);
 				ug.draw(URectangle.build(dim - 1, dim - 1));

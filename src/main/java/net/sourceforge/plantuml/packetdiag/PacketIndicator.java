@@ -49,11 +49,12 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.nwdiag.VerticalLine;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.Style;
 
-public class PacketIndicator implements TextBlock {
+public class PacketIndicator extends TextBlockMemoized {
 
 	public static final double V_LINE_FULL = 32D;
 
@@ -94,14 +95,14 @@ public class PacketIndicator implements TextBlock {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
-		XDimension2D numberDim = numberTb().calculateDimension(stringBounder);
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+		final XDimension2D numberDim = numberTb().calculateDimension(stringBounder);
 		double vLineHeight = full ? V_LINE_FULL : V_LINE_SHORT;
 		return numberDim.mergeTB(new XDimension2D(0D, vLineHeight));
 	}
 
 	TextBlock numberTb() {
-		FontConfiguration fg = style.getFontConfiguration(skinParam.getIHtmlColorSet());
+		final FontConfiguration fg = style.getFontConfiguration(skinParam.getIHtmlColorSet());
 		return createNumberTextBlock(fg, skinParam, bitNumber);
 	}
 

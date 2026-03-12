@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,6 +75,10 @@ public class TaskImpl extends AbstractTask implements Task {
 	private final Map<Resource, Integer> resources = new LinkedHashMap<Resource, Integer>();
 	private boolean diamond;
 	private final GanttDiagram gantt;
+
+	private PiecewiseConstant cachedPiecewiseConstant;
+	private TimePoint cachedStart;
+	private TimePoint cachedEnd;
 
 	private int completion;
 	private Display note;
@@ -110,10 +115,11 @@ public class TaskImpl extends AbstractTask implements Task {
 		PiecewiseConstant result = weekPattern;
 
 		if (pausedDay.isEmpty() == false) {
-			PiecewiseConstantSpecificDays specificDaysClosed = PiecewiseConstantSpecificDays.of(Fraction.ONE);
-
+			final Map<LocalDate, Fraction> closedDays = new HashMap<>();
 			for (LocalDate date : pausedDay)
-				specificDaysClosed = specificDaysClosed.withDay(date, Fraction.ZERO);
+				closedDays.put(date, Fraction.ZERO);
+
+			final PiecewiseConstantSpecificDays specificDaysClosed = PiecewiseConstantSpecificDays.of(Fraction.ONE, closedDays);
 
 			result = Combiner.product(weekPattern, specificDaysClosed);
 		}
@@ -123,9 +129,15 @@ public class TaskImpl extends AbstractTask implements Task {
 
 
 	public PiecewiseConstant asPiecewiseConstant() {
+		if (cachedPiecewiseConstant != null)
+			return cachedPiecewiseConstant;
+
 		if (resources.size() > 0)
-			return Combiner.product(getDefaultPlan(), allRessources());
-		return Combiner.product(getDefaultPlan(), localPause());
+			cachedPiecewiseConstant = Combiner.product(getDefaultPlan(), allRessources());
+		else
+			cachedPiecewiseConstant = Combiner.product(getDefaultPlan(), localPause());
+
+		return cachedPiecewiseConstant;
 	}
 
 	private boolean isPaused(TimePoint instant) {
@@ -163,11 +175,13 @@ public class TaskImpl extends AbstractTask implements Task {
 	@Override
 	public void addPause(LocalDate pause) {
 		this.pausedDay.add(pause);
+		invalidateCache();
 	}
 
 	@Override
 	public void addPause(DayOfWeek pause) {
 		this.pausedDayOfWeek.add(pause);
+		invalidateCache();
 	}
 
 	public PiecewiseConstant allRessources() {
@@ -223,6 +237,9 @@ public class TaskImpl extends AbstractTask implements Task {
 
 	@Override
 	public TimePoint getStart() {
+		if (cachedStart != null)
+			return cachedStart;
+
 		final NGMAllocation allocation = NGMAllocation.of(this.asPiecewiseConstant());
 		TimePoint result = (TimePoint) solver.getData(allocation, TaskAttribute.START);
 		if (diamond == false) {
@@ -230,14 +247,18 @@ public class TaskImpl extends AbstractTask implements Task {
 			while (PiecewiseConstantUtils.isZeroOnDay(cal, result.toDay()))
 				result = result.increment();
 		}
-		return result;
+		cachedStart = result;
+		return cachedStart;
 	}
 
 	@Override
 	public TimePoint getEnd() {
+		if (cachedEnd != null)
+			return cachedEnd;
+
 		final NGMAllocation allocation = NGMAllocation.of(this.asPiecewiseConstant());
-		final TimePoint result = (TimePoint) solver.getData(allocation, TaskAttribute.END);
-		return result;
+		cachedEnd = (TimePoint) solver.getData(allocation, TaskAttribute.END);
+		return cachedEnd;
 	}
 
 	@Override
@@ -249,6 +270,7 @@ public class TaskImpl extends AbstractTask implements Task {
 	@Override
 	public void setLoad(Load load) {
 		solver.setData(TaskAttribute.LOAD, load);
+		invalidateCache();
 	}
 
 	@Override
@@ -256,6 +278,7 @@ public class TaskImpl extends AbstractTask implements Task {
 //		if (start.toString().endsWith("T00:00") == false)
 //			throw new IllegalArgumentException(start.toString());
 		solver.setData(TaskAttribute.START, start);
+		invalidateCache();
 	}
 
 	@Override
@@ -263,6 +286,7 @@ public class TaskImpl extends AbstractTask implements Task {
 //		if (end.toString().endsWith("T00:00") == false)
 //			throw new IllegalArgumentException(end.toString());
 		solver.setData(TaskAttribute.END, end);
+		invalidateCache();
 	}
 
 	@Override
@@ -273,6 +297,13 @@ public class TaskImpl extends AbstractTask implements Task {
 	@Override
 	public void addResource(Resource resource, int percentage) {
 		this.resources.put(resource, percentage);
+		invalidateCache();
+	}
+
+	private void invalidateCache() {
+		cachedPiecewiseConstant = null;
+		cachedStart = null;
+		cachedEnd = null;
 	}
 
 	@Override

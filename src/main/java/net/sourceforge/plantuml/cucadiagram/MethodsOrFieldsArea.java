@@ -45,6 +45,7 @@ import java.util.List;
 import net.sourceforge.plantuml.EmbeddedDiagram;
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.abel.Entity;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.creole.CreoleMode;
@@ -65,6 +66,7 @@ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XRectangle2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockLineBefore;
+import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.klimt.shape.TextBlockWithUrl;
 import net.sourceforge.plantuml.skin.VisibilityModifier;
@@ -76,7 +78,7 @@ import net.sourceforge.plantuml.svek.WithPorts;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.utils.CharHidder;
 
-public class MethodsOrFieldsArea implements TextBlock, WithPorts {
+public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts {
 
 	public TextBlock asBlockMemberImpl() {
 		return new TextBlockLineBefore(style.value(PName.LineThickness).asDouble(),
@@ -136,7 +138,7 @@ public class MethodsOrFieldsArea implements TextBlock, WithPorts {
 	}
 
 	@Override
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D dim1 = calculateDimensionOnlyMembers(stringBounder);
 		double x = dim1.getWidth();
 		double y = dim1.getHeight();
@@ -271,6 +273,8 @@ public class MethodsOrFieldsArea implements TextBlock, WithPorts {
 				bloc.drawU(ug);
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return bloc.calculateDimension(stringBounder);
 			}
@@ -320,6 +324,8 @@ public class MethodsOrFieldsArea implements TextBlock, WithPorts {
 
 		}
 
+		@Fast
+		@Override
 		public XDimension2D calculateDimension(StringBounder stringBounder) {
 			final XDimension2D dim = bloc.calculateDimension(stringBounder);
 			return dim;
@@ -344,6 +350,8 @@ public class MethodsOrFieldsArea implements TextBlock, WithPorts {
 					return null;
 				}
 
+				@Fast
+				@Override
 				public XDimension2D calculateDimension(StringBounder stringBounder) {
 					return new XDimension2D(1, 1);
 				}

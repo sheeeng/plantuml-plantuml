@@ -195,7 +195,7 @@ public class GtileBox extends AbstractGtile {
 	}
 
 	@Override
-	public final XDimension2D calculateDimension(StringBounder stringBounder) {
+	public final XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		XDimension2D dimRaw = tb.calculateDimension(stringBounder);
 		dimRaw = dimRaw.delta(padding.getLeft() + padding.getRight(), padding.getBottom() + padding.getTop());
 		dimRaw = dimRaw.atLeast(minimumWidth, 0);

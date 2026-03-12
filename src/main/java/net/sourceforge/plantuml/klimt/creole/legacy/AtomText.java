@@ -97,7 +97,8 @@ public final class AtomText extends AbstractAtom implements Atom {
 	}
 
 	@JawsStrange
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		final XDimension2D rect = stringBounder.calculateDimension(fontConfiguration.getFont(), text);
 		Log.debug(() -> "g2d=" + rect);
 		Log.debug(() -> "Size for " + text + " is " + rect);

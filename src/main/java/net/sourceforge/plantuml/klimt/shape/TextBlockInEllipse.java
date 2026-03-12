@@ -43,7 +43,7 @@ import net.sourceforge.plantuml.klimt.geom.XPoint2D;
 import net.sourceforge.plantuml.svek.image.ContainingEllipse;
 import net.sourceforge.plantuml.svek.image.Footprint;
 
-public class TextBlockInEllipse implements TextBlock {
+public class TextBlockInEllipse extends TextBlockMemoized {
 
 	private final TextBlock text;
 	private final ContainingEllipse ellipse;
@@ -66,6 +66,7 @@ public class TextBlockInEllipse implements TextBlock {
 		return ellipse.asUEllipse().bigger(6);
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		final UEllipse sh = getUEllipse();
 		final XPoint2D center = ellipse.getCenter();
@@ -78,7 +79,8 @@ public class TextBlockInEllipse implements TextBlock {
 		text.drawU(ug.apply(new UTranslate(dx, (dy - 2))));
 	}
 
-	public XDimension2D calculateDimension(StringBounder stringBounder) {
+	@Override
+	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
 		return getUEllipse().getDimension();
 	}
 

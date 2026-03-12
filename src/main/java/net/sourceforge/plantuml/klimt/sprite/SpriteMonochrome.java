@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import net.atmp.PixelImage;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.AffineTransformType;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
 import net.sourceforge.plantuml.klimt.awt.PortableImageFactory;
@@ -217,6 +218,8 @@ public class SpriteMonochrome implements Sprite {
 				ug.draw(image.scale(scale));
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				return new XDimension2D(getWidth() * scale, getHeight() * scale);
 			}

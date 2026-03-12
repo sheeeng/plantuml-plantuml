@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.sequencediagram.teoz;
 
 import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -55,7 +56,7 @@ import net.sourceforge.plantuml.style.ISkinParam;
 public class SequenceDiagramFileMakerTeoz implements FileMaker {
 
 	private final SequenceDiagram diagram;
-	private final FileFormatOption fileFormatOption;
+
 	private final Rose skin;
 	private Dolls dolls;
 	private final StringBounder stringBounder;
@@ -72,7 +73,6 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 			int index) {
 		this.stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam());
 		this.diagram = diagram;
-		this.fileFormatOption = fileFormatOption;
 		this.skin = skin;
 		this.body = new PlayingSpaceWithParticipants(createMainTile());
 
@@ -81,7 +81,6 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 		this.heightEnglober1 = dolls.getOffsetForEnglobers(stringBounder);
 		this.heightEnglober2 = heightEnglober1 == 0 ? 0 : 10;
 	}
-
 
 	private PlayingSpace createMainTile() {
 		final RealOrigin xorigin = RealUtils.createOrigin();
@@ -139,6 +138,8 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 				ug = ug.apply(UTranslate.dy(heightEnglober2));
 			}
 
+			@Fast
+			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
 				final double totalWidth = body.calculateDimension(stringBounder).getWidth();
 				final double totalHeight = body.calculateDimension(stringBounder).getHeight() + heightEnglober1

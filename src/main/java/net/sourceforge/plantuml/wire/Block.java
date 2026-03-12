@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColors;
@@ -58,7 +59,7 @@ import net.sourceforge.plantuml.klimt.shape.URectangle;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.utils.Position;
 
-public class Block {
+public class Block implements TextBlock {
 
 	static class Pos {
 		final double x;
@@ -115,6 +116,8 @@ public class Block {
 		throw new IllegalArgumentException();
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		if (fixedDim == null)
 			return minMax.getDimension();
@@ -122,6 +125,7 @@ public class Block {
 		return fixedDim;
 	}
 
+	@Override
 	public void drawU(UGraphic ug) {
 		ug = ug.apply(getBlack());
 		if (children.size() == 0) {

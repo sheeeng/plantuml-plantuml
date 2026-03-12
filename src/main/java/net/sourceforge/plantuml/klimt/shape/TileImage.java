@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.klimt.shape;
 import java.util.Objects;
 
 import net.atmp.PixelImage;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.klimt.AffineTransformType;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.awt.PortableImage;
@@ -56,6 +57,8 @@ public class TileImage implements TextBlock {
 		this.vspace = vspace;
 	}
 
+	@Fast
+	@Override
 	public XDimension2D calculateDimension(StringBounder stringBounder) {
 		return new XDimension2D(image.getWidth(), image.getHeight() + 2 * vspace);
 	}

@@ -49,6 +49,8 @@ import net.sourceforge.plantuml.style.ISkinSimple;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.Style;
 
+import net.sourceforge.plantuml.annotation.Fast;
+
 public abstract class BodyEnhancedAbstract implements TextBlock {
 
 	protected final HorizontalAlignment align;
@@ -79,6 +81,7 @@ public abstract class BodyEnhancedAbstract implements TextBlock {
 		return false;
 	}
 
+	@Fast
 	public final XDimension2D calculateDimension(StringBounder stringBounder) {
 		return getArea(stringBounder).calculateDimension(stringBounder);
 	}
