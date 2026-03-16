@@ -42,8 +42,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.PlainDiagram;
+import net.sourceforge.plantuml.UgSimpleDiagram;
+import net.sourceforge.plantuml.annotation.Fast;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.jaws.JawsStrange;
@@ -64,7 +64,6 @@ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.geom.XPoint2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
-import net.sourceforge.plantuml.klimt.shape.UDrawable;
 import net.sourceforge.plantuml.klimt.shape.UPolygon;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
 import net.sourceforge.plantuml.klimt.sprite.SpriteContainerEmpty;
@@ -73,8 +72,8 @@ import net.sourceforge.plantuml.skin.Pragma;
 import net.sourceforge.plantuml.text.BackSlash;
 
 // http://www.redblobgames.com/grids/hexagons/
-public class PSystemColors extends PlainDiagram implements UDrawable {
-	
+public class PSystemColors extends UgSimpleDiagram {
+
 	private final double rectangleHeight = 28;
 	private final double rectangleWidth = 175;
 	private final HColorSet colors = HColorSet.instance();
@@ -90,13 +89,33 @@ public class PSystemColors extends PlainDiagram implements UDrawable {
 
 	}
 
-	@Override
-	protected UDrawable getRootDrawable(FileFormatOption fileFormatOption) {
-		return this;
-	}
-
 	public DiagramDescription getDescription() {
 		return new DiagramDescription("(Colors)");
+	}
+
+	@Fast
+	@Override
+	public XDimension2D calculateDimension(StringBounder stringBounder) {
+		if (paletteCentralColor != null && colors.getColorOrWhite(paletteCentralColor) instanceof HColorSimple)
+			return calculateDimensionPalette();
+		return calculateDimensionFull();
+	}
+
+	private XDimension2D calculateDimensionFull() {
+		final int totalColors = colors.names().size();
+		final int nbRows = 21;
+		final int nbColumns = (totalColors + nbRows - 1) / nbRows;
+		return new XDimension2D(nbColumns * rectangleWidth, nbRows * rectangleHeight);
+	}
+
+	private XDimension2D calculateDimensionPalette() {
+		final double translateX = (centerHexa(2, 0).getX() + centerHexa(3, 0).getX()) / 2;
+		final double translateY = centerHexa(0, 2).getY() + corner(1).getY();
+		final double maxI = 2;
+		final double maxJ = 2;
+		final double maxCenterX = getWidth() * maxI + getWidth() / 2;
+		final double maxCenterY = size * maxJ * 1.5;
+		return new XDimension2D(translateX + maxCenterX + size + 1, translateY + maxCenterY + size + 1);
 	}
 
 	public void drawU(UGraphic ug) {

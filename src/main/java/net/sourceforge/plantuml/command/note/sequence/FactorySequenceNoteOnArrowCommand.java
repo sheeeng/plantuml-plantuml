@@ -163,6 +163,7 @@ public final class FactorySequenceNoteOnArrowCommand implements SingleMultiFacto
 		note.setUrl(url);
 		note.setColors(colors);
 		event.addNote(note);
+		diagram.addWarning(event.addNote(note));
 
 		return CommandExecutionResult.ok();
 	}

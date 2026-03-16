@@ -63,6 +63,7 @@ public class CommandLinkState extends CommandLinkStateCommon {
 				RegexLeaf.spaceZeroOrMore(), //
 				getStatePattern("ENT2"), //
 				RegexLeaf.spaceZeroOrMore(), //
+				getLinkStereotypePattern(), //
 				new RegexOptional( //
 						new RegexConcat( //
 								new RegexLeaf(":"), //

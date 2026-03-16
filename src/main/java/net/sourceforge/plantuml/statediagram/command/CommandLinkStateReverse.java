@@ -64,6 +64,7 @@ public class CommandLinkStateReverse extends CommandLinkStateCommon {
 				RegexLeaf.spaceZeroOrMore(), //
 				getStatePattern("ENT1"), //
 				RegexLeaf.spaceZeroOrMore(), //
+				getLinkStereotypePattern(), //
 				new RegexOptional( //
 						new RegexConcat( //
 								new RegexLeaf(":"), //

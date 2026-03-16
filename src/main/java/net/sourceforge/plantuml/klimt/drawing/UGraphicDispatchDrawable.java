@@ -33,12 +33,32 @@
  * 
  *
  */
-package net.sourceforge.plantuml.sequencediagram;
+package net.sourceforge.plantuml.klimt.drawing;
 
-import net.sourceforge.plantuml.warning.Warning;
+import net.sourceforge.plantuml.klimt.UChange;
+import net.sourceforge.plantuml.klimt.UShape;
+import net.sourceforge.plantuml.klimt.shape.UDrawable;
+import net.sourceforge.plantuml.klimt.shape.UImage;
 
-public interface EventWithNote extends Event {
+public class UGraphicDispatchDrawable extends UGraphicDelegator {
 
-	public Warning addNote(Note note);
+	public UGraphicDispatchDrawable(UGraphic ug) {
+		super(ug);
+	}
+
+	public void draw(UShape shape) {
+		if (shape instanceof UDrawable && !(shape instanceof UImage)) {
+			// UImage implements TextBlock/UDrawable but must be drawn by the low-level driver
+			final UDrawable drawable = (UDrawable) shape;
+			drawable.drawU(this);
+		} else {
+			getUg().draw(shape);
+		}
+
+	}
+
+	public UGraphic apply(UChange change) {
+		return new UGraphicDispatchDrawable(getUg().apply(change));
+	}
 
 }

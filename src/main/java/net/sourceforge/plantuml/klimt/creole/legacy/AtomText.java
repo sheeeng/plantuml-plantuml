@@ -43,7 +43,6 @@ import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.jaws.Jaws;
 import net.sourceforge.plantuml.jaws.JawsStrange;
 import net.sourceforge.plantuml.klimt.UTranslate;
-import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.creole.Neutron;
 import net.sourceforge.plantuml.klimt.creole.NeutronType;
 import net.sourceforge.plantuml.klimt.creole.atom.AbstractAtom;
@@ -127,15 +126,8 @@ public final class AtomText extends AbstractAtom implements Atom {
 		if (ug.matchesProperty("SPECIALTXT")) {
 			ug.draw(this);
 		} else {
-			HColor textColor = fontConfiguration.getColor();
-			FontConfiguration useFontConfiguration = fontConfiguration;
-
-			HColor backcolor = ug.getParam().getBackcolor();
-			if (backcolor.isTransparent())
-				backcolor = ug.getDefaultBackground();
-
-			textColor = textColor.getAppropriateColor(backcolor);
-			useFontConfiguration = fontConfiguration.changeColor(textColor);
+			
+			final FontConfiguration useFontConfiguration = fontConfiguration.adjustColorForBackground(ug);
 
 			if (marginLeft != AtomTextUtils.ZERO)
 				ug = ug.apply(UTranslate.dx(marginLeft.getDouble(ug.getStringBounder())));

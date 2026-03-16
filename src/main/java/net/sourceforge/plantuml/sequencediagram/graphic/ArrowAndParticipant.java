@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.sequencediagram.NotePosition;
 import net.sourceforge.plantuml.sequencediagram.Participant;
 import net.sourceforge.plantuml.skin.Context2D;
 import net.sourceforge.plantuml.skin.Pragma;
+import net.sourceforge.plantuml.utils.LineLocation;
 
 class ArrowAndParticipant extends Arrow implements InGroupable {
 
@@ -52,9 +53,10 @@ class ArrowAndParticipant extends Arrow implements InGroupable {
 	private final ParticipantBox participantBox;
 	private final double paddingParticipant;
 
-	public ArrowAndParticipant(AtomicInteger counter, Pragma pragma, StringBounder stringBounder, Arrow arrow, ParticipantBox participantBox,
-			double paddingParticipant) {
-		super(counter, pragma, arrow.getStartingY(), arrow.getSkin(), arrow.getArrowComponent(), arrow.getUrl());
+	public ArrowAndParticipant(AtomicInteger counter, Pragma pragma, StringBounder stringBounder, Arrow arrow,
+			ParticipantBox participantBox, double paddingParticipant, LineLocation location) {
+		super(counter, pragma, arrow.getStartingY(), arrow.getSkin(), arrow.getArrowComponent(), arrow.getUrl(),
+				location);
 		this.arrow = arrow;
 		this.participantBox = participantBox;
 		this.paddingParticipant = paddingParticipant;

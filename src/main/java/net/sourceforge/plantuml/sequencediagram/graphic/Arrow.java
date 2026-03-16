@@ -48,6 +48,7 @@ import net.sourceforge.plantuml.skin.ArrowComponent;
 import net.sourceforge.plantuml.skin.Pragma;
 import net.sourceforge.plantuml.skin.rose.Rose;
 import net.sourceforge.plantuml.url.Url;
+import net.sourceforge.plantuml.utils.LineLocation;
 
 abstract class Arrow extends GraphicalElement implements InGroupable {
 
@@ -58,6 +59,7 @@ abstract class Arrow extends GraphicalElement implements InGroupable {
 	private final Url url;
 	private final Pragma pragma;
 	private final String uid;
+	private final LineLocation location;
 
 	public void setMaxX(double m) {
 		if (maxX != 0)
@@ -75,8 +77,10 @@ abstract class Arrow extends GraphicalElement implements InGroupable {
 
 	public abstract double getActualWidth(StringBounder stringBounder);
 
-	Arrow(AtomicInteger counter, Pragma pragma, double startingY, Rose skin, ArrowComponent arrowComponent, Url url) {
+	Arrow(AtomicInteger counter, Pragma pragma, double startingY, Rose skin, ArrowComponent arrowComponent, Url url,
+			LineLocation location) {
 		super(startingY);
+		this.location = location;
 		this.pragma = pragma;
 		this.skin = skin;
 		this.arrowComponent = arrowComponent;
@@ -89,7 +93,7 @@ abstract class Arrow extends GraphicalElement implements InGroupable {
 	}
 
 	protected final void startGroup(UGraphic ug) {
-		final UGroup typeIdents = new UGroup();
+		final UGroup typeIdents = new UGroup(location);
 		typeIdents.put(UGroupType.CLASS, "message");
 		typeIdents.put(UGroupType.DATA_PARTICIPANT_1, getParticipant1().getUid());
 		typeIdents.put(UGroupType.DATA_PARTICIPANT_2, getParticipant2().getUid());

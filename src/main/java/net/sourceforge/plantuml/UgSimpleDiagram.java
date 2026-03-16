@@ -5,12 +5,12 @@
  * (C) Copyright 2009-2024, Arnaud Roques
  *
  * Project Info:  https://plantuml.com
- * 
+ *
  * If you like this project or if you find it useful, you can support us at:
- * 
+ *
  * https://plantuml.com/patreon (only 1$ per month!)
  * https://plantuml.com/paypal
- * 
+ *
  * This file is part of PlantUML.
  *
  * PlantUML is free software; you can redistribute it and/or modify it
@@ -30,34 +30,22 @@
  *
  *
  * Original Author:  Arnaud Roques
- * 
  *
  */
-package net.sourceforge.plantuml.klimt.drawing;
+package net.sourceforge.plantuml;
 
-import net.sourceforge.plantuml.klimt.UChange;
-import net.sourceforge.plantuml.klimt.UShape;
-import net.sourceforge.plantuml.klimt.shape.UDrawable;
+import net.sourceforge.plantuml.core.UmlSource;
+import net.sourceforge.plantuml.klimt.shape.TextBlock;
+import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 
-public class UGraphicInterceptorUDrawable extends UGraphicDelegator {
-    // ::remove file when __HAXE__
+public abstract class UgSimpleDiagram extends UgDiagram implements TextBlock {
 
-	public UGraphicInterceptorUDrawable(UGraphic ug) {
-		super(ug);
+	public UgSimpleDiagram(UmlSource source, PreprocessingArtifact preprocessing) {
+		super(source, preprocessing);
 	}
 
-	public void draw(UShape shape) {
-		if (shape instanceof UDrawable) {
-			final UDrawable drawable = (UDrawable) shape;
-			drawable.drawU(this);
-		} else {
-			getUg().draw(shape);
-		}
-
+	@Override
+	public final TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
+		return this;
 	}
-
-	public UGraphic apply(UChange change) {
-		return new UGraphicInterceptorUDrawable(getUg().apply(change));
-	}
-
 }

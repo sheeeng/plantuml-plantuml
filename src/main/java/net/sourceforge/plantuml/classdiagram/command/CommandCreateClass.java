@@ -83,7 +83,7 @@ public class CommandCreateClass extends SingleLineCommand2<ClassDiagram> {
 						"(" + VisibilityModifier.regexForVisibilityCharacterInClassName() + ")?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexLeaf(1, //
-						"TYPE", "(interface|enum|annotation|abstract[%s]+class|static[%s]+class|abstract|class|entity|circle|diamond|protocol|struct|exception|metaclass|stereotype|dataclass|record)"), //
+						"TYPE", "(interface|enum|annotation|abstract[%s]+class|static[%s]+class|abstract|class|entity|circle|diamond|protocol|struct|exception|metaclass|stereotype|dataclass|record|map)"), //
 				RegexLeaf.spaceOneOrMore(), //
 				NameAndCodeParser.nameAndCodeForClassWithGeneric(), //
 				new RegexOptional(new RegexConcat(RegexLeaf.spaceZeroOrMore(),

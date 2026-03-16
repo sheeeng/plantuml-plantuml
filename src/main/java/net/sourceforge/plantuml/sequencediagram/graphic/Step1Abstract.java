@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.sequencediagram.Note;
 import net.sourceforge.plantuml.sequencediagram.NotePosition;
 import net.sourceforge.plantuml.skin.ArrowConfiguration;
 import net.sourceforge.plantuml.skin.Component;
+import net.sourceforge.plantuml.utils.LineLocation;
 
 abstract class Step1Abstract {
 
@@ -73,6 +74,10 @@ abstract class Step1Abstract {
 
 	protected final ParticipantRange getParticipantRange() {
 		return range;
+	}
+
+	protected final LineLocation getLineLocation() {
+		return message.getLineLocation();
 	}
 
 	abstract Frontier prepareMessage(ConstraintSet constraintSet, InGroupablesStack groupingStructures);

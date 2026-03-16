@@ -104,7 +104,11 @@ public class StripeCode extends TextBlockMemoized implements StripeRaw {
 	public void drawU(UGraphic ug) {
 		double y = 0;
 		for (String s : raw) {
-			final UText shape = UText.build(s, fontConfiguration);
+			
+			final FontConfiguration useFontConfiguration = fontConfiguration.adjustColorForBackground(ug);
+
+			
+			final UText shape = UText.build(s, useFontConfiguration);
 			final StringBounder stringBounder = ug.getStringBounder();
 			final XDimension2D dim = stringBounder.calculateDimension(fontConfiguration.getFont(), s);
 			y += dim.getHeight();

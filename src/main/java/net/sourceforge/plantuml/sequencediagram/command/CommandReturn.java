@@ -101,10 +101,10 @@ public class CommandReturn extends SingleLineCommand2<SequenceDiagram> {
 		if (message1 instanceof MessageExo) {
 			final MessageExo exo1 = (MessageExo) message1;
 			message2 = new MessageExo(diagram.getSkinParam().getCurrentStyleBuilder(), exo1.getParticipant(),
-					exo1.getType().reverse(), display, arrow, diagram.getNextMessageNumber(), false);
+					exo1.getType().reverse(), display, arrow, diagram.getNextMessageNumber(), false, location);
 		} else {
 			message2 = new Message(diagram.getSkinParam().getCurrentStyleBuilder(), message1.getParticipant2(),
-					message1.getParticipant1(), display, arrow, diagram.getNextMessageNumber());
+					message1.getParticipant1(), display, arrow, diagram.getNextMessageNumber(), location);
 			final boolean parallel = arg.get("PARALLEL", 0) != null;
 			if (parallel)
 				message2.goParallel();

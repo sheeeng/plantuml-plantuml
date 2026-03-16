@@ -61,6 +61,8 @@ import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexOr;
 import net.sourceforge.plantuml.regex.RegexResult;
+import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.stereo.StereotypePattern;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.url.UrlBuilder;
 import net.sourceforge.plantuml.url.UrlMode;
@@ -134,6 +136,7 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 				RegexLeaf.spaceZeroOrMore(), //
 				UrlBuilder.OPTIONAL, //
 				RegexLeaf.spaceZeroOrMore(), //
+				StereotypePattern.optional("STEREOTYPE"), //
 				new RegexOptional( //
 						new RegexConcat( //
 								new RegexLeaf(":"), //
@@ -231,6 +234,10 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 		link.setLinkArrow(labels.getLinkArrow());
 		link.setColors(color().getColor(arg, diagram.getSkinParam().getIHtmlColorSet()));
 		link.applyStyle(arg.getLazzy("ARROW_STYLE", 0));
+		if (arg.get("STEREOTYPE", 0) != null) {
+			final Stereotype stereotype = Stereotype.build(arg.get("STEREOTYPE", 0));
+			link.setStereotype(stereotype);
+		}
 		link.setCodeLine(location);
 
 		addLink(diagram, link, arg.get("HEADER", 0));

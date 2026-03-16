@@ -64,7 +64,7 @@ class Step1MessageExo extends Step1Abstract {
 		this.messageArrow = new MessageExoArrow(getDrawingSet().getCounter(),
 				getDrawingSet().getSkinParam().getPragma(), freeY.getFreeY(range), drawingSet.getSkin(), comp,
 				getLivingParticipantBox(), message.getType(), message.getUrl(), message.isShortArrow(),
-				message.getArrowConfiguration());
+				message.getArrowConfiguration(), message.getLineLocation());
 
 		final List<Note> noteOnMessages = message.getNoteOnMessages();
 		for (Note noteOnMessage : noteOnMessages) {
@@ -105,7 +105,8 @@ class Step1MessageExo extends Step1Abstract {
 		final double posYendLevel = arrowYEndLevel + marginActivateAndDeactive;
 		getMessage().setPosYendLevel(posYendLevel);
 
-		if (TeaVM.a()) assert graphic instanceof InGroupable;
+		if (TeaVM.a())
+			assert graphic instanceof InGroupable;
 		if (graphic instanceof InGroupable) {
 			inGroupablesStack.addElement((InGroupable) graphic);
 			inGroupablesStack.addElement(livingParticipantBox);
@@ -129,7 +130,7 @@ class Step1MessageExo extends Step1Abstract {
 			noteBoxes.add(createNoteBox(getStringBounder(), messageArrow, note, noteOnMessage));
 		}
 		return new ArrowAndNoteBox(getDrawingSet().getCounter(), getDrawingSet().getSkinParam().getPragma(),
-				getStringBounder(), messageArrow, noteBoxes);
+				getStringBounder(), messageArrow, noteBoxes, getMessage().getLineLocation());
 	}
 
 	private ArrowConfiguration getArrowType(MessageExo m) {

@@ -151,7 +151,8 @@ public class CommandArrow extends SingleLineCommand2<SequenceDiagram> {
 		return Collections.emptyList();
 	}
 
-	private Participant getOrCreateParticipant(LineLocation location, SequenceDiagram system, RegexResult arg2, String n) {
+	private Participant getOrCreateParticipant(LineLocation location, SequenceDiagram system, RegexResult arg2,
+			String n) {
 		final String code;
 		final Display display;
 		if (arg2.get(n + "CODE", 0) != null) {
@@ -201,8 +202,8 @@ public class CommandArrow extends SingleLineCommand2<SequenceDiagram> {
 	}
 
 	@Override
-	protected CommandExecutionResult executeArg(SequenceDiagram diagram, LineLocation location, RegexResult arg, ParserPass currentPass)
-			throws NoSuchColorException {
+	protected CommandExecutionResult executeArg(SequenceDiagram diagram, LineLocation location, RegexResult arg,
+			ParserPass currentPass) throws NoSuchColorException {
 
 		final String dressing1 = getDressing(arg, "ARROW_DRESSING1");
 		final String dressing2 = getDressing(arg, "ARROW_DRESSING2");
@@ -247,7 +248,6 @@ public class CommandArrow extends SingleLineCommand2<SequenceDiagram> {
 			sync1 = contains(dressing1, "<<", "\\\\", "//");
 			sync2 = contains(dressing2, ">>", "\\\\", "//");
 		}
-
 
 		final boolean dotted = getLength(arg) > 1;
 
@@ -311,7 +311,7 @@ public class CommandArrow extends SingleLineCommand2<SequenceDiagram> {
 
 		final String messageNumber = diagram.getNextMessageNumber();
 		final Message msg = new Message(diagram.getSkinParam().getCurrentStyleBuilder(), p1, p2,
-				diagram.manageVariable(labels), config, messageNumber);
+				diagram.manageVariable(labels), config, messageNumber, location);
 		msg.setMulticast(getMulticasts(location, diagram, arg));
 		final String url = arg.get(UrlBuilder.URL_KEY, 0);
 		if (url != null) {

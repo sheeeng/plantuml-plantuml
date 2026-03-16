@@ -46,7 +46,6 @@ import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
 import net.sourceforge.plantuml.decoration.LinkDecor;
 import net.sourceforge.plantuml.decoration.LinkType;
-import net.sourceforge.plantuml.klimt.color.ColorType;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.plasma.Quark;
@@ -55,6 +54,7 @@ import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.statediagram.StateDiagram;
 import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.stereo.StereotypePattern;
 import net.sourceforge.plantuml.utils.Direction;
 import net.sourceforge.plantuml.utils.LineLocation;
 
@@ -71,8 +71,12 @@ abstract class CommandLinkStateCommon extends SingleLineCommand2<StateDiagram> {
 	}
 
 	protected static RegexLeaf getStatePattern(String name) {
-		return new RegexLeaf(3, name,
-				"([%pLN_.:]+|[%pLN_.:]+\\[H\\*?\\]|\\[\\*\\]|\\[H\\*?\\]|(?:==+)(?:[%pLN_.:]+)(?:==+))[%s]*(\\<\\<.*\\>\\>)?[%s]*(#\\w+)?");
+		return new RegexLeaf(1, name,
+				"([%pLN_.:]+|[%pLN_.:]+\\[H\\*?\\]|\\[\\*\\]|\\[H\\*?\\]|(?:==+)(?:[%pLN_.:]+)(?:==+))");
+	}
+
+	protected static IRegex getLinkStereotypePattern() {
+		return StereotypePattern.optional("STEREOTYPE");
 	}
 
 	@Override
@@ -90,21 +94,6 @@ abstract class CommandLinkStateCommon extends SingleLineCommand2<StateDiagram> {
 		if (cl2 == null)
 			return CommandExecutionResult
 					.error("The state " + ent2 + " cannot be used here.");
-
-		if (arg.get("ENT1", 1) != null)
-			cl1.setStereotype(Stereotype.build(arg.get("ENT1", 1)));
-
-		if (arg.get("ENT1", 2) != null) {
-			final String s = arg.get("ENT1", 2);
-			cl1.setSpecificColorTOBEREMOVED(ColorType.BACK, diagram.getSkinParam().getIHtmlColorSet().getColor(s));
-		}
-		if (arg.get("ENT2", 1) != null) {
-			cl2.setStereotype(Stereotype.build(arg.get("ENT2", 1)));
-		}
-		if (arg.get("ENT2", 2) != null) {
-			final String s = arg.get("ENT2", 2);
-			cl2.setSpecificColorTOBEREMOVED(ColorType.BACK, diagram.getSkinParam().getIHtmlColorSet().getColor(s));
-		}
 
 		String queue = arg.get("ARROW_BODY1", 0) + arg.get("ARROW_BODY2", 0);
 		final Direction dir = getDirection(arg);
@@ -139,6 +128,10 @@ abstract class CommandLinkStateCommon extends SingleLineCommand2<StateDiagram> {
 				link = link.getInv();
 
 			link.applyStyle(arg.getLazzy("ARROW_STYLE", 0));
+			if (arg.get("STEREOTYPE", 0) != null) {
+				final Stereotype stereotype = Stereotype.build(arg.get("STEREOTYPE", 0));
+				link.setStereotype(stereotype);
+			}
 			diagram.addLink(link);
 
 			return CommandExecutionResult.ok();

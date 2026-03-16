@@ -34,8 +34,6 @@
  */
 package net.sourceforge.plantuml.klimt.color;
 
-
-
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.klimt.UBackground;
 import net.sourceforge.plantuml.klimt.UChange;
@@ -58,8 +56,7 @@ class Back implements UBackground {
 public abstract class HColor implements UChange {
 
 	public enum TransparentFillBehavior {
-		WITH_FILL_NONE,
-		WITH_FILL_OPACITY
+		WITH_FILL_NONE, WITH_FILL_OPACITY
 	}
 
 	public UBackground bg() {
@@ -67,7 +64,7 @@ public abstract class HColor implements UChange {
 	}
 
 	public XColor toColor(ColorMapper mapper) {
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException("" + getClass());
 	}
 
 	final public String toRGB(ColorMapper mapper) {

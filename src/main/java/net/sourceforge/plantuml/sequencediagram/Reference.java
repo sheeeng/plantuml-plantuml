@@ -48,6 +48,7 @@ import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleBuilder;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.url.Url;
+import net.sourceforge.plantuml.warning.Warning;
 
 public class Reference extends AbstractEvent implements EventWithNote {
 
@@ -136,11 +137,12 @@ public class Reference extends AbstractEvent implements EventWithNote {
 	private List<Note> noteOnMessages = new ArrayList<>();
 
 	@Override
-	public final void addNote(Note note) {
+	public final Warning addNote(Note note) {
 		if (note.getPosition() != NotePosition.LEFT && note.getPosition() != NotePosition.RIGHT)
-			throw new IllegalArgumentException();
+			return new Warning("This position is ignored: " + note.getPosition());
 
 		this.noteOnMessages.add(note);
+		return null;
 	}
 
 	public final List<Note> getNoteOnMessages() {

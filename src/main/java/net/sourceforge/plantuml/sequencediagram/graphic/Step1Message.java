@@ -85,7 +85,8 @@ class Step1Message extends Step1Abstract {
 
 			this.messageArrow = new MessageArrow(getDrawingSet().getCounter(),
 					getDrawingSet().getSkinParam().getPragma(), freeY.getFreeY(range), drawingSet.getSkin(), comp,
-					getLivingParticipantBox1(), getLivingParticipantBox2(), message.getUrl(), compAliveBox);
+					getLivingParticipantBox1(), getLivingParticipantBox2(), message.getUrl(), compAliveBox,
+					message.getLineLocation());
 		}
 
 		final List<Note> noteOnMessages = message.getNoteOnMessages();
@@ -137,7 +138,8 @@ class Step1Message extends Step1Abstract {
 		final double posYendLevel = arrowYEndLevel + marginActivateAndDeactive - delta1;
 		getMessage().setPosYendLevel(posYendLevel);
 
-		if (TeaVM.a()) assert graphic instanceof InGroupable;
+		if (TeaVM.a())
+			assert graphic instanceof InGroupable;
 		if (graphic instanceof InGroupable) {
 			inGroupablesStack.addElement((InGroupable) graphic);
 			inGroupablesStack.addElement(getLivingParticipantBox1());
@@ -189,7 +191,7 @@ class Step1Message extends Step1Abstract {
 				noteBoxes.add(createNoteBox(getStringBounder(), messageSelfArrow, note, noteOnMessage));
 			}
 			return new ArrowAndNoteBox(getDrawingSet().getCounter(), getDrawingSet().getSkinParam().getPragma(),
-					getStringBounder(), messageSelfArrow, noteBoxes);
+					getStringBounder(), messageSelfArrow, noteBoxes, getMessage().getLineLocation());
 		} else if (getMessage().getNoteOnMessages().size() > 0) {
 			final List<NoteBox> noteBoxes = new ArrayList<>();
 			for (int i = 0; i < getNotes().size(); i++) {
@@ -199,7 +201,7 @@ class Step1Message extends Step1Abstract {
 				noteBoxes.add(createNoteBox(getStringBounder(), messageArrow, note, noteOnMessage));
 			}
 			return new ArrowAndNoteBox(getDrawingSet().getCounter(), getDrawingSet().getSkinParam().getPragma(),
-					getStringBounder(), messageArrow, noteBoxes);
+					getStringBounder(), messageArrow, noteBoxes, getMessage().getLineLocation());
 		} else if (isSelfMessage()) {
 			return createMessageSelfArrow();
 		} else {
@@ -227,7 +229,7 @@ class Step1Message extends Step1Abstract {
 				getDrawingSet().getSkinParam(), getMessage().getLabelNumbered());
 		return new MessageSelfArrow(getDrawingSet().getCounter(), getDrawingSet().getSkinParam().getPragma(), posY,
 				getDrawingSet().getSkin(), comp, getLivingParticipantBox1(), deltaY, getMessage().getUrl(), deltaX,
-				getConfig().isReverseDefine(), currentLevel, halfLifeWidth);
+				getConfig().isReverseDefine(), currentLevel, halfLifeWidth, getMessage().getLineLocation());
 	}
 
 	private int getLevelAt(double posY, double halfLifeWidth) {
@@ -255,7 +257,7 @@ class Step1Message extends Step1Abstract {
 
 		Arrow result = new ArrowAndParticipant(getDrawingSet().getCounter(), getDrawingSet().getSkinParam().getPragma(),
 				getStringBounder(), messageArrow, getParticipantBox2(),
-				getDrawingSet().getSkinParam().getPadding(PaddingParam.PARTICIPANT));
+				getDrawingSet().getSkinParam().getPadding(PaddingParam.PARTICIPANT), getMessage().getLineLocation());
 		if (getMessage().getNoteOnMessages().size() > 0) {
 			final List<NoteBox> noteBoxes = new ArrayList<>();
 			for (int i = 0; i < getNotes().size(); i++) {
@@ -268,7 +270,7 @@ class Step1Message extends Step1Abstract {
 				noteBoxes.add(noteBox);
 			}
 			result = new ArrowAndNoteBox(getDrawingSet().getCounter(), getDrawingSet().getSkinParam().getPragma(),
-					getStringBounder(), result, noteBoxes);
+					getStringBounder(), result, noteBoxes, getMessage().getLineLocation());
 		}
 		getLivingParticipantBox2()
 				.create(getFreeY().getFreeY(getParticipantRange()) + result.getPreferredHeight(getStringBounder()) / 2);

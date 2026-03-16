@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.klimt.color.ColorType;
 import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColors;
+import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.skin.SkinParamUtils;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ISkinParam;
@@ -343,6 +344,15 @@ public class FontConfiguration {
 		r.remove(style);
 		return new FontConfiguration(r, motherFont, motherColor, currentFont, currentColor, extendedColor, fontPosition,
 				svgAttributes, hyperlinkColor, hyperlinkUnderlineStroke, tabSize);
+	}
+
+	public FontConfiguration adjustColorForBackground(UGraphic ug) {
+		HColor backcolor = ug.getParam().getBackcolor();
+		if (backcolor.isTransparent())
+			backcolor = ug.getDefaultBackground();
+
+		final HColor textColor = getColor().getAppropriateColor(backcolor);
+		return changeColor(textColor);
 	}
 
 	public HColor getColor() {

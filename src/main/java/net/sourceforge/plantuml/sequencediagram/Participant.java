@@ -60,7 +60,6 @@ import net.sourceforge.plantuml.style.WithStyle;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.utils.LineLocation;
 
-// ::remove folder when __HAXE__
 public class Participant implements SpecificBackcolorable, WithStyle {
 
 	private final String code;
@@ -76,8 +75,6 @@ public class Participant implements SpecificBackcolorable, WithStyle {
 	private final StyleBuilder styleBuilder;
 	private final LineLocation location;
 	private final String uid;
-
-	// private Style style;
 
 	public StyleSignatureBasic getStyleSignature() {
 		return type.getStyleSignature().addClickable(getUrl());
@@ -200,7 +197,7 @@ public class Participant implements SpecificBackcolorable, WithStyle {
 	}
 
 	public UGroup groupTypeTail(Pragma pragma) {
-		final UGroup group = new UGroup();
+		final UGroup group = new UGroup(location);
 		group.put(UGroupType.CLASS, "participant participant-tail");
 		group.put(UGroupType.DATA_QUALIFIED_NAME, code);
 		group.put(UGroupType.DATA_PARTICIPANT, code);
@@ -211,7 +208,7 @@ public class Participant implements SpecificBackcolorable, WithStyle {
 	}
 
 	public UGroup groupTypeHead(Pragma pragma) {
-		final UGroup group = new UGroup();
+		final UGroup group = new UGroup(location);
 		group.put(UGroupType.CLASS, "participant participant-head");
 		group.put(UGroupType.DATA_QUALIFIED_NAME, code);
 		group.put(UGroupType.DATA_PARTICIPANT, code);
@@ -221,7 +218,7 @@ public class Participant implements SpecificBackcolorable, WithStyle {
 	}
 
 	public UGroup groupTypeLifeline(Pragma pragma) {
-		final UGroup group = new UGroup();
+		final UGroup group = new UGroup(location);
 		group.put(UGroupType.CLASS, "participant-lifeline");
 		group.put(UGroupType.DATA_UID, uid + "-lifeline");
 		group.put(UGroupType.DATA_QUALIFIED_NAME, code);
