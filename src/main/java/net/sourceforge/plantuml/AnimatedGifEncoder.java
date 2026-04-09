@@ -183,7 +183,7 @@ public class AnimatedGifEncoder {
 			getImagePixels(); // convert to correct format if necessary
 			analyzePixels(); // build color table & map pixels
 			if (firstFrame) {
-				writeLSD(); // logical screen descriptior
+				writeLSD(); // logical screen descriptor
 				writePalette(); // global color table
 				if (repeat >= 0) {
 					// use NS app extension to indicate reps
@@ -528,7 +528,7 @@ public class AnimatedGifEncoder {
  * Copyright (c) 1994 Anthony Dekker
  * 
  * NEUQUANT Neural-Net quantization algorithm by Anthony Dekker, 1994. See
- * "Kohonen neural networks for optimal colour quantization" in "Network:
+ * "Kohonen neural networks for optimal color quantization" in "Network:
  * Computation in Neural Systems" Vol. 5 (1994) pp 351-367. for a discussion of
  * the algorithm.
  * 
@@ -545,7 +545,7 @@ public class AnimatedGifEncoder {
 // Ported to Java 12/00 K Weiner
 class NeuQuant {
 
-	protected static final int netsize = 256; /* number of colours used */
+	protected static final int netsize = 256; /* number of colors used */
 
 	/* four primes near 500 - assume no image has a length so large */
 	/* that it is divisible by all four primes */
@@ -575,7 +575,7 @@ class NeuQuant {
 
 	protected static final int maxnetpos = (netsize - 1);
 
-	protected static final int netbiasshift = 4; /* bias for colour values */
+	protected static final int netbiasshift = 4; /* bias for color values */
 
 	protected static final int ncycles = 100; /* no. of learning cycles */
 
@@ -823,7 +823,7 @@ class NeuQuant {
 	}
 
 	/*
-	 * Search for BGR values 0..255 (after net is unbiased) and return colour index
+	 * Search for BGR values 0..255 (after net is unbiased) and return color index
 	 * ----------------------------------------------------------------------------
 	 */
 	public int map(int b, int g, int r) {
@@ -913,7 +913,7 @@ class NeuQuant {
 			network[i][0] >>= netbiasshift;
 			network[i][1] >>= netbiasshift;
 			network[i][2] >>= netbiasshift;
-			network[i][3] = i; /* record colour no */
+			network[i][3] = i; /* record color no */
 		}
 	}
 

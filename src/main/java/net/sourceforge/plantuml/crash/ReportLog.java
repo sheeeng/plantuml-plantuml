@@ -100,12 +100,12 @@ public class ReportLog implements Iterable<String> {
 		add(" ");
 	}
 
-	public void anErrorHasOccured(Throwable exception, String fullDiagramText) {
+	public void anErrorHasOccurred(Throwable exception, String fullDiagramText) {
 		
 		if (exception == null)
-			add("An error has occured!");
+			add("An error has occurred!");
 		else
-			add("An error has occured : " + exception);
+			add("An error has occurred : " + exception);
 		// ::comment when __TEAVM__
 		final String quote = StringUtils.rot(QuoteUtils.getSomeQuote());
 		add("<i>" + quote);

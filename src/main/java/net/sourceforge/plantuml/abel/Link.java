@@ -100,7 +100,7 @@ public class Link extends WithLinkType implements Hideable, Removeable {
 
 	public LinkStrategy getLinkStrategy() {
 		// return LinkStrategy.LEGACY;
-		return LinkStrategy.SIMPLIER;
+		return LinkStrategy.SIMPLEST;
 	}
 
 	public String idCommentForSvg() {

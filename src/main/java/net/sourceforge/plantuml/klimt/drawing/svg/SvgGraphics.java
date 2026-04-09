@@ -1035,7 +1035,7 @@ public class SvgGraphics {
 	}
 
 	public void svgImage(UImageSvg image, double x, double y) {
-		if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE) {
+		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE) {
 			svgImageUnsecure(image, x, y);
 			return;
 		}

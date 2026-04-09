@@ -75,7 +75,7 @@ public abstract class UBrexCommandMultilines2<S extends Diagram> implements Comm
 
 	final public CommandControl isValid(BlocLines lines) {
 		lines = lines.cleanList(strategy);
-		if (isCommandForbidden())
+		if (isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		if (syntaxWithFinalBracket()) {
@@ -119,10 +119,6 @@ public abstract class UBrexCommandMultilines2<S extends Diagram> implements Comm
 
 	protected abstract CommandExecutionResult executeNow(S system, BlocLines lines, ParserPass currentPass)
 			throws NoSuchColorException;
-
-	protected boolean isCommandForbidden() {
-		return false;
-	}
 
 	protected CommandControl finalVerification(BlocLines lines) {
 		return CommandControl.OK;

@@ -38,6 +38,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -373,9 +375,7 @@ public class TContext {
 	private TValue executeOneLineSafe(TMemory memory, StringLocated s, TFunctionType ftype, boolean modeSpecial)
 			throws EaterException {
 		try {
-			if (!TeaVM.isTeaVM()) {
-				this.debug.add(s);
-			}
+			this.debug.add(s);
 			return executeOneLineNotSafe(memory, s, ftype, modeSpecial);
 		} catch (Exception e) {
 			if (e instanceof EaterException)
@@ -566,8 +566,9 @@ public class TContext {
 					executeVoid3(str, memory, function, call);
 					return null;
 				}
-				if (TeaVM.a()) assert function.getFunctionType() == TFunctionType.RETURN_FUNCTION
-						|| function.getFunctionType() == TFunctionType.LEGACY_DEFINE;
+				if (TeaVM.a())
+					assert function.getFunctionType() == TFunctionType.RETURN_FUNCTION
+							|| function.getFunctionType() == TFunctionType.LEGACY_DEFINE;
 				final TValue functionReturn = function.executeReturnFunction(this, memory, str, call.getValues(),
 						call.getNamedArguments());
 				String tmp = functionReturn.toString();
@@ -809,8 +810,9 @@ public class TContext {
 				final String stdlibPath = what.substring(1, what.length() - 1);
 				saveImportedFiles = this.pathSystem;
 				if (TeaVM.isTeaVM()) {
-					java.io.InputStream is = this.pathSystem.getTeaVMInputStream(what);
-					reader = ReadLineReader.create(new java.io.InputStreamReader(is), what);
+					final InputStream is = this.pathSystem.getTeaVMInputStream(what);
+					if (is != null)
+						reader = ReadLineReader.create(new InputStreamReader(is), what);
 				} else {
 					InputFile tmp = this.pathSystem.getInputFile(what);
 					this.pathSystem = this.pathSystem.changeCurrentDirectory(tmp.getParentFolder());
@@ -849,7 +851,8 @@ public class TContext {
 						}
 						saveImportedFiles = this.pathSystem;
 						this.pathSystem = this.pathSystem.withCurrentDir(f2.getParentFolder());
-						if (TeaVM.a()) assert reader != null;
+						if (TeaVM.a())
+							assert reader != null;
 					}
 				}
 			}

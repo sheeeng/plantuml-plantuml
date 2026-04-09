@@ -48,6 +48,7 @@ import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.mindmap.IdeaShape;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ISkinParam;
+import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleBuilder;
@@ -60,12 +61,23 @@ abstract class WBSTextBlock extends TextBlockMemoized {
 	private final Stereotype stereotype;
 	private final StyleBuilder styleBuilder;
 	private final int level;
+	private final WElement idea;
 
-	public WBSTextBlock(ISkinParam skinParam, StyleBuilder styleBuilder, int level, Stereotype stereotype) {
+	public WBSTextBlock(ISkinParam skinParam, WElement idea) {
+		this.idea = idea;
 		this.skinParam = skinParam;
-		this.styleBuilder = styleBuilder;
-		this.level = level;
-		this.stereotype = stereotype;
+		this.styleBuilder = idea.getStyleBuilder();
+		this.level = idea.getLevel();
+		this.stereotype = idea.getStereotype();
+	}
+
+	final protected boolean isAutoWidth() {
+		final String width = idea.getStyle().value(PName.Width).asString();
+		return "auto".equalsIgnoreCase(width);
+	}
+
+	final protected WElement getIdea() {
+		return idea;
 	}
 
 	private Style getStyleUsed() {
@@ -87,6 +99,9 @@ abstract class WBSTextBlock extends TextBlockMemoized {
 	final protected TextBlock buildMain(WElement idea) {
 		final Display label = idea.getLabel();
 		final Style style = idea.getStyle();
+		if (idea.getShape() == IdeaShape.PSEUDO)
+			return TextBlockUtils.EMPTY_TEXT_BLOCK;
+
 		if (idea.getShape() == IdeaShape.BOX)
 			return FtileBoxOld.createWbs(style, idea.withBackColor(skinParam), label);
 

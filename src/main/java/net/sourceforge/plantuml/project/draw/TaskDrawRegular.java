@@ -159,6 +159,30 @@ public class TaskDrawRegular extends AbstractTaskDraw {
 	}
 
 	@Override
+	public double getLabelOverflow(StringBounder stringBounder, double barsWidth) {
+		double overflow = 0;
+
+		final TextBlock title = getTitle();
+		final XDimension2D dim = title.calculateDimension(stringBounder);
+
+		final double pos1 = timeScale.getPosition(start) + 6;
+		final double pos2 = timeScale.getPosition(end) - 6;
+		if (pos2 - pos1 <= dim.getWidth()) {
+			final double labelEnd = getOutPosition(pos2) + dim.getWidth();
+			if (labelEnd > barsWidth)
+				overflow = labelEnd - barsWidth;
+		}
+
+		if (note != null) {
+			final double noteEnd = timeScale.getPosition(start) + getOpaleNote().calculateDimension(stringBounder).getWidth();
+			if (noteEnd - barsWidth > overflow)
+				overflow = noteEnd - barsWidth;
+		}
+
+		return overflow;
+	}
+
+	@Override
 	StyleSignature getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, SName.ganttDiagram, SName.task)
 				.withTOBECHANGED(getTask().getStereotype());

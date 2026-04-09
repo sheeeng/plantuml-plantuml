@@ -206,7 +206,7 @@ public class CommandLinkLongActivity extends CommandMultilines2<ActivityDiagram>
 
 		final String arrow = StringUtils.manageArrowForCuca(arrowBody1 + arrowDirection + arrowBody2 + ">");
 
-		final int lenght = arrow.length() - 1;
+		final int length = arrow.length() - 1;
 
 		final Display linkLabel = Display.getWithNewlines(diagram.getPragma(), line0.get("BRACKET", 0));
 
@@ -214,7 +214,7 @@ public class CommandLinkLongActivity extends CommandMultilines2<ActivityDiagram>
 		if (arrow.contains("."))
 			type = type.goDotted();
 
-		final LinkArg linkArg = LinkArg.build(linkLabel, lenght, diagram.getSkinParam().classAttributeIconSize() > 0);
+		final LinkArg linkArg = LinkArg.build(linkLabel, length, diagram.getSkinParam().classAttributeIconSize() > 0);
 		Link link = new Link(lines.getLocation(), diagram, diagram.getSkinParam().getCurrentStyleBuilder(), entity1,
 				entity2, type, linkArg);
 		final Direction direction = StringUtils.getArrowDirection(arrowBody1 + arrowDirection + arrowBody2 + ">");

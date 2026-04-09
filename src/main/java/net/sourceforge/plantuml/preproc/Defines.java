@@ -115,7 +115,7 @@ public class Defines implements Truth {
 		final Defines result = createEmpty();
 		result.overrideFilename(file.getName());
 		result.environment.put("filedate", new Date(file.lastModified()).toString());
-		if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE)
+		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE)
 			result.environment.put("dirpath",
 					file.getAbsoluteFile().getParentFile().getAbsolutePath().replace('\\', '/'));
 
@@ -127,7 +127,7 @@ public class Defines implements Truth {
 		final Defines result = createEmpty();
 		result.overrideFilename(file.getName());
 		result.environment.put("filedate", new Date(file.lastModified()).toString());
-		if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE)
+		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE)
 			result.environment.put("dirpath",
 					file.getAbsoluteFile().getParentFile().getAbsolutePath().replace('\\', '/'));
 

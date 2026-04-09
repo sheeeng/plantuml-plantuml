@@ -34,19 +34,67 @@
  */
 package net.sourceforge.plantuml.teavm;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.UFont;
+import net.sourceforge.plantuml.klimt.font.UFontImpl;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 
 public class StringBounderTeaVM implements StringBounder {
 	// ::remove file when JAVA8
 
+	private static final int MAX_CACHE_SIZE = 8192;
+
+	private static final class CacheKey {
+		private final UFontImpl font;
+		private final String text;
+		private final int hash;
+
+		CacheKey(UFontImpl font, String text) {
+			this.font = font;
+			this.text = text;
+			this.hash = Objects.hash(font, text);
+		}
+
+		@Override
+		public int hashCode() {
+			return hash;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj instanceof CacheKey == false)
+				return false;
+			final CacheKey other = (CacheKey) obj;
+			return font.equals(other.font) && text.equals(other.text);
+		}
+	}
+
+	private static final Map<CacheKey, XDimension2D> cache = new LinkedHashMap<>(16, 0.75f, true) {
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<CacheKey, XDimension2D> eldest) {
+			return size() > MAX_CACHE_SIZE;
+		}
+	};
+
 	@Override
-	public XDimension2D calculateDimension(UFont font, String text) {
+	public XDimension2D calculateDimension(UFont f, String text) {
 		if (text == null || text.isEmpty())
 			return new XDimension2D(0, 0);
 
+		final UFontImpl font = (UFontImpl) f;
+		final CacheKey key = new CacheKey(font, text);
+
+		return cache.computeIfAbsent(key, k -> calculateDimensionSlow(font, text));
+	}
+
+	private XDimension2D calculateDimensionSlow(UFontImpl font, String text) {
 		final String fontFamily = font.getFamily(null, null);
 		final int fontSize = font.getSize();
 		final String fontWeight = font.getFontFace().isBold() ? "bold" : "normal";
@@ -82,9 +130,12 @@ public class StringBounderTeaVM implements StringBounder {
 		final double[] metrics = SvgGraphicsTeaVM.getDetailedTextMetrics(text, fontFamily, fontSize, fontWeight);
 		// metrics[0] = width
 		// metrics[1] = actualBoundingBoxAscent (glyph-specific ascent above baseline)
-		// metrics[2] = actualBoundingBoxDescent (glyph-specific descent below baseline, can be negative for characters above baseline like '"')
-		// metrics[3] = fontBoundingBoxAscent (font-level ascent, constant for all glyphs)
-		// metrics[4] = fontBoundingBoxDescent (font-level descent, constant for all glyphs, like Java's LineMetrics.getDescent())
+		// metrics[2] = actualBoundingBoxDescent (glyph-specific descent below baseline,
+		// can be negative for characters above baseline like '"')
+		// metrics[3] = fontBoundingBoxAscent (font-level ascent, constant for all
+		// glyphs)
+		// metrics[4] = fontBoundingBoxDescent (font-level descent, constant for all
+		// glyphs, like Java's LineMetrics.getDescent())
 		return metrics[4];
 	}
 
@@ -97,5 +148,10 @@ public class StringBounderTeaVM implements StringBounder {
 			return true;
 
 		return false;
+	}
+
+	@Override
+	public FileFormat getFileFormat() {
+		return FileFormat.SVG;
 	}
 }

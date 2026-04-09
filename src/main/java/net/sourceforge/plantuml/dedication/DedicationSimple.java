@@ -43,11 +43,11 @@ import net.sourceforge.plantuml.security.SFile;
 
 public class DedicationSimple implements Dedication {
 
-	private final byte crypted[];
+	private final byte encrypted[];
 	private final String sentence;
 
-	public DedicationSimple(byte crypted[], String sentence) {
-		this.crypted = crypted;
+	public DedicationSimple(byte encrypted[], String sentence) {
+		this.encrypted = encrypted;
 		this.sentence = sentence;
 	}
 
@@ -56,7 +56,7 @@ public class DedicationSimple implements Dedication {
 			return null;
 
 		try {
-			byte[] current = crypted.clone();
+			byte[] current = encrypted.clone();
 
 			final RBlocks init = RBlocks.readFrom(current, 513);
 			final RBlocks decoded = init.change(E, N);

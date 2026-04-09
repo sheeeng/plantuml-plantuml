@@ -108,22 +108,25 @@ public class TimeConstraint {
 		ug = ug.apply(arrowColor).apply(arrowColor.bg());
 		final double x1 = ruler.getPosInPixel(tick1) + marginx;
 		final double x2 = ruler.getPosInPixel(tick2) - marginx;
-		ug = ug.apply(UTranslate.dx(x1));
-		final double len = x2 - x1;
-		ug.apply(getUStroke()).draw(ULine.hline(len));
 
-		if (len > 10) {
-			ug.draw(getPolygon(Direction.LEFT, new XPoint2D(0, 0)));
-			ug.draw(getPolygon(Direction.RIGHT, new XPoint2D(len, 0)));
+		if (x2 - x1 > 20) {
+			drawLine(ug, x1 + 3, x2 - 3);
+			ug.apply(UStroke.simple()).draw(getPolygon(Direction.LEFT, new XPoint2D(x1, 0)));
+			ug.apply(UStroke.simple()).draw(getPolygon(Direction.RIGHT, new XPoint2D(x2, 0)));
 		} else {
-			ug.draw(getPolygon(Direction.RIGHT, new XPoint2D(0, 0)));
-			ug.draw(getPolygon(Direction.LEFT, new XPoint2D(len, 0)));
+			drawLine(ug, x1 - 1, x2 + 1);
+			ug.apply(UStroke.simple()).draw(getPolygon(Direction.RIGHT, new XPoint2D(x1, 0)));
+			ug.apply(UStroke.simple()).draw(getPolygon(Direction.LEFT, new XPoint2D(x2, 0)));
 		}
 
 		final TextBlock text = getTextBlock(label);
 		final XDimension2D dimText = text.calculateDimension(ug.getStringBounder());
-		final double x = (len - dimText.getWidth()) / 2;
+		final double x = x1 + (x2 - x1 - dimText.getWidth()) / 2;
 		text.drawU(ug.apply(new UTranslate(x, -getConstraintHeight(ug.getStringBounder()))));
+	}
+
+	private void drawLine(UGraphic ug, final double x1, final double x2) {
+		ug.apply(UTranslate.dx(x1)).apply(getUStroke()).draw(ULine.hline(x2 - x1));
 	}
 
 	private HColor getArrowColor() {

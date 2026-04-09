@@ -49,7 +49,6 @@ import net.sourceforge.plantuml.preproc.OptionKey;
 import net.sourceforge.plantuml.skin.Pragma;
 
 public interface ISkinSimple extends SpriteContainer {
-	// ::remove file when __HAXE__
 
 	public String getValue(String key);
 

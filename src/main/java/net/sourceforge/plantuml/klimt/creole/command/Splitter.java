@@ -123,19 +123,19 @@ public class Splitter {
 		tagOrText = Pattern2.cmpile(htmlTag + "|.+?(?=" + htmlTag + ")|.+$");
 	}
 
-	private final List<String> splitted = new ArrayList<>();
+	private final List<String> split = new ArrayList<>();
 
 	public Splitter(String s) {
 		final Matcher2 matcher = tagOrText.matcher(s);
 		while (matcher.find()) {
 			String part = matcher.group(0);
 			part = StringUtils.showComparatorCharacters(part);
-			splitted.add(part);
+			split.add(part);
 		}
 	}
 
 	List<String> getSplittedInternal() {
-		return splitted;
+		return split;
 	}
 
 	public static String purgeAllTag(String s) {

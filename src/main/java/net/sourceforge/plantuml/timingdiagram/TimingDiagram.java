@@ -252,11 +252,11 @@ public class TimingDiagram extends TitledDiagram implements Clocks {
 
 	}
 
-	private UTranslate getUTranslateForPlayer(Player candidat, StringBounder stringBounder) {
+	private UTranslate getUTranslateForPlayer(Player candidate, StringBounder stringBounder) {
 		double y = 0;
 		for (Player player : players.values()) {
 			y += player.getFrameHeight(stringBounder);
-			if (candidat == player)
+			if (candidate == player)
 				return UTranslate.dy(y);
 
 //			if (y == 0) {
@@ -264,16 +264,16 @@ public class TimingDiagram extends TitledDiagram implements Clocks {
 //			}
 			y += player.panels().getFullHeight(stringBounder);
 		}
-		if (candidat == null)
+		if (candidate == null)
 			return UTranslate.dy(y);
 
 		throw new IllegalArgumentException();
 	}
 
-	private UTranslate getUTranslateForPlayerFrame(Player candidat, StringBounder stringBounder) {
+	private UTranslate getUTranslateForPlayerFrame(Player candidate, StringBounder stringBounder) {
 		double y = 0;
 		for (Player player : players.values()) {
-			if (candidat == player)
+			if (candidate == player)
 				return UTranslate.dy(y);
 
 //			if (y == 0) {
@@ -282,7 +282,7 @@ public class TimingDiagram extends TitledDiagram implements Clocks {
 			y += player.getFrameHeight(stringBounder);
 			y += player.panels().getFullHeight(stringBounder);
 		}
-		if (candidat == null)
+		if (candidate == null)
 			return UTranslate.dy(y);
 
 		throw new IllegalArgumentException();

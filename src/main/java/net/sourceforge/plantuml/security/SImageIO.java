@@ -59,11 +59,15 @@ public class SImageIO {
 
 	public static PortableImage read(byte[] bytes) throws IOException {
 		if (TeaVM.isTeaVM())
-			return null;
+			return readTeaVM(bytes);
 		return PortableImageFactory.build(javax.imageio.ImageIO.read(new ByteArrayInputStream(bytes)));
 	}
 
-	// ::comment when __TEAVM__
+	private static PortableImage readTeaVM(byte[] pngBytes) {
+		final String base64 = new String(net.sourceforge.plantuml.utils.Base64Coder.encode(pngBytes));
+		return PortableImageFactory.buildFromPngBytes(pngBytes, base64);
+	}
+
 	public static ImageOutputStream createImageOutputStream(OutputStream os) throws IOException {
 		return javax.imageio.ImageIO.createImageOutputStream(os);
 	}
@@ -102,6 +106,5 @@ public class SImageIO {
 	public static Iterator<ImageReader> getImageReaders(ImageInputStream iis) {
 		return javax.imageio.ImageIO.getImageReaders(iis);
 	}
-	// ::done
 
 }

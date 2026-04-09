@@ -55,9 +55,10 @@ import net.sourceforge.plantuml.klimt.shape.GraphicStrings;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.core.TextBlockExporter12026;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.security.SecurityProfile;
+import net.sourceforge.plantuml.security.SecurityUtils;
 
 public class PSystemDot extends DirectOsDiagram {
-	
 
 	private final String data;
 
@@ -74,13 +75,13 @@ public class PSystemDot extends DirectOsDiagram {
 	final protected ImageData exportDiagramNow(OutputStream os, int num, FileFormatOption fileFormat)
 			throws IOException {
 
-		if (fileFormat.getFileFormat() == FileFormat.SVG) {
+		if (SecurityUtils.getSecurityProfile() != SecurityProfile.INSECURE
+				&& fileFormat.getFileFormat() == FileFormat.SVG) {
 			final String svg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 					+ "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n"
 					+ "<a xlink:href=\"https://github.com/plantuml/plantuml/issues/2495\">\n"
 					+ "<text x=\"10\" y=\"30\" font-family=\"sans-serif\" font-size=\"14\" fill=\"blue\" text-decoration=\"underline\">This feature has been suppressed</text>\n"
-					+ "</a>\n"
-					+ "</svg>";
+					+ "</a>\n" + "</svg>";
 			os.write(svg.getBytes("UTF-8"));
 			return ImageDataSimple.ok();
 		}
@@ -90,8 +91,8 @@ public class PSystemDot extends DirectOsDiagram {
 		if (graphviz.getExeState() != ExeState.OK) {
 			final TextBlock result = GraphicStrings
 					.createForError(Arrays.asList("There is an issue with your Dot/Graphviz installation"), false);
-			return TextBlockExporter12026.builder(result, fileFormat, false)
-					.seed(seed()).status(FileImageData.CRASH).build().exportTo(os);
+			return TextBlockExporter12026.builder(result, fileFormat, false).seed(seed()).status(FileImageData.CRASH)
+					.build().exportTo(os);
 		}
 
 		final CounterOutputStream counter = new CounterOutputStream(os);
@@ -101,8 +102,8 @@ public class PSystemDot extends DirectOsDiagram {
 		// }
 		if (counter.getLength() == 0 || state.differs(ProcessState.TERMINATED_OK())) {
 			final TextBlock result = GraphicStrings.createForError(Arrays.asList("GraphViz has crashed"), false);
-			return TextBlockExporter12026.builder(result, fileFormat, false)
-					.seed(seed()).status(FileImageData.CRASH).build().exportTo(os);
+			return TextBlockExporter12026.builder(result, fileFormat, false).seed(seed()).status(FileImageData.CRASH)
+					.build().exportTo(os);
 		}
 
 		return ImageDataSimple.ok();

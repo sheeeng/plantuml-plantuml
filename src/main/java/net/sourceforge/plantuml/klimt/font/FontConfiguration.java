@@ -118,7 +118,7 @@ public class FontConfiguration {
 	/**
 	 * Returns a new {@code FontConfiguration} whose underlying font has been
 	 * updated to reflect the supplied {@link UFontFace} (weight + italic axis).
-	 * All other configuration properties (colour, size, tab stop, etc.) are
+	 * All other configuration properties (color, size, tab stop, etc.) are
 	 * preserved unchanged.
 	 *
 	 * <p>This is the preferred way to change bold/italic/weight instead of the

@@ -123,6 +123,23 @@ public class TaskDrawGroup extends AbstractTaskDraw {
 	}
 
 	@Override
+	public double getLabelOverflow(StringBounder stringBounder, double barsWidth) {
+		final TextBlock title = getTitle();
+		final XDimension2D dim = title.calculateDimension(stringBounder);
+
+		final double pos1 = timeScale.getPosition(start) + 6;
+		final double pos2 = timeScale.getPosition(end) + timeScale.getWidth(end) - 6;
+		if (pos2 - pos1 > dim.getWidth())
+			return 0;
+
+		final double labelEnd = pos2 + 6 + dim.getWidth();
+		if (labelEnd > barsWidth)
+			return labelEnd - barsWidth;
+
+		return 0;
+	}
+
+	@Override
 	StyleSignature getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, SName.ganttDiagram, SName.task);
 	}

@@ -70,7 +70,7 @@ public class FromSkinparamToStyle {
 		}
 	}
 
-	private static final Map<String, List<Data>> knowlegde = new HashMap<String, List<Data>>();
+	private static final Map<String, List<Data>> knowledge = new HashMap<String, List<Data>>();
 
 	static {
 		addConvert("participantClickableBackgroundColor", PName.BackGroundColor, SName.participant, SName.clickable);
@@ -321,7 +321,7 @@ public class FromSkinparamToStyle {
 		if (value.equalsIgnoreCase("dashed"))
 			value = "7;7";
 
-		final List<Data> datas = knowlegde.get(key.toLowerCase());
+		final List<Data> datas = knowledge.get(key.toLowerCase());
 
 		if (datas == null) {
 			if (key.equalsIgnoreCase("shadowing"))
@@ -409,10 +409,10 @@ public class FromSkinparamToStyle {
 
 	private static void addConvert(String skinparam, PName propertyName, SName... styleNames) {
 		skinparam = skinparam.toLowerCase();
-		List<Data> datas = knowlegde.get(skinparam);
+		List<Data> datas = knowledge.get(skinparam);
 		if (datas == null) {
 			datas = new ArrayList<>();
-			knowlegde.put(skinparam, datas);
+			knowledge.put(skinparam, datas);
 		}
 		datas.add(new Data(styleNames, propertyName));
 	}

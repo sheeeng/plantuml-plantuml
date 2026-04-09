@@ -43,6 +43,7 @@ import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public class CommandCreoleColorAndSizeChange implements Command {
 
@@ -79,7 +80,9 @@ public class CommandCreoleColorAndSizeChange implements Command {
 		return m.group(1).length();
 	}
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe) throws NoSuchColorRuntimeException {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe)
+			throws NoSuchColorRuntimeException {
 		final Matcher2 m = mypattern.matcher(line);
 		if (m.find() == false)
 			throw new IllegalStateException();

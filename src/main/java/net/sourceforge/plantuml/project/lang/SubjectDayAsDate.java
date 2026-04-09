@@ -36,13 +36,24 @@
 package net.sourceforge.plantuml.project.lang;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+
+import com.plantuml.ubrex.UMatcher;
+import com.plantuml.ubrex.builder.UBrexConcat;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexNamed;
+import com.plantuml.ubrex.builder.UBrexOr;
+import com.plantuml.ubrex.builder.UBrexPart;
 
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.project.Failable;
 import net.sourceforge.plantuml.project.GanttDiagram;
+import net.sourceforge.plantuml.project.ulang.GanttParseResult;
+import net.sourceforge.plantuml.project.ulang.UbrexSentence;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
@@ -56,6 +67,43 @@ public class SubjectDayAsDate implements Subject<GanttDiagram> {
 	private SubjectDayAsDate() {
 	}
 
+	@Override
+	public Collection<UbrexSentence<GanttDiagram>> getUSentences() {
+		final List<UbrexSentence<GanttDiagram>> result = new ArrayList<>();
+		result.add(new UbrexSentence<GanttDiagram>(this, Verbs.isOrAre, new ComplementOpen()) {
+			@Override
+			public CommandExecutionResult execute(GanttDiagram project, Object subject, Object complement) {
+				project.openDayAsDate((LocalDate) subject, (String) complement);
+				return CommandExecutionResult.ok();
+			}
+		});
+
+		result.add(new UbrexSentence<GanttDiagram>(this, Verbs.isOrAre, new ComplementClose()) {
+			@Override
+			public CommandExecutionResult execute(GanttDiagram project, Object subject, Object complement) {
+				project.closeDayAsDate((LocalDate) subject, (String) complement);
+				return CommandExecutionResult.ok();
+			}
+		});
+
+		result.add(new UbrexSentence<GanttDiagram>(this, Verbs.isOrAre, new ComplementInColors2()) {
+			@Override
+			public CommandExecutionResult execute(GanttDiagram project, Object subject, Object complement) {
+				final HColor color = ((CenterBorderColor) complement).getCenter();
+				project.colorDay((LocalDate) subject, color);
+				return CommandExecutionResult.ok();
+			}
+		});
+
+		return result;
+
+	}
+
+	@Override
+	public Failable<? extends Object> ugetMe(GanttDiagram diagram, UMatcher arg) {
+		return Failable.ok(resultB(arg));
+	}
+
 	public Failable<LocalDate> getMe(GanttDiagram project, RegexResult arg) {
 		if (arg.get("BDAY", 0) != null)
 			return Failable.ok(resultB(arg));
@@ -65,6 +113,13 @@ public class SubjectDayAsDate implements Subject<GanttDiagram> {
 
 		throw new IllegalStateException();
 
+	}
+
+	private LocalDate resultB(UMatcher arg) {
+		final int day = Integer.parseInt(arg.getCapture("BDAY").get(0));
+		final int month = Integer.parseInt(arg.getCapture("BMONTH").get(0));
+		final int year = Integer.parseInt(arg.getCapture("BYEAR").get(0));
+		return LocalDate.of(year, month, day);
 	}
 
 	private LocalDate resultB(RegexResult arg) {
@@ -96,7 +151,7 @@ public class SubjectDayAsDate implements Subject<GanttDiagram> {
 	class Close extends SentenceSimple<GanttDiagram> {
 
 		public Close() {
-			super(SubjectDayAsDate.this, Verbs.isOrAre, new ComplementClose());
+			super(SubjectDayAsDate.this, Verbs.isOrAre.getRegex(), new ComplementClose());
 		}
 
 		@Override
@@ -108,7 +163,7 @@ public class SubjectDayAsDate implements Subject<GanttDiagram> {
 
 	class Open extends SentenceSimple<GanttDiagram> {
 		public Open() {
-			super(SubjectDayAsDate.this, Verbs.isOrAre, new ComplementOpen());
+			super(SubjectDayAsDate.this, Verbs.isOrAre.getRegex(), new ComplementOpen());
 		}
 
 		@Override
@@ -121,7 +176,7 @@ public class SubjectDayAsDate implements Subject<GanttDiagram> {
 	class InColor extends SentenceSimple<GanttDiagram> {
 
 		public InColor() {
-			super(SubjectDayAsDate.this, Verbs.isOrAre, new ComplementInColors2());
+			super(SubjectDayAsDate.this, Verbs.isOrAre.getRegex(), new ComplementInColors2());
 		}
 
 		@Override
@@ -147,6 +202,23 @@ public class SubjectDayAsDate implements Subject<GanttDiagram> {
 				new RegexLeaf(1, "EOPERATION", "([-+])"), //
 				new RegexLeaf(1, "ECOUNT", "([\\d]+)") //
 		);
+	}
+
+	private UBrexPart toUbrexB() {
+		return TimeResolution.toUbrexB_YYYY_MM_DD("BYEAR", "BMONTH", "BDAY");
+	}
+
+	private UBrexPart toUbrexE() {
+		return UBrexConcat.build( //
+				new UBrexNamed("ETYPE", new UBrexLeaf("「dDtTeE」")), //
+				new UBrexNamed("EOPERATION", new UBrexLeaf("「-+」")), //
+				new UBrexNamed("ECOUNT", new UBrexLeaf("〇+〴d")) //
+		);
+	}
+
+	@Override
+	public UBrexPart toUnicodeBracketedExpressionSubject() {
+		return new UBrexOr(toUbrexB(), toUbrexE());
 	}
 
 }

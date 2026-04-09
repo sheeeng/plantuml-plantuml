@@ -153,9 +153,9 @@ public class PSystemRegex extends TitledDiagram {
 				else if (token.getType() == ReTokenType.NAMED_GROUP)
 					namedGroup(token.getData());
 				else if (token.getType() == ReTokenType.CLASS)
-					pushEtileBox(token, Symbol.LITTERAL);
+					pushEtileBox(token, Symbol.LITERAL);
 				else if (token.getType() == ReTokenType.ANCHOR)
-					pushEtileBox(token, Symbol.LITTERAL);
+					pushEtileBox(token, Symbol.LITERAL);
 				else if (token.getType() == ReTokenType.CONCATENATION_IMPLICIT)
 					concatenation();
 				else if (token.getType() == ReTokenType.ALTERNATIVE)

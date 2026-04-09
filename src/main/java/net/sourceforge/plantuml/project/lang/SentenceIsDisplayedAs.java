@@ -42,7 +42,7 @@ import net.sourceforge.plantuml.project.core.Task;
 public class SentenceIsDisplayedAs extends SentenceSimple<GanttDiagram> {
 
 	public SentenceIsDisplayedAs() {
-		super(SubjectTask.ME, Verbs.isDisplayedAs, new ComplementAnything());
+		super(SubjectTask.ME, Verbs.isDisplayedAs.getRegex(), new ComplementAnything());
 	}
 
 	@Override

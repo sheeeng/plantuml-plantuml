@@ -124,7 +124,7 @@ public class SpriteContainerEmpty implements SpriteContainer, ISkinSimple {
 			CreoleMode creoleMode, FontConfiguration stereo) {
 		return new CreoleParser(fontConfiguration, horizontalAlignment, this, creoleMode, stereo);
 	}
-	
+
 	@Override
 	public Pragma getPragma() {
 		return Pragma.createEmpty();
@@ -140,5 +140,9 @@ public class SpriteContainerEmpty implements SpriteContainer, ISkinSimple {
 		return PathSystem.fetch();
 	}
 
+	@Override
+	public String getFromMd5(String md5) {
+		return null;
+	}
 
 }

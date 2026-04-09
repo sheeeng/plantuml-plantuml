@@ -143,28 +143,26 @@ public class CliOptions {
 	}
 
 	public String getPicowebBindAddress() {
-		final String picoweb = flags.getString(CliFlag.PICOWEB);
-		if (picoweb == null)
-			return null;
-
-		final String[] parts = picoweb.split(":");
-		return parts.length > 1 ? parts[1] : null;
+		final List<Object> list = flags.getList(CliFlag.PICOWEB);
+		// Format: --http-server:port:address
+		return list.size() > 1 ? (String) list.get(1) : null;
 	}
 
 	public int getPicowebPort() {
-		final String picoweb = flags.getString(CliFlag.PICOWEB);
-		if (picoweb == null)
+		final List<Object> list = flags.getList(CliFlag.PICOWEB);
+		if (list.isEmpty())
 			return 8080;
 
-		final String[] parts = picoweb.split(":");
-		return Integer.parseInt(parts[0]);
+		return Integer.parseInt((String) list.get(0));
 	}
 
 	public boolean getPicowebEnableStop() {
-		final String picoweb = flags.getString(CliFlag.PICOWEB);
-		if (picoweb == null)
-			return false;
-		return picoweb.toLowerCase().contains("stop");
+		final List<Object> list = flags.getList(CliFlag.PICOWEB);
+		for (Object part : list)
+			if (((String) part).equalsIgnoreCase("stop"))
+				return true;
+
+		return false;
 	}
 
 	private void addFileInConfig(File file) throws IOException, CliParsingException {

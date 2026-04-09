@@ -16,7 +16,7 @@ import net.sourceforge.plantuml.klimt.color.HColorSimple;
 import net.sourceforge.plantuml.klimt.awt.XColor;
 
 /**
- * Unit tests for SvgSaxParser focusing on public drawU behaviour.
+ * Unit tests for SvgSaxParser focusing on public drawU behavior.
  * - Verifies that drawing the parser will invoke underlying UGraphic draw operations.
  * - Verifies gray-level range computation for simple SVG with known fills.
  *
@@ -32,7 +32,7 @@ public class SvgNanoParserTest {
 
     @Test
     public void testDrawUInvokesGraphicDraw() {
-        SvgSaxParser parser = new SvgSaxParser(Arrays.asList(SAMPLE_SVG));
+        SvgSaxParser parser = new SvgSaxParser(SAMPLE_SVG);
         
         // Create a mock UGraphic that returns itself for chained apply(...) calls
         UGraphic ug = mock(UGraphic.class, org.mockito.Mockito.RETURNS_SELF);
@@ -49,7 +49,7 @@ public class SvgNanoParserTest {
 
     @Test
     public void testGetGrayLevelRangeComputesValues() {
-        SvgSaxParser parser = new SvgSaxParser(Arrays.asList(SAMPLE_SVG));
+        SvgSaxParser parser = new SvgSaxParser(SAMPLE_SVG);
 
         // compute range via public getters
         int min = parser.getMinGrayLevel();

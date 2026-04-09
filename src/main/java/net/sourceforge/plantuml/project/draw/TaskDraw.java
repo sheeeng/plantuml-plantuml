@@ -73,6 +73,10 @@ public interface TaskDraw extends UDrawable {
 
 	public FingerPrint getFingerPrintNote(StringBounder stringBounder);
 
+	default public double getLabelOverflow(StringBounder stringBounder, double barsWidth) {
+		return 0;
+	}
+
 	public double getX(StringBounder stringBounder, GSide side, GArrowType arrowType);
 
 }

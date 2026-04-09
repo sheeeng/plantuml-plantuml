@@ -57,7 +57,6 @@ import net.sourceforge.plantuml.teavm.TeaVM;
  * 
  */
 public enum SecurityProfile {
-	// ::remove folder when __HAXE__
 
 	/**
 	 * Running in SANDBOX mode is completely secure. No local file can be read
@@ -81,7 +80,7 @@ public enum SecurityProfile {
 	INTERNET,
 
 	/**
-	 * This mode reproduce old PlantUML version behaviour.
+	 * This mode reproduce old PlantUML version behavior.
 	 * <p>
 	 * Right now, this is the default Security Profile but this will be removed from
 	 * future version because it is now full secure, especially on Internet server.
@@ -89,7 +88,7 @@ public enum SecurityProfile {
 	LEGACY,
 
 	/**
-	 * Running in UNSECURE mode means that PlantUML can access to any local file and
+	 * Running in INSECURE mode means that PlantUML can access to any local file and
 	 * can connect to any URL.
 	 * <p>
 	 * Some technical information (file path, Java version) are also printed in some
@@ -97,7 +96,7 @@ public enum SecurityProfile {
 	 * you should not use this mode if PlantUML is running on some server,
 	 * especially if the server is accessible from Internet.
 	 */
-	UNSECURE;
+	INSECURE;
 
 	/**
 	 * Initialize the default value.
@@ -109,7 +108,7 @@ public enum SecurityProfile {
 	 */
 	static SecurityProfile init() {
 		if (TeaVM.isTeaVM())
-			return UNSECURE;
+			return INSECURE;
 
 		final String env = SecurityUtils.getenv("PLANTUML_SECURITY_PROFILE");
 		if ("SANDBOX".equalsIgnoreCase(env))
@@ -118,8 +117,11 @@ public enum SecurityProfile {
 			return ALLOWLIST;
 		else if ("INTERNET".equalsIgnoreCase(env))
 			return INTERNET;
+		else if ("INSECURE".equalsIgnoreCase(env))
+			return INSECURE;
+		// Sorry about this typo
 		else if ("UNSECURE".equalsIgnoreCase(env))
-			return UNSECURE;
+			return INSECURE;
 
 		return LEGACY;
 	}
@@ -137,7 +139,7 @@ public enum SecurityProfile {
 			return "<i>Mode designed for server connected to Internet.";
 		case LEGACY:
 			return "<b>Warning: this mode will be removed in future version";
-		case UNSECURE:
+		case INSECURE:
 			return "<b>Make sure that this server is not accessible from Internet";
 		}
 		return "<i>This is completely safe: no access on local files or on distant URL.";
@@ -156,7 +158,7 @@ public enum SecurityProfile {
 			return 1000L * 10;
 		case LEGACY:
 			return 1000L * 60;
-		case UNSECURE:
+		case INSECURE:
 			return 1000L * 60 * 5;
 		}
 		throw new AssertionError();
@@ -176,7 +178,7 @@ public enum SecurityProfile {
 		if (lname.equals("path.separator") || lname.equals("line.separator"))
 			return true;
 
-		return this == UNSECURE;
+		return this == INSECURE;
 	}
 
 }

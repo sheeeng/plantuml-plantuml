@@ -48,7 +48,7 @@ public class PSystemErrorPreprocessor extends PSystemError {
 	public PSystemErrorPreprocessor(List<StringLocated> input, List<StringLocated> trace,
 			PreprocessingArtifact preprocessing) {
 		super(UmlSource.create(input,
-				DiagramType.getTypesFromArobaseStart(input.get(0).getString()).contains(DiagramType.SEQUENCE)),
+				DiagramType.findStartTypes(input.get(0).getString()).contains(DiagramType.SEQUENCE)),
 				preprocessing);
 		this.trace = trace;
 		this.singleError = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, getLastLine().getPreprocessorError(), 0,

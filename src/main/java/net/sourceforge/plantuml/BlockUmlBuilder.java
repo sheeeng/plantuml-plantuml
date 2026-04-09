@@ -98,11 +98,11 @@ public final class BlockUmlBuilder implements DefinitionsContainer {
 			boolean paused = false;
 
 			while ((s = includer.readLine()) != null) {
-				if (StartUtils.isArobaseStartDiagram(s.getString())) {
+				if (StartUtils.isStartDirective(s.getString())) {
 					current = new ArrayList<>();
 					paused = false;
 				}
-				if (StartUtils.isArobasePauseDiagram(s.getString())) {
+				if (StartUtils.isPauseDirective(s.getString())) {
 					paused = true;
 					reader.setPaused(true);
 				}
@@ -119,11 +119,11 @@ public final class BlockUmlBuilder implements DefinitionsContainer {
 
 				}
 
-				if (StartUtils.isArobaseUnpauseDiagram(s.getString())) {
+				if (StartUtils.isUnpauseDirective(s.getString())) {
 					paused = false;
 					reader.setPaused(false);
 				}
-				if (StartUtils.isArobaseEndDiagram(s.getString()) && current != null) {
+				if (StartUtils.isEndDirective(s.getString()) && current != null) {
 					if (paused)
 						current.add(s);
 

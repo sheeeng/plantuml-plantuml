@@ -63,7 +63,7 @@ public class CommandDecoratorMultine<D extends Diagram> implements Command<D> {
 	}
 
 	public CommandControl isValid(BlocLines lines) {
-		if (cmd.isCommandForbidden())
+		if (cmd.isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		lines = lines.toSingleLineWithHiddenNewLine();
@@ -88,5 +88,11 @@ public class CommandDecoratorMultine<D extends Diagram> implements Command<D> {
 	public boolean isEligibleFor(ParserPass pass) {
 		return cmd.isEligibleFor(pass);
 	}
+	
+	@Override
+	public final boolean isCommandForbidden(BlocLines lines) {
+		return cmd.isCommandForbidden(lines);
+	}
+
 
 }

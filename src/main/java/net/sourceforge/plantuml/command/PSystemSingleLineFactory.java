@@ -72,14 +72,14 @@ public abstract class PSystemSingleLineFactory extends PSystemAbstractFactory {
 		}
 
 		final StringLocated startLine = it.next();
-		if (StartUtils.isArobaseStartDiagram(startLine.getString()) == false)
+		if (StartUtils.isStartDirective(startLine.getString()) == false)
 			throw new UnsupportedOperationException();
 
 		if (it.hasNext() == false)
 			return buildEmptyError(source, startLine.getLocation(), it.getTrace(), preprocessing);
 
 		final StringLocated s = it.next();
-		if (StartUtils.isArobaseEndDiagram(s.getString()))
+		if (StartUtils.isEndDirective(s.getString()))
 			return buildEmptyError(source, s.getLocation(), it.getTrace(), preprocessing);
 
 		final Diagram sys = executeLine(source, s.getString(), preprocessing);

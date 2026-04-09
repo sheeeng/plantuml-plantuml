@@ -162,7 +162,7 @@ public class LinkType {
 
 	public String getSpecificDecorationSvek(LinkStrategy linkStrategy) {
 
-		if (linkStrategy == LinkStrategy.SIMPLIER)
+		if (linkStrategy == LinkStrategy.SIMPLEST)
 			return "arrowtail=none,arrowhead=none";
 
 		final StringBuilder sb = new StringBuilder();
@@ -230,7 +230,7 @@ public class LinkType {
 //	}
 //
 //	private boolean isAggregationOrComposition() {
-//		return decor1 == LinkDecor.AGREGATION || decor2 == LinkDecor.AGREGATION || decor1 == LinkDecor.COMPOSITION
+//		return decor1 == LinkDecor.AGGREGATION || decor2 == LinkDecor.AGGREGATION || decor1 == LinkDecor.COMPOSITION
 //				|| decor2 == LinkDecor.COMPOSITION;
 //	}
 
@@ -277,7 +277,7 @@ public class LinkType {
 		if (has(LinkDecor.COMPOSITION))
 			return "composition";
 		
-		if (has(LinkDecor.AGREGATION))
+		if (has(LinkDecor.AGGREGATION))
 			return "aggregation";
 		
 		if (has(LinkDecor.EXTENDS))

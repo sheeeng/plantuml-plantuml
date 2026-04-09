@@ -44,7 +44,9 @@ public enum DiagramType {
 
 	SEQUENCE, STATE, CLASS, OBJECT, ACTIVITY, DESCRIPTION, COMPOSITE, TIMING, HELP, BPM, DITAA, DOT, JCCKIT, SALT, FLOW,
 	CREOLE, MATH, LATEX, DEFINITION, GANTT, CHRONOLOGY, NWDIAG, MINDMAP, WBS, WIRE, JSON, GIT, BOARD, YAML, HCL, EBNF,
-	REGEX, FILES, CHEN_EER, CHART, PACKET, SPRITES, UNKNOWN;
+	REGEX, FILES, CHEN_EER, CHART, PACKET, SPRITES, CRASH, UNKNOWN;
+
+	private static final EnumSet<DiagramType> EMPTY = EnumSet.noneOf(DiagramType.class);
 
 	public boolean isLegacyUML() {
 		switch (this) {
@@ -64,7 +66,7 @@ public enum DiagramType {
 		}
 	}
 
-	static public Collection<DiagramType> getTypesFromArobaseStart(String text) {
+	static public Collection<DiagramType> findStartTypes(String text) {
 		for (int i = 0; i < text.length(); i++) {
 			final char c = text.charAt(i);
 
@@ -72,21 +74,21 @@ public enum DiagramType {
 				continue;
 
 			if (c != '@' && c != '\\')
-				return EnumSet.of(UNKNOWN);
+				return EMPTY;
 
 			final int pos = i + 1;
 
 			if (text.length() - pos < 5 || check("start", text, pos) == false)
-				return EnumSet.of(UNKNOWN);
+				return EMPTY;
 
 			final int p = pos + 5;
 			if (p >= text.length())
-				return EnumSet.of(UNKNOWN);
+				return EMPTY;
 
 			return getTypes(text, p);
 		}
 
-		return EnumSet.of(UNKNOWN);
+		return EMPTY;
 	}
 
 	private static Collection<DiagramType> getTypes(String text, final int p) {
@@ -108,6 +110,8 @@ public enum DiagramType {
 				return EnumSet.of(CHRONOLOGY);
 			if (check("chen", text, p))
 				return EnumSet.of(CHEN_EER);
+			if (check("crash", text, p))
+				return EnumSet.of(CRASH);
 			return EnumSet.of(UNKNOWN);
 
 		case 'd':

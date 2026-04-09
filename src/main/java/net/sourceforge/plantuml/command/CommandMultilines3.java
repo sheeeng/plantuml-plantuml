@@ -63,7 +63,7 @@ public abstract class CommandMultilines3<S extends Diagram> implements Command<S
 
 	final public CommandControl isValid(BlocLines lines) {
 		lines = lines.cleanList(strategy);
-		if (isCommandForbidden())
+		if (isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		final StringLocated first = lines.getFirst();
@@ -99,10 +99,6 @@ public abstract class CommandMultilines3<S extends Diagram> implements Command<S
 	}
 
 	protected abstract CommandExecutionResult executeNow(S system, BlocLines lines) throws NoSuchColorException;
-
-	protected boolean isCommandForbidden() {
-		return false;
-	}
 
 	protected CommandControl finalVerification() {
 		return CommandControl.OK;

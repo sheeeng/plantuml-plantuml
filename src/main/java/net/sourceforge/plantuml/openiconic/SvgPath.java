@@ -243,7 +243,8 @@ public class SvgPath {
 
 	public void drawMe(UGraphic ug, XAffineTransform at) {
 		final UPath path = toUPath(at);
-		ug.draw(path);
+		if (path.isInvisible() == false)
+			ug.draw(path);
 	}
 
 	public void drawMe(UGraphic ug, double factor) {

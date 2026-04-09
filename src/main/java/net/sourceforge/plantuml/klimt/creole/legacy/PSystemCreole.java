@@ -79,8 +79,8 @@ public class PSystemCreole extends UgDiagram {
 		final Display display = Display.create(lines);
 		final UFont font = UFontFactory.serif(14);
 		final FontConfiguration fontConfiguration = FontConfiguration.blackBlueTrue(font);
-		final SkinParam skinParam = SkinParam.create(PathSystem.fetch(), DiagramType.SEQUENCE, Pragma.createEmpty(),
-				getPreprocessingArtifact().getOption());
+		final SkinParam skinParam = SkinParam.create(getMd5map(), PathSystem.fetch(), DiagramType.SEQUENCE,
+				Pragma.createEmpty(), getPreprocessingArtifact().getOption());
 		final Sheet sheet = skinParam.sheet(fontConfiguration, HorizontalAlignment.LEFT, CreoleMode.FULL)
 				.createSheet(display);
 		return new SheetBlock1(sheet, LineBreakStrategy.NONE, 0);

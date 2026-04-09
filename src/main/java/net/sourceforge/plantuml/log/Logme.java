@@ -45,6 +45,8 @@ public class Logme {
 
 	private static final Logger logger;
 
+	public static boolean MODE_VEGA;
+
 	static {
 		if (!TeaVM.isTeaVM()) {
 			logger = Logger.getLogger("com.plantuml");
@@ -58,6 +60,9 @@ public class Logme {
 	}
 
 	public static void error(Throwable thrown) {
+		if (MODE_VEGA)
+			return;
+
 		if (!TeaVM.isTeaVM()) {
 			logger.log(Level.SEVERE, "", thrown);
 		}

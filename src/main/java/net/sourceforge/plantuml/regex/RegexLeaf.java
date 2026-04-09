@@ -180,9 +180,9 @@ public class RegexLeaf implements IRegex {
 //			final boolean changed = UNKNOWN.add(pattern2);
 //			if (changed) {
 //				if (pattern.equals(pattern2))
-//					System.err.println("unknow=" + UNKNOWN.size() + " " + pattern);
+//					System.err.println("unknown=" + UNKNOWN.size() + " " + pattern);
 //				else
-//					System.err.println("unknow=" + UNKNOWN.size() + " " + pattern2 + "        " + pattern);
+//					System.err.println("unknown=" + UNKNOWN.size() + " " + pattern2 + "        " + pattern);
 //				// Thread.dumpStack();
 //			}
 //		}

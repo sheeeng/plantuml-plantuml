@@ -71,7 +71,7 @@ public enum LinkDecor {
 	NONE(null, null, 2, false, 0), //
 	EXTENDS(decors1("<|", "^"), decors2("|>", "^"), 30, false, 2), //
 	COMPOSITION(decors1("*"), decors2("*"), 15, true, 1.3), //
-	AGREGATION(decors1("o"), decors2("o"), 15, false, 1.3), //
+	AGGREGATION(decors1("o"), decors2("o"), 15, false, 1.3), //
 	NOT_NAVIGABLE(decors1("x"), decors2("x"), 1, false, 0.5), //
 
 	REDEFINES(decors1("<||"), decors2("||>"), 30, false, 2), //
@@ -204,7 +204,7 @@ public enum LinkDecor {
 			return new ExtremityFactoryArrowAndCircle(backgroundColor);
 		case NOT_NAVIGABLE:
 			return new ExtremityFactoryNotNavigable();
-		case AGREGATION:
+		case AGGREGATION:
 			return new ExtremityFactoryDiamond(false);
 		case COMPOSITION:
 			return new ExtremityFactoryDiamond(true);

@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.klimt.creole.command;
 
 import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public interface Command {
 
@@ -43,5 +44,5 @@ public interface Command {
 
 	public int matchingSize(String line);
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe);
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe);
 }

@@ -90,7 +90,8 @@ public class EntityImageClassHeader extends AbstractEntityImage {
 				.with(entity.getStereostyles()) //
 				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 
-		FontConfiguration fontConfigurationName = FontConfiguration.create(getSkinParam(), styleHeader, entity.getColors());
+		FontConfiguration fontConfigurationName = FontConfiguration.create(getSkinParam(), styleHeader,
+				entity.getColors());
 		if (italic)
 			fontConfigurationName = fontConfigurationName.italic();
 
@@ -108,7 +109,9 @@ public class EntityImageClassHeader extends AbstractEntityImage {
 			final HColor back = rose.getHtmlColor(getSkinParam(), modifier.getBackground());
 			final HColor fore = rose.getHtmlColor(getSkinParam(), modifier.getForeground());
 
-			final TextBlock uBlock = modifier.getUBlock(getSkinParam().classAttributeIconSize(), fore, back, false);
+			final TextBlock uBlock = TextBlockUtils.withMargin(
+					modifier.getUBlock(getSkinParam().classAttributeIconSize(), fore, back, false), 0, 0, 4, 0);
+
 			name = TextBlockUtils.mergeLR(uBlock, name, VerticalAlignment.CENTER);
 			name = TextBlockUtils.withMargin(name, 3, 3, 0, 0);
 		}
@@ -138,7 +141,8 @@ public class EntityImageClassHeader extends AbstractEntityImage {
 					HorizontalAlignment.CENTER, getSkinParam());
 			genericBlock = TextBlockUtils.withMargin(genericBlock, 1, 1);
 
-			final HColor classBackground = styleGeneric.value(PName.BackGroundColor).asColor(getSkinParam().getIHtmlColorSet());
+			final HColor classBackground = styleGeneric.value(PName.BackGroundColor)
+					.asColor(getSkinParam().getIHtmlColorSet());
 			final HColor classBorder = styleGeneric.value(PName.LineColor).asColor(getSkinParam().getIHtmlColorSet());
 
 			genericBlock = new TextBlockGeneric(genericBlock, classBackground, classBorder);

@@ -46,7 +46,6 @@ import net.sourceforge.plantuml.utils.BlocLines;
 import net.sourceforge.plantuml.utils.LineLocation;
 
 public class CommandMultilinesFooter extends CommandMultilines<TitledDiagram> {
-	// ::remove folder when __HAXE__
 
 	public static final CommandMultilinesFooter ME = new CommandMultilinesFooter();
 

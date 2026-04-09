@@ -69,6 +69,7 @@ import net.sourceforge.plantuml.url.UrlBuilder;
 import net.sourceforge.plantuml.url.UrlMode;
 import net.sourceforge.plantuml.utils.BlocLines;
 import net.sourceforge.plantuml.utils.LineLocation;
+import net.sourceforge.plantuml.warning.Warning;
 
 public final class FactorySequenceNoteOnArrowCommand implements SingleMultiFactoryCommand<SequenceDiagram> {
 
@@ -162,8 +163,8 @@ public final class FactorySequenceNoteOnArrowCommand implements SingleMultiFacto
 		}
 		note.setUrl(url);
 		note.setColors(colors);
-		event.addNote(note);
-		diagram.addWarning(event.addNote(note));
+		final Warning warning = event.addNote(note);
+		diagram.addWarning(warning);
 
 		return CommandExecutionResult.ok();
 	}

@@ -42,7 +42,7 @@ import net.sourceforge.plantuml.project.core.Task;
 public class SentenceIsDeleted extends SentenceSimple<GanttDiagram> {
 
 	public SentenceIsDeleted() {
-		super(SubjectTask.ME, Verbs.isDeleted, new ComplementEmpty());
+		super(SubjectTask.ME, Verbs.isDeleted.getRegex(), new ComplementEmpty());
 	}
 
 	@Override

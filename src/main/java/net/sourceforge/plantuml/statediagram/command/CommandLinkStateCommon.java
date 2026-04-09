@@ -101,7 +101,7 @@ abstract class CommandLinkStateCommon extends SingleLineCommand2<StateDiagram> {
 		if (dir == Direction.LEFT || dir == Direction.RIGHT)
 			queue = "-";
 
-		final int lenght = queue.length();
+		final int length = queue.length();
 
 		final boolean crossStart = arg.get("ARROW_CROSS_START", 0) != null;
 		final boolean circleEnd = arg.get("ARROW_CIRCLE_END", 0) != null;
@@ -117,11 +117,11 @@ abstract class CommandLinkStateCommon extends SingleLineCommand2<StateDiagram> {
 		// transition node
 		if (useNodeStyle && label != null && !Display.isNull(label) && !label.toString().trim().isEmpty()) {
 			// Create intermediate transition node for the label
-			return createTransitionWithIntermediateNode(diagram, location, cl1, cl2, label, linkType, lenght, dir, arg);
+			return createTransitionWithIntermediateNode(diagram, location, cl1, cl2, label, linkType, length, dir, arg);
 		} else {
 			// Original direct link behavior for unlabeled transitions or when node style is
 			// not requested
-			final LinkArg linkArg = LinkArg.build(label, lenght, diagram.getSkinParam().classAttributeIconSize() > 0);
+			final LinkArg linkArg = LinkArg.build(label, length, diagram.getSkinParam().classAttributeIconSize() > 0);
 			Link link = new Link(location, diagram, diagram.getSkinParam().getCurrentStyleBuilder(), cl1, cl2, linkType,
 					linkArg);
 			if (dir == Direction.LEFT || dir == Direction.UP)

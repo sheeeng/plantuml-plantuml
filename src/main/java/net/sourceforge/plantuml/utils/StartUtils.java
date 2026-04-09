@@ -49,8 +49,8 @@ public class StartUtils {
 	public static final String PAUSE_PATTERN = "((?:\\W|\\<[^<>]*\\>)*)[@\\\\]unpause";
 	public static final String START_PATTERN = "((?:[^\\w~]|\\<[^<>]*\\>)*)[@\\\\]start";
 
-	public static boolean isArobaseStartDiagram(String s) {
-		return !DiagramType.getTypesFromArobaseStart(s).contains(DiagramType.UNKNOWN);
+	public static boolean isStartDirective(String s) {
+		return DiagramType.findStartTypes(s).size() > 0;
 	}
 
 	public static String beforeStartUml(final String s) {
@@ -58,7 +58,7 @@ public class StartUtils {
 		boolean inside = false;
 
 		for (int i = 0; i < n; i++) {
-			if (startsWithSymbolAndAt(s, i, "start"))
+			if (startsWithDirectiveKeyword(s, i, "start"))
 				return s.substring(0, i);
 
 			final char c = s.charAt(i);
@@ -83,7 +83,7 @@ public class StartUtils {
 		return c == '~' || Character.isLetterOrDigit(c) || c == '_';
 	}
 
-	private static boolean startsWithSymbolAndAt(String text, int from, String keyword) {
+	private static boolean startsWithDirectiveKeyword(String text, int from, String keyword) {
 		final int n = text.length();
 		int i = from;
 
@@ -107,16 +107,16 @@ public class StartUtils {
 		return false;
 	}
 
-	public static boolean isArobaseEndDiagram(String s) {
-		return startsWithSymbolAndAt(s, 0, "end");
+	public static boolean isEndDirective(String s) {
+		return startsWithDirectiveKeyword(s, 0, "end");
 	}
 
-	public static boolean isArobasePauseDiagram(String s) {
-		return startsWithSymbolAndAt(s, 0, "pause");
+	public static boolean isPauseDirective(String s) {
+		return startsWithDirectiveKeyword(s, 0, "pause");
 	}
 
-	public static boolean isArobaseUnpauseDiagram(String s) {
-		return startsWithSymbolAndAt(s, 0, "unpause");
+	public static boolean isUnpauseDirective(String s) {
+		return startsWithDirectiveKeyword(s, 0, "unpause");
 	}
 
 	public static boolean isExit(CharSequence s) {

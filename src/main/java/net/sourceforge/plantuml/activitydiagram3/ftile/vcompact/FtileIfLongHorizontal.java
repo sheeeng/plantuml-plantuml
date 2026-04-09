@@ -654,12 +654,12 @@ class FtileIfLongHorizontal extends AbstractFtile {
 		return trCouple.compose(in);
 	}
 
-	private UTranslate getTranslateCouple1(Ftile candidat, StringBounder stringBounder) {
+	private UTranslate getTranslateCouple1(Ftile candidate, StringBounder stringBounder) {
 		double x1 = 0;
 
 		for (Ftile couple : couples) {
 			final FtileGeometry dim1 = couple.calculateDimension(stringBounder);
-			if (couple == candidat)
+			if (couple == candidate)
 				return new UTranslate(x1, 25);
 
 			x1 += dim1.getWidth() + xSeparation;

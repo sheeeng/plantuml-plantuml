@@ -142,6 +142,74 @@ class CliParsedTest {
 	}
 
 	@Test
+	void picowebDefaultPort() throws Exception {
+		final CliOptions option = CliParser.parse("-picoweb");
+		assertEquals(8080, option.getPicowebPort());
+		assertEquals(null, option.getPicowebBindAddress());
+		assertFalse(option.getPicowebEnableStop());
+	}
+
+	@Test
+	void picowebPortOnly() throws Exception {
+		final CliOptions option = CliParser.parse("-picoweb:9000");
+		assertEquals(9000, option.getPicowebPort());
+		assertEquals(null, option.getPicowebBindAddress());
+		assertFalse(option.getPicowebEnableStop());
+	}
+
+	@Test
+	void picowebPortAndAddress() throws Exception {
+		final CliOptions option = CliParser.parse("-picoweb:8080:127.0.0.1");
+		assertEquals(8080, option.getPicowebPort());
+		assertEquals("127.0.0.1", option.getPicowebBindAddress());
+		assertFalse(option.getPicowebEnableStop());
+	}
+
+	@Test
+	void picowebEnableStop() throws Exception {
+		final CliOptions option = CliParser.parse("-picoweb:8080:stop");
+		assertEquals(8080, option.getPicowebPort());
+		assertTrue(option.getPicowebEnableStop());
+	}
+
+	@Test
+	void httpServerDefaultPort() throws Exception {
+		final CliOptions option = CliParser.parse("--http-server");
+		assertEquals(8080, option.getPicowebPort());
+		assertEquals(null, option.getPicowebBindAddress());
+		assertFalse(option.getPicowebEnableStop());
+	}
+
+	@Test
+	void httpServerPortOnly() throws Exception {
+		final CliOptions option = CliParser.parse("--http-server:9000");
+		assertEquals(9000, option.getPicowebPort());
+		assertEquals(null, option.getPicowebBindAddress());
+	}
+
+	@Test
+	void httpServerPortAndAddress() throws Exception {
+		final CliOptions option = CliParser.parse("--http-server:8000:145.0.0.1");
+		assertEquals(8000, option.getPicowebPort());
+		assertEquals("145.0.0.1", option.getPicowebBindAddress());
+		assertFalse(option.getPicowebEnableStop());
+	}
+
+	@Test
+	void httpServerPortAndLocalhost() throws Exception {
+		final CliOptions option = CliParser.parse("--http-server:8080:127.0.0.1");
+		assertEquals(8080, option.getPicowebPort());
+		assertEquals("127.0.0.1", option.getPicowebBindAddress());
+	}
+
+	@Test
+	void httpServerEnableStop() throws Exception {
+		final CliOptions option = CliParser.parse("--http-server:8080:stop");
+		assertEquals(8080, option.getPicowebPort());
+		assertTrue(option.getPicowebEnableStop());
+	}
+
+	@Test
 	void png() throws CliParsingException {
 		final CliParsed parsed = CliParsed.parse("-png");
 		assertEquals("{T_PNG=[PNG]}", parsed.toString());

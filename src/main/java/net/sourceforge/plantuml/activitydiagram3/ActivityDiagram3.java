@@ -53,7 +53,6 @@ import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.compress.CompressionMode;
 import net.sourceforge.plantuml.klimt.compress.CompressionXorYBuilder;
 import net.sourceforge.plantuml.klimt.creole.Display;
-import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.sequencediagram.NotePosition;
@@ -197,18 +196,12 @@ public class ActivityDiagram3 extends TitledDiagram {
 
 	@Override
 	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
-		final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(getSkinParam());
-		return getTextBlock(stringBounder);
-	}
-
-	private TextBlock getTextBlock(final StringBounder stringBounder) {
-		swimlanes.computeSize(stringBounder);
 		TextBlock result = swimlanes;
 
 		// BUG42
 		// COMMENT TO DISABLE COMPRESS
-		result = CompressionXorYBuilder.build(CompressionMode.ON_X, result, stringBounder);
-		result = CompressionXorYBuilder.build(CompressionMode.ON_Y, result, stringBounder);
+		result = CompressionXorYBuilder.build(CompressionMode.ON_X, result);
+		result = CompressionXorYBuilder.build(CompressionMode.ON_Y, result);
 
 		result = new Recentred(result);
 		return result;

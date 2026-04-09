@@ -171,4 +171,9 @@ public class SaltDictionary implements SpriteContainer, ISkinSimple {
 		return pathSystem;
 	}
 
+	@Override
+	public String getFromMd5(String md5) {
+		return null;
+	}
+
 }

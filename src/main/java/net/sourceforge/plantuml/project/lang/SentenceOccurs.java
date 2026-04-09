@@ -45,7 +45,7 @@ import net.sourceforge.plantuml.project.core.TaskInstant;
 public class SentenceOccurs extends SentenceSimple<GanttDiagram> {
 
 	public SentenceOccurs() {
-		super(SubjectTask.ME, Verbs.occurs, new ComplementFromTo());
+		super(SubjectTask.ME, Verbs.occurs.getRegex(), new ComplementFromTo());
 	}
 
 	@Override

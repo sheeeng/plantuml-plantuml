@@ -35,6 +35,8 @@
  */
 package net.sourceforge.plantuml.command;
 
+import java.util.Collections;
+
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
@@ -63,9 +65,11 @@ public class CommandSpriteSvg extends SingleLineCommand2<TitledDiagram> {
 	}
 
 	@Override
-	protected CommandExecutionResult executeArg(TitledDiagram system, LineLocation location, RegexResult arg, ParserPass currentPass) {
+	protected CommandExecutionResult executeArg(TitledDiagram system, LineLocation location, RegexResult arg,
+			ParserPass currentPass) {
 		final String svg = arg.get("SVG", 0);
-		final ISvgSpriteParser parser = SvgSpriteParserFactory.create(svg, system.getPragma());
+		final ISvgSpriteParser parser = SvgSpriteParserFactory.create(Collections.singletonList(svg),
+				system.getPragma(), system.getMd5map());
 		system.addSprite(arg.get("NAME", 0), parser);
 
 		return CommandExecutionResult.ok();

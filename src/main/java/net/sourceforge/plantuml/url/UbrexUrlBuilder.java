@@ -211,6 +211,11 @@ public class UbrexUrlBuilder {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
+		public List<String> getRootKeys() {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 }

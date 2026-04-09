@@ -231,7 +231,6 @@ public class TextBlockExporter12026 {
 	// -----------------------------------------------------------------------
 
 	private UGraphic createUGraphic(XDimension2D dim, double scaleFactor) {
-		// ::comment when __TEAVM__
 		final ColorMapper colorMapper = fileFormatOption.getColorMapper();
 		final Pragma p = pragma != null ? pragma : Pragma.createEmpty();
 		switch (fileFormatOption.getFileFormat()) {
@@ -241,6 +240,7 @@ public class TextBlockExporter12026 {
 			return createUGraphicPNG(scaleFactor, dim, fileFormatOption.getWatermark(),
 					fileFormatOption.getFileFormat());
 		case SVG:
+		case SVG_FIXED:
 			return createUGraphicSVG(scaleFactor, dim, p);
 		case EPS:
 			return new UGraphicEps(backcolor, colorMapper, stringBounder, EpsStrategy.getDefault2());
@@ -251,26 +251,23 @@ public class TextBlockExporter12026 {
 		case VDX:
 			return new UGraphicVdx(backcolor, colorMapper, stringBounder);
 		case LATEX:
-			return new UGraphicTikz(backcolor, colorMapper, stringBounder, scaleFactor, true, p);
+		case LATEX_FIXED:
 		case LATEX_NO_PREAMBLE:
-			return new UGraphicTikz(backcolor, colorMapper, stringBounder, scaleFactor, false, p);
+			return new UGraphicTikz(backcolor, colorMapper, stringBounder, scaleFactor,
+					fileFormatOption.getFileFormat(), p);
 		case BRAILLE_PNG:
 			return new UGraphicBraille(backcolor, colorMapper, stringBounder);
 		case UTXT:
 		case ATXT:
-			return new UGraphicTxt();
+			return new UGraphicTxt(fileFormatOption.getFileFormat());
 		case DEBUG:
 			return new UGraphicDebug(scaleFactor, dim, getSvgLinkTarget(), getHoverPathColorRGB(), seed,
 					getPreserveAspectRatio());
 		default:
-			// ::done
 			throw new UnsupportedOperationException(fileFormatOption.getFileFormat().toString());
-		// ::comment when __TEAVM__
 		}
-		// ::done
 	}
 
-	// ::comment when __TEAVM__
 	private UGraphic createUGraphicSVG(double scaleFactor, XDimension2D dim, Pragma p) {
 		SvgOption option = SvgOption.basic().withPreserveAspectRatio(getPreserveAspectRatio());
 		option = option.withHoverPathColorRGB(getHoverPathColorRGB());
@@ -338,7 +335,6 @@ public class TextBlockExporter12026 {
 		}
 		return null;
 	}
-	// ::done
 
 	private String getSvgLinkTarget() {
 		if (fileFormatOption.getSvgLinkTarget() != null)

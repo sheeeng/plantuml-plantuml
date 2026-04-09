@@ -141,7 +141,8 @@ public class DriverTextTeaVM implements UDriver<UText, SvgGraphicsTeaVM> {
 			}
 		}
 
-		svg.drawText(shape.getText(), x, y, fontFamily, fontSize, fontWeight, fontStyle, textDecoration, backColor);
+		svg.drawText(shape.getText(), x, y, fontFamily, fontSize, fontWeight, fontStyle, textDecoration, backColor,
+				shape.getOrientation());
 
 		// Draw extra lines for colored underline/strike
 		final double width = SvgGraphicsTeaVM.getTextWidth(shape.getText(), fontFamily, fontSize);

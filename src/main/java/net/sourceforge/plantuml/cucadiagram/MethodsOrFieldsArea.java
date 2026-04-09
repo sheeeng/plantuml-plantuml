@@ -159,8 +159,8 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 		double x = 0;
 		double y = 0;
 		for (CharSequence cs : members) {
-			final TextBlock bloc = createTextBlock(cs);
-			final XDimension2D dim = bloc.calculateDimension(stringBounder);
+			final TextBlock block = createTextBlock(cs);
+			final XDimension2D dim = block.calculateDimension(stringBounder);
 			x = Math.max(dim.getWidth(), x);
 			y += dim.getHeight();
 			if (stringBounder.matchesProperty("TIKZ") && dim.getHeight() == 10) {
@@ -199,8 +199,8 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 		final Collection<String> shortNames = sortBySize(leaf.getPortShortNames());
 
 		for (CharSequence cs : members) {
-			final TextBlock bloc = createTextBlock(cs);
-			final XDimension2D dim = bloc.calculateDimension(stringBounder);
+			final TextBlock block = createTextBlock(cs);
+			final XDimension2D dim = block.calculateDimension(stringBounder);
 			final Elected elected = getElected(convert(cs), shortNames);
 			if (elected != null)
 				ports.add(elected.getShortName(), elected.getScore(), y, dim.getHeight());
@@ -252,10 +252,10 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 			if (m.isStatic())
 				config = config.underline();
 
-			TextBlock bloc = Display.getWithNewlines(skinParam.getPragma(), s).create8(config, align, skinParam,
+			TextBlock block = Display.getWithNewlines(skinParam.getPragma(), s).create8(config, align, skinParam,
 					CreoleMode.SIMPLE_LINE, style.wrapWidth());
-			bloc = fullInnerPosition(bloc, m);
-			return new TextBlockTracer(m, bloc);
+			block = fullInnerPosition(block, m);
+			return new TextBlockTracer(m, block);
 		}
 
 //		if (cs instanceof EmbeddedDiagram)
@@ -266,21 +266,21 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 
 	}
 
-	private static TextBlock fullInnerPosition(final TextBlock bloc, final Member display) {
+	private static TextBlock fullInnerPosition(final TextBlock block, final Member display) {
 		return new TextBlock() {
 
 			public void drawU(UGraphic ug) {
-				bloc.drawU(ug);
+				block.drawU(ug);
 			}
 
 			@Fast
 			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
-				return bloc.calculateDimension(stringBounder);
+				return block.calculateDimension(stringBounder);
 			}
 
 			public MinMax getMinMax(StringBounder stringBounder) {
-				return bloc.getMinMax(stringBounder);
+				return block.getMinMax(stringBounder);
 			}
 
 			@Override
@@ -294,11 +294,11 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 			}
 
 			public MagneticBorder getMagneticBorder() {
-				return bloc.getMagneticBorder();
+				return block.getMagneticBorder();
 			}
 
 			public HColor getBackcolor() {
-				return bloc.getBackcolor();
+				return block.getBackcolor();
 			}
 
 		};
@@ -306,11 +306,11 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 
 	static class TextBlockTracer implements TextBlock {
 
-		private final TextBlock bloc;
+		private final TextBlock block;
 		private final Url url;
 
-		public TextBlockTracer(Member m, TextBlock bloc) {
-			this.bloc = bloc;
+		public TextBlockTracer(Member m, TextBlock block) {
+			this.block = block;
 			this.url = m.getUrl();
 		}
 
@@ -318,7 +318,7 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 			if (url != null)
 				ug.startUrl(url);
 
-			bloc.drawU(ug);
+			block.drawU(ug);
 			if (url != null)
 				ug.closeUrl();
 
@@ -327,13 +327,13 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 		@Fast
 		@Override
 		public XDimension2D calculateDimension(StringBounder stringBounder) {
-			final XDimension2D dim = bloc.calculateDimension(stringBounder);
+			final XDimension2D dim = block.calculateDimension(stringBounder);
 			return dim;
 		}
 
 		@Override
 		public XRectangle2D getInnerPosition(CharSequence member, StringBounder stringBounder) {
-			return bloc.getInnerPosition(member, stringBounder);
+			return block.getInnerPosition(member, stringBounder);
 		}
 
 	}
@@ -391,7 +391,7 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 			group = new ULayoutGroup(
 					new PlacementStrategyVisibility(stringBounder, skinParam.getCircledCharacterRadius() + 3));
 			for (CharSequence cs : members) {
-				final TextBlock bloc = createTextBlock(cs);
+				final TextBlock block = createTextBlock(cs);
 //				if (cs instanceof EmbeddedDiagram) {
 //					group.add(getUBlock(null, null));
 //				} else {
@@ -399,7 +399,7 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 				final VisibilityModifier modifier = att.getVisibilityModifier();
 				group.add(getUBlock(modifier, att.getUrl()));
 //				}
-				group.add(bloc);
+				group.add(block);
 			}
 		} else {
 			final PlacementStrategy placementStrategy;
@@ -412,8 +412,8 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 
 			group = new ULayoutGroup(placementStrategy);
 			for (CharSequence cs : members) {
-				final TextBlock bloc = createTextBlock(cs);
-				group.add(bloc);
+				final TextBlock block = createTextBlock(cs);
+				group.add(block);
 			}
 		}
 		return group;

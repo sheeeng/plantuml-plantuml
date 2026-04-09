@@ -77,8 +77,8 @@ public class CommandLinkElement extends SingleLineCommand2<DescriptionDiagram> {
 	public static final String UBREX_LINE_STYLE = "【 #〇+〴w ┇" + CommandLinkElement.UBREX_KEY1 + "】 〇*【 ,#〇+〴w ┇"
 			+ CommandLinkElement.UBREX_KEY2 + "】";
 
-	private static final String LINE_STYLE_MUTILPLES = LINE_STYLE + "(?:(?:;" + LINE_STYLE + ")*)";
-	public static final String STYLE_COLORS_MULTIPLES = "-\\[(" + LINE_STYLE_MUTILPLES + "*)\\]->";
+	private static final String LINE_STYLE_MULTIPLES = LINE_STYLE + "(?:(?:;" + LINE_STYLE + ")*)";
+	public static final String STYLE_COLORS_MULTIPLES = "-\\[(" + LINE_STYLE_MULTIPLES + "*)\\]->";
 
 	public CommandLinkElement() {
 		super(getRegexConcat());
@@ -96,7 +96,7 @@ public class CommandLinkElement extends SingleLineCommand2<DescriptionDiagram> {
 
 				new RegexLeaf(1, "HEAD1", LinkDecor.getRegexDecors1()), //
 				new RegexLeaf(1, "BODY1", "([-=.~]+)"), //
-				new RegexLeaf(1, "ARROW_STYLE1", "(?:\\[(" + LINE_STYLE_MUTILPLES + ")\\])?"), //
+				new RegexLeaf(1, "ARROW_STYLE1", "(?:\\[(" + LINE_STYLE_MULTIPLES + ")\\])?"), //
 				new RegexOptional(
 						new RegexLeaf(1, "DIRECTION", "(left|right|up|down|le?|ri?|up?|do?)(?=[-=.~0()\\[])")), //
 				new RegexOptional(new RegexLeaf(1, "INSIDE", "(0|\\(0\\)|\\(0|0\\))(?=[-=.~])")), //

@@ -81,8 +81,6 @@ import net.sourceforge.plantuml.version.Version;
 
 public abstract class PSystemError extends UgDiagram {
 
-	// Dodgy kludge for testing - we will need a different approach if we want to
-	// test addMessageDedication() etc.
 	private static boolean disableTimeBasedErrorDecorations = false;
 
 	public static void disableTimeBasedErrorDecorations() {
@@ -148,7 +146,7 @@ public abstract class PSystemError extends UgDiagram {
 
 	private List<String> header() {
 		final ReportLog result = new ReportLog();
-		result.add("PlantUML " + Version.versionString());
+		result.add(Version.fullDescription());
 		result.checkOldVersionWarningRaw();
 		return result.asList();
 	}

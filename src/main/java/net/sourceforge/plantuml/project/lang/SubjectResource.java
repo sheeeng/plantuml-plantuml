@@ -86,7 +86,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class WorksOn extends SentenceSimple<GanttDiagram> {
 
 		public WorksOn() {
-			super(SubjectResource.this, Verbs.worksOn, new ComplementTask());
+			super(SubjectResource.this, Verbs.worksOn.getRegex(), new ComplementTask());
 		}
 
 		@Override
@@ -102,7 +102,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOffBeforeDate extends SentenceSimple<GanttDiagram> {
 
 		public IsOffBeforeDate() {
-			super(SubjectResource.this, Verbs.isOff,
+			super(SubjectResource.this, Verbs.isOff.getRegex(),
 					Words.concat(Words.exactly(Words.BEFORE), Words.zeroOrMore(Words.THE)), ComplementDate.any());
 		}
 
@@ -119,7 +119,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOffAfterDate extends SentenceSimple<GanttDiagram> {
 
 		public IsOffAfterDate() {
-			super(SubjectResource.this, Verbs.isOff,
+			super(SubjectResource.this, Verbs.isOff.getRegex(),
 					Words.concat(Words.exactly(Words.AFTER), Words.zeroOrMore(Words.THE)), ComplementDate.any());
 		}
 
@@ -136,7 +136,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOffDate extends SentenceSimple<GanttDiagram> {
 
 		public IsOffDate() {
-			super(SubjectResource.this, Verbs.isOff,
+			super(SubjectResource.this, Verbs.isOff.getRegex(),
 					Words.zeroOrMore(Words.FROM, Words.ON, Words.FOR, Words.THE, Words.AT), ComplementDate.any());
 		}
 
@@ -153,7 +153,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOffDates extends SentenceSimple<GanttDiagram> {
 
 		public IsOffDates() {
-			super(SubjectResource.this, Verbs.isOff,
+			super(SubjectResource.this, Verbs.isOff.getRegex(),
 					Words.zeroOrMore(Words.FROM, Words.ON, Words.FOR, Words.THE, Words.AT), new ComplementIntervals());
 		}
 
@@ -171,7 +171,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOffDayOfWeek extends SentenceSimple<GanttDiagram> {
 
 		public IsOffDayOfWeek() {
-			super(SubjectResource.this, Verbs.isOff,
+			super(SubjectResource.this, Verbs.isOff.getRegex(),
 					Words.zeroOrMore(Words.FROM, Words.ON, Words.FOR, Words.THE, Words.AT), new ComplementDayOfWeek());
 		}
 
@@ -187,7 +187,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOnDate extends SentenceSimple<GanttDiagram> {
 
 		public IsOnDate() {
-			super(SubjectResource.this, Verbs.isOn,
+			super(SubjectResource.this, Verbs.isOn.getRegex(),
 					Words.zeroOrMore(Words.FROM, Words.ON, Words.FOR, Words.THE, Words.AT), ComplementDate.any());
 		}
 
@@ -204,7 +204,7 @@ public class SubjectResource implements Subject<GanttDiagram> {
 	public class IsOnDates extends SentenceSimple<GanttDiagram> {
 
 		public IsOnDates() {
-			super(SubjectResource.this, Verbs.isOn,
+			super(SubjectResource.this, Verbs.isOn.getRegex(),
 					Words.zeroOrMore(Words.FROM, Words.ON, Words.FOR, Words.THE, Words.AT), new ComplementIntervals());
 		}
 

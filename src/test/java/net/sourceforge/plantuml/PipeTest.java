@@ -114,7 +114,7 @@ class PipeTest {
 				false));
 
 		// if format is set in first diagram and not in the second, it will be used in
-		// both (Possibly incorrect: preseved from old behaviour)
+		// both (Possibly incorrect: preseved from old behavior)
 		l.add(TestCase.of("", "@startuml\n@@@format svg\na->b\n@enduml\n@startuml\na->b\n@enduml",
 				"(?s).*(<svg.*</svg>.*){2}", Verification.REGEX, false, false));
 

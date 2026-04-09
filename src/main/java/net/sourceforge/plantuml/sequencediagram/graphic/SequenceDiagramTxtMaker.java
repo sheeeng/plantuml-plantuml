@@ -59,23 +59,24 @@ import net.sourceforge.plantuml.sequencediagram.Participant;
 import net.sourceforge.plantuml.sequencediagram.SequenceDiagram;
 
 public class SequenceDiagramTxtMaker implements FileMaker {
-	
 
 	private final SequenceDiagram diagram;
 	private final DrawableSet drawableSet;
 	private final XDimension2D fullDimension;
-	private final StringBounder dummyStringBounder = new TextStringBounder();
-	private final UGraphicTxt ug = new UGraphicTxt();
+	private final StringBounder dummyStringBounder;
+	private final UGraphicTxt ug;
 	private final FileFormat fileFormat;
 	private final TextSkin skin;
 
 	public SequenceDiagramTxtMaker(SequenceDiagram sequenceDiagram, FileFormat fileFormat) {
 		this.fileFormat = fileFormat;
+		this.ug = new UGraphicTxt(fileFormat);
 		this.diagram = sequenceDiagram;
+		this.dummyStringBounder = new TextStringBounder(fileFormat);
 		this.skin = new TextSkin(fileFormat);
 
 		final DrawableSetInitializer initializer = new DrawableSetInitializer(skin, sequenceDiagram.getSkinParam(),
-				sequenceDiagram.isShowFootbox(), /*sequenceDiagram.getAutonewpage(),*/ sequenceDiagram.getCounter());
+				sequenceDiagram.isShowFootbox(), /* sequenceDiagram.getAutonewpage(), */ sequenceDiagram.getCounter());
 
 		for (Participant p : sequenceDiagram.participants()) {
 			initializer.addParticipant(p, null);

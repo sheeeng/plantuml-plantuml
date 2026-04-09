@@ -64,7 +64,7 @@ public class OptionPrint {
 		else {
 			final Properties p = System.getProperties();
 			final List<String> all;
-			if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE) {
+			if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE) {
 				all = Arrays.asList("java.runtime.name", "Java Runtime", "java.vm.name", "JVM", "java.runtime.version",
 						"Java Version", "os.name", "Operating System", "os.version", "OS Version", "file.encoding",
 						"Default Encoding", "user.language", "Language", "user.country", "Country");
@@ -85,7 +85,7 @@ public class OptionPrint {
 		if (!TeaVM.isTeaVM()) {
 			strings.add(" ");
 			strings.add("PLANTUML_LIMIT_SIZE: " + GraphvizUtils.getenvImageLimit());
-			if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE) {
+			if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE) {
 				strings.add("Processors: " + Runtime.getRuntime().availableProcessors());
 				final long freeMemory = Runtime.getRuntime().freeMemory();
 				final long maxMemory = Runtime.getRuntime().maxMemory();

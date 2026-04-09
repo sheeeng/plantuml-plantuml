@@ -45,7 +45,7 @@ import net.sourceforge.plantuml.project.time.TimePoint;
 public class SentenceTaskStartsOnlyRelative extends SentenceSimple<GanttDiagram> {
 
 	public SentenceTaskStartsOnlyRelative() {
-		super(SubjectTask.ME, Verbs.starts, Words.zeroOrMore(Words.THE, Words.ON, Words.AT),
+		super(SubjectTask.ME, Verbs.starts.getRegex(), Words.zeroOrMore(Words.THE, Words.ON, Words.AT),
 				ComplementDate.onlyRelative());
 	}
 

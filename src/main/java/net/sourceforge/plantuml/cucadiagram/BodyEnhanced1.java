@@ -151,11 +151,11 @@ public class BodyEnhanced1 extends BodyEnhancedAbstract implements TextBlock, Wi
 				display = null;
 				final List<CharSequence> allTree = buildTreeOrTable(s, it);
 				final FontConfiguration fontConfiguration = style.getFontConfiguration(skinParam.getIHtmlColorSet());
-				TextBlock bloc = Display.create(allTree).create7(fontConfiguration, align, skinParam, CreoleMode.FULL);
+				TextBlock block = Display.create(allTree).create7(fontConfiguration, align, skinParam, CreoleMode.FULL);
 				if (isTable)
-					bloc = TextBlockUtils.withMargin(bloc, 10, 10, 0, 5);
+					block = TextBlockUtils.withMargin(block, 10, 10, 0, 5);
 
-				blocks.add(bloc);
+				blocks.add(block);
 			} else {
 				if (display == null)
 					display = Display.empty();

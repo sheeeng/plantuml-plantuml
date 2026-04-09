@@ -65,6 +65,7 @@ import net.sourceforge.plantuml.project.command.CommandSeparator;
 import net.sourceforge.plantuml.project.command.CommandTaskCompleteDefault;
 import net.sourceforge.plantuml.project.command.CommandWeekNumberStrategy;
 import net.sourceforge.plantuml.project.command.NaturalCommand;
+import net.sourceforge.plantuml.project.command.NaturalCommandUbrex;
 import net.sourceforge.plantuml.project.lang.SentenceAnd;
 import net.sourceforge.plantuml.project.lang.SentenceAndAnd;
 import net.sourceforge.plantuml.project.lang.SentenceSimple;
@@ -77,10 +78,15 @@ import net.sourceforge.plantuml.project.lang.SubjectResource;
 import net.sourceforge.plantuml.project.lang.SubjectSeparator;
 import net.sourceforge.plantuml.project.lang.SubjectTask;
 import net.sourceforge.plantuml.project.lang.SubjectToday;
+import net.sourceforge.plantuml.project.ulang.UbrexGantt;
+import net.sourceforge.plantuml.project.ulang.UbrexSentence;
 import net.sourceforge.plantuml.style.CommandStyleImport;
 import net.sourceforge.plantuml.style.CommandStyleMultilinesCSS;
+import net.sourceforge.plantuml.teavm.TeaVM;
 
 public class GanttDiagramFactory extends PSystemCommandFactory {
+	
+	private final static boolean FORCE_UBREX = false;
 
 	static private final List<Subject<GanttDiagram>> subjects() {
 		return Arrays.asList(SubjectTask.ME, SubjectProject.ME, SubjectDayOfWeek.ME, SubjectDayAsDate.ME,
@@ -125,30 +131,37 @@ public class GanttDiagramFactory extends PSystemCommandFactory {
 	}
 
 	private void addLanguageCommands(List<Command> cmd) {
-		for (Subject<GanttDiagram> subject : subjects())
-			for (SentenceSimple<GanttDiagram> sentenceA : subject.getSentences()) {
-				cmd.add(NaturalCommand.create(sentenceA));
-				for (SentenceSimple<GanttDiagram> sentenceB : subject.getSentences()) {
-					final String signatureA = sentenceA.getSignature();
-					final String signatureB = sentenceB.getSignature();
-					if (signatureA.equals(signatureB) == false)
-						cmd.add(NaturalCommand.create(new SentenceAnd<GanttDiagram>(sentenceA, sentenceB)));
 
-				}
+		if (FORCE_UBREX || TeaVM.isTeaVM()) {
+			for (UbrexSentence<GanttDiagram> sentence : UbrexGantt.getSentences()) {
+				cmd.add(NaturalCommandUbrex.create(sentence));
 			}
-
-		for (Subject<GanttDiagram> subject : subjects())
-			for (SentenceSimple<GanttDiagram> sentenceA : subject.getSentences())
-				for (SentenceSimple<GanttDiagram> sentenceB : subject.getSentences())
-					for (SentenceSimple<GanttDiagram> sentenceC : subject.getSentences()) {
+		} else {
+			for (Subject<GanttDiagram> subject : subjects())
+				for (SentenceSimple<GanttDiagram> sentenceA : subject.getSentences()) {
+					cmd.add(NaturalCommand.create(sentenceA));
+					for (SentenceSimple<GanttDiagram> sentenceB : subject.getSentences()) {
 						final String signatureA = sentenceA.getSignature();
 						final String signatureB = sentenceB.getSignature();
-						final String signatureC = sentenceC.getSignature();
-						if (signatureA.equals(signatureB) == false && signatureA.equals(signatureC) == false
-								&& signatureC.equals(signatureB) == false)
-							cmd.add(NaturalCommand
-									.create(new SentenceAndAnd<GanttDiagram>(sentenceA, sentenceB, sentenceC)));
+						if (signatureA.equals(signatureB) == false)
+							cmd.add(NaturalCommand.create(new SentenceAnd<GanttDiagram>(sentenceA, sentenceB)));
+
 					}
+				}
+
+			for (Subject<GanttDiagram> subject : subjects())
+				for (SentenceSimple<GanttDiagram> sentenceA : subject.getSentences())
+					for (SentenceSimple<GanttDiagram> sentenceB : subject.getSentences())
+						for (SentenceSimple<GanttDiagram> sentenceC : subject.getSentences()) {
+							final String signatureA = sentenceA.getSignature();
+							final String signatureB = sentenceB.getSignature();
+							final String signatureC = sentenceC.getSignature();
+							if (signatureA.equals(signatureB) == false && signatureA.equals(signatureC) == false
+									&& signatureC.equals(signatureB) == false)
+								cmd.add(NaturalCommand
+										.create(new SentenceAndAnd<GanttDiagram>(sentenceA, sentenceB, sentenceC)));
+						}
+		}
 	}
 
 	@Override

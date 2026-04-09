@@ -39,8 +39,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 
 import net.sourceforge.plantuml.klimt.UTranslate;
-import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.project.data.DayCalendarData;
@@ -144,6 +144,7 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 	}
 
 	private void drawTextsDayOfWeek(UGraphic ug) {
+
 		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) <= 0; day = day.plusDays(1)) {
 			final TimePoint wink = TimePoint.ofStartOfDay(day);
 
@@ -151,10 +152,9 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 				continue;
 			final double x1 = getTimeScale().getPosition(wink);
 			final double x2 = getTimeScale().getPosition(wink.increment());
-			final HColor textColor = getTextBackColor(wink);
-			printCentered(ug,
-					getTextBlock(SName.day, DayOfWeekUtils.shortName(wink.toDayOfWeek(), locale()), false, textColor),
-					x1, x2);
+			final FontConfiguration fc = getFc(wink);
+
+			printCentered(ug, getTextBlockSLOW(DayOfWeekUtils.shortName(wink.toDayOfWeek(), locale()), fc), x1, x2);
 		}
 	}
 
@@ -166,8 +166,10 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 				continue;
 			final double x1 = getTimeScale().getPosition(wink);
 			final double x2 = getTimeScale().getPosition(wink.increment());
-			final HColor textColor = getTextBackColor(wink);
-			printCentered(ug, getTextBlock(SName.day, "" + wink.getDayOfMonth(), false, textColor), x1, x2);
+			final FontConfiguration fc = getFc(wink);
+
+			final TextBlock tmp = getTextBlockSLOW("" + wink.getDayOfMonth(), fc);
+			printCentered(ug, tmp, x1, x2);
 		}
 	}
 
@@ -177,14 +179,25 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 		return false;
 	}
 
-	private HColor getTextBackColor(TimePoint wink) {
-		if (getLoadAt(wink) <= 0)
-			return closedFontColor();
+	private FontConfiguration fc1;
+	private FontConfiguration fc2;
 
-		return openFontColor();
+	private FontConfiguration getFc(TimePoint wink) {
+		if (getLoadAt(wink) <= 0) {
+			if (fc1 == null)
+				fc1 = getFontConfigurationSLOW(SName.day, false, closedFontColor());
+			return fc1;
+		}
+
+		if (fc2 == null)
+			fc2 = getFontConfigurationSLOW(SName.day, false, openFontColor());
+		return fc2;
 	}
 
 	private void drawMonths(final UGraphic ug) {
+
+		final FontConfiguration fc = getFontConfigurationSLOW(SName.month, true, openFontColor());
+
 		YearMonth last = null;
 		double lastChangeMonth = -1;
 		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) <= 0; day = day.plusDays(1)) {
@@ -194,7 +207,7 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 			final double x1 = getTimeScale().getPosition(wink);
 			if (wink.monthYear().equals(last) == false) {
 				if (last != null)
-					printMonth(ug, last, lastChangeMonth, x1);
+					printMonth(ug, last, lastChangeMonth, x1, fc);
 
 				lastChangeMonth = x1;
 				last = wink.monthYear();
@@ -202,17 +215,14 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 		}
 		final double x1 = getTimeScale().getPosition(TimePoint.ofStartOfDay(getMaxDay().plusDays(1)));
 		if (x1 > lastChangeMonth)
-			printMonth(ug, last, lastChangeMonth, x1);
+			printMonth(ug, last, lastChangeMonth, x1, fc);
 
 	}
 
-	private void printMonth(UGraphic ug, YearMonth monthYear, double start, double end) {
-		final TextBlock tiny = getTextBlock(SName.month, YearMonthUtils.shortName(monthYear, locale()), true,
-				openFontColor());
-		final TextBlock small = getTextBlock(SName.month, YearMonthUtils.longName(monthYear, locale()), true,
-				openFontColor());
-		final TextBlock big = getTextBlock(SName.month, YearMonthUtils.longNameYYYY(monthYear, locale()), true,
-				openFontColor());
+	private void printMonth(UGraphic ug, YearMonth monthYear, double start, double end, FontConfiguration fc) {
+		final TextBlock tiny = getTextBlockSLOW(YearMonthUtils.shortName(monthYear, locale()), fc);
+		final TextBlock small = getTextBlockSLOW(YearMonthUtils.longName(monthYear, locale()), fc);
+		final TextBlock big = getTextBlockSLOW(YearMonthUtils.longNameYYYY(monthYear, locale()), fc);
 		printCentered(ug, false, start, end, tiny, small, big);
 	}
 

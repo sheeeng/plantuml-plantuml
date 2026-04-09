@@ -41,6 +41,7 @@ import java.util.Locale;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.project.data.DayCalendarData;
 import net.sourceforge.plantuml.project.data.TimeBoundsData;
@@ -117,17 +118,17 @@ abstract class TimeHeaderCalendar extends TimeHeader {
 			pending.draw(ug, height);
 
 	}
-	
-	
+
 	protected final void printNamedDays(final UGraphic ug) {
 		if (dayCalendar.getNameDays().size() > 0) {
 			String last = null;
+			final FontConfiguration fc = getFontConfigurationSLOW(SName.month, false, openFontColor());
 			for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) <= 0; day = day.plusDays(1)) {
 				final TimePoint wink = TimePoint.ofStartOfDay(day);
 				final String name = dayCalendar.getDayName(wink);
 				if (name != null && name.equals(last) == false) {
 					final double x1 = getTimeScale().getPosition(wink);
-					final TextBlock label = getTextBlock(SName.month, name, false, openFontColor());
+					final TextBlock label = getTextBlockSLOW(name, fc);
 
 					final double position = getTimeHeaderHeight(ug.getStringBounder());
 					label.drawU(ug.apply(new UTranslate(x1, position)));
@@ -136,7 +137,5 @@ abstract class TimeHeaderCalendar extends TimeHeader {
 			}
 		}
 	}
-
-
 
 }

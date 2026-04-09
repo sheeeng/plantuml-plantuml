@@ -35,23 +35,24 @@
  */
 package net.sourceforge.plantuml.nio;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.sourceforge.plantuml.preproc.Stdlib;
 import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.security.SURL;
-import net.sourceforge.plantuml.teavm.TeaVM;
-import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
-
 
 //::comment when JAVA8
 import org.teavm.jso.JSObject;
+import net.sourceforge.plantuml.teavm.TeaVM;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
+import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
 //::done
-
-
 
 // Replacement for FileSystem
 //See ImportedFiles
@@ -61,8 +62,10 @@ import org.teavm.jso.JSObject;
 public class PathSystem {
 
 	public static PathSystem fetch() {
+		// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
 		if (TeaVM.isTeaVM())
 			return new PathSystem(null);
+		// ::done
 		return new PathSystem(new NFolderRegular(Paths.get("")));
 	}
 
@@ -70,16 +73,44 @@ public class PathSystem {
 		// ::revert when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
 		// return null;
 		final String full = path.substring(1, path.length() - 1).toLowerCase();
-		final String libname = full.substring(0, full.indexOf('/'));
+		String libname = full.substring(0, full.indexOf('/'));
 		final String filepath = full.substring(libname.length() + 1);
 		TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
-		JSObject data = TeaVmScriptLoader.getRaw(libname, filepath);
+
+		final Map<String, String> infos = getInfo(libname);
+		final String link = infos.get("link");
+
+		if (link != null) {
+			libname = link;
+			BrowserLog.consoleLog(getClass(), "Following link to " + libname);
+			TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
+		}
+
+		final JSObject data = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB(libname, filepath);
 		if (data == null)
 			return null;
-		String content = TeaVmScriptLoader.joinLines(data);
-		return new java.io.ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		final String content = TeaVmScriptLoader.joinLines(data);
+		return new ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 		// ::done
 	}
+
+	// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
+	private Map<String, String> getInfo(final String libname) {
+		final JSObject info = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB_INFO(libname);
+		final Map<String, String> map = new HashMap<>();
+		if (info != null) {
+			final String keys = TeaVmScriptLoader.getObjectKeys(info);
+			for (String key : keys.split(",")) {
+				final String value = TeaVmScriptLoader.getStringProperty(info, key);
+				BrowserLog.consoleLog(getClass(), "info[" + libname + "] " + key + " = " + value);
+				map.put(key, value);
+			}
+		} else {
+			BrowserLog.consoleLog(getClass(), "No info found for " + libname);
+		}
+		return map;
+	}
+	// ::done
 
 	private final NFolder currentFolder;
 
@@ -87,35 +118,37 @@ public class PathSystem {
 		this.currentFolder = currentFolder;
 	}
 
-	public PathSystem changeCurrentDirectory(Path newCurrentDir) throws IOException {
-		if (TeaVM.isTeaVM())
-			return this;
-		
-		if (newCurrentDir == null)
-			return this;
-		final NFolder folder = currentFolder.getSubfolder(newCurrentDir);
-		return new PathSystem(folder);
-	}
-
 	public PathSystem changeCurrentDirectory(NFolder newCurrentDir) {
+		// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
 		if (TeaVM.isTeaVM())
 			return this;
-		
+		// ::done
+
 		return new PathSystem(newCurrentDir);
 	}
 
 	public PathSystem changeCurrentDirectory(SFile newCurrentDir) throws IOException {
+		// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
 		if (TeaVM.isTeaVM())
 			return this;
-		
+		// ::done
+
 		if (newCurrentDir == null)
 			return this;
-		return changeCurrentDirectory(newCurrentDir.toPath());
+
+		final Path path = newCurrentDir.toPath();
+		if (path == null)
+			return this;
+
+		final NFolder folder = currentFolder.getSubfolder(path);
+		return new PathSystem(folder);
 	}
 
 	public PathSystem withCurrentDir(NFolder parentFile) {
+		// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__ JAVA8
 		if (TeaVM.isTeaVM())
 			return this;
+		// ::done
 
 		return new PathSystem(parentFile);
 	}

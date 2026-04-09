@@ -38,6 +38,7 @@ import java.util.List;
 
 	
 public interface UMatcher {
+	
 	public boolean startMatch();
 
 	public boolean exactMatch();
@@ -47,6 +48,8 @@ public interface UMatcher {
 	public List<String> getCapture(String path);
 	
 	public List<String> getKeysToBeRefactored();
+	
+	public List<String> getRootKeys();
 	
 
 }

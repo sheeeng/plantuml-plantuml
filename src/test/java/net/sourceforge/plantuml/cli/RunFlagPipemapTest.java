@@ -33,7 +33,8 @@ class RunFlagPipemapTest extends AbstractCliTest {
 			Run.main(new String[] { "-pipemap" });
 		});
 
-		assertFalse(out.capturedString().contains("<map id=\"plantuml_map\" name=\"plantuml_map\">"));
+		assertFalse(out.capturedString().contains("<map id=\"plantuml_map\" name=\"plantuml_map\">"),
+				out.capturedString());
 
 	}
 

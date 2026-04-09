@@ -36,9 +36,15 @@
 package net.sourceforge.plantuml.project.lang;
 
 import java.util.Collection;
+import java.util.Collections;
+
+import com.plantuml.ubrex.UMatcher;
+import com.plantuml.ubrex.builder.UBrexPart;
 
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.project.Failable;
+import net.sourceforge.plantuml.project.GanttDiagram;
+import net.sourceforge.plantuml.project.ulang.UbrexSentence;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexResult;
 
@@ -49,5 +55,18 @@ public interface Subject<D extends Diagram> {
 	public IRegex toRegex();
 
 	public Failable<? extends Object> getMe(D project, RegexResult arg);
+
+	default public UBrexPart toUnicodeBracketedExpressionSubject() {
+		return null;
+	}
+	
+	default public Failable<? extends Object> ugetMe(D diagram, UMatcher arg) {
+		throw new IllegalArgumentException("wip8547 " + getClass());
+	}
+
+
+	default public Collection<UbrexSentence<GanttDiagram>> getUSentences() {
+		return Collections.emptyList();
+	}
 
 }

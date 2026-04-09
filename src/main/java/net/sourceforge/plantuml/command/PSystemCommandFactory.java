@@ -50,6 +50,7 @@ import net.sourceforge.plantuml.error.PSystemError;
 import net.sourceforge.plantuml.error.PSystemErrorUtils;
 import net.sourceforge.plantuml.nio.PathSystem;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.utils.BlocLines;
@@ -78,7 +79,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 
 		IteratorCounter2 it = source.iterator2();
 		final StringLocated startLine = it.next();
-		if (StartUtils.isArobaseStartDiagram(startLine.getString()) == false)
+		if (StartUtils.isStartDirective(startLine.getString()) == false)
 			throw new UnsupportedOperationException();
 
 		if (source.isEmpty()) {
@@ -94,7 +95,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 		for (ParserPass pass : requiredPass) {
 			sys.startingPass(pass);
 			while (it.hasNext()) {
-				if (StartUtils.isArobaseEndDiagram(it.peek().getString())) {
+				if (StartUtils.isEndDirective(it.peek().getString())) {
 					it = source.iterator2();
 					it.next();
 					// For next pass
@@ -149,7 +150,8 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 			final LineLocation location = ((StringLocated) step.blocLines.getFirst()).getLocation();
 			final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR, result.getError(), result.getScore(),
 					location, getDiagramType());
-			sys = PSystemErrorUtils.buildV2(source, err, result.getDebugLines(), it.getTrace(), preprocessing);
+			sys = PSystemErrorUtils.buildV2(source, err, result.getDebugLines(), it.getTrace(), preprocessing,
+					result.getRootCause());
 		}
 		if (result.getNewDiagram() != null)
 			sys = result.getNewDiagram();
@@ -177,7 +179,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 		}
 
 		for (Command cmd : cmds) {
-			final CommandControl result = cmd.isValid(single);
+			final CommandControl result = safeIsValid(cmd, single);
 			if (result == CommandControl.OK) {
 				it.next();
 				return new Step(cmd, single);
@@ -193,6 +195,25 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Safely evaluates a command against input lines. In TeaVM (browser JS),
+	 * complex regex patterns on long lines (e.g. base64-encoded images) can cause a
+	 * stack overflow in the transpiled regex engine. This method catches such
+	 * errors and treats them as NOT_OK, allowing parsing to continue with the next
+	 * command.
+	 */
+	private static CommandControl safeIsValid(Command cmd, BlocLines single) {
+		try {
+			return cmd.isValid(single);
+		} catch (Exception e) {
+			if (TeaVM.isTeaVM()) {
+				BrowserLog.consoleLog(cmd.getClass(), "Big exception " + e);
+				return CommandControl.NOT_OK;
+			}
+			throw e;
+		}
 	}
 
 	private BlocLines isMultilineCommandOk(IteratorCounter2 it, Command cmd) {

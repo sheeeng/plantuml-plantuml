@@ -41,7 +41,7 @@ public enum Arity {
 	/** Option without any value, e.g. -verbose */
 	UNARY_BOOLEAN,
 
-	/** Option without any value that break the usual behaviour, e.g. -help, -testdot */
+	/** Option without any value that break the usual behavior, e.g. -help, -testdot */
 	UNARY_IMMEDIATE_ACTION,
 
 	/** Option with a key and an optional value, e.g. -ftp or -ftp:8080*/

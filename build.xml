@@ -131,7 +131,10 @@
 
         <!-- Create JAR with required attributes in the manifest -->
         <jar jarfile="plantuml.jar" basedir="build">
-            <manifest>
+            <exclude name="filtered-src/**" />
+            <exclude name="sjpp-out/**" />
+            <exclude name="teavm/**" />
+             <manifest>
                 <attribute name="Automatic-Module-Name" value="net.sourceforge.plantuml" />
                 <attribute name="Main-Class" value="net.sourceforge.plantuml.Run" />
             </manifest>

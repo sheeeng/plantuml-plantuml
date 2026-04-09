@@ -9,8 +9,10 @@ import org.teavm.jso.dom.xml.Element;
 
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.Scale;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.UgDiagram;
+import net.sourceforge.plantuml.core.AbstractDiagram;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramChromeFactory12026;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
@@ -19,6 +21,7 @@ import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.drawing.hand.UGraphicHandwritten;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
+import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.teavm.PSystemBuilder2;
 import net.sourceforge.plantuml.teavm.StringBounderTeaVM;
@@ -136,9 +139,9 @@ public class PlantUMLBrowser {
 	// =========================================================================
 
 	private static final StringBounder STRING_BOUNDER = new StringBounderTeaVM();
-	private static final ColorMapper COLOR_MAPPER = ColorMapper.TEAVM;
-	private static final HColor BACK = HColors.WHITE;
-	private static final PSystemBuilder2 BUILDER = new PSystemBuilder2();
+
+	/** Maximum width or height (in pixels) before refusing to render. */
+	private static final int MAX_SVG_SIZE = 4096;
 
 	// =========================================================================
 	// Worker thread synchronization
@@ -157,8 +160,26 @@ public class PlantUMLBrowser {
 	 */
 	private static volatile String[] pendingLines;
 
-	/** The DOM element ID where the SVG should be inserted. */
+	/**
+	 * The DOM element ID where the SVG should be inserted, or null for
+	 * renderToString requests.
+	 */
 	private static volatile String pendingElementId;
+
+	/**
+	 * Success callback for renderToString requests, or null for render-to-div
+	 * requests.
+	 */
+	private static volatile StringCallback pendingOnSuccess;
+
+	/**
+	 * Error callback for renderToString requests, or null for render-to-div
+	 * requests.
+	 */
+	private static volatile StringCallback pendingOnError;
+
+	/** Whether the pending request should use dark mode rendering. */
+	private static volatile boolean pendingDarkMode;
 
 	// =========================================================================
 	// Initialization
@@ -180,9 +201,14 @@ public class PlantUMLBrowser {
 		// The thread runs forever, waiting for render requests.
 		new Thread(PlantUMLBrowser::workerLoop, "plantuml-render").start();
 
-		// Register the JS-callable function. After this, JavaScript can call
-		// plantumlRender(lines, elementId) to request a diagram rendering.
-		registerRender(PlantUMLBrowser::requestRender);
+		// Expose the API on window.plantuml so it doesn't pollute the global namespace.
+		// JavaScript callers must invoke window.plantumlLoad() once (TeaVM entry point,
+		// renamed via entryPointName in build.gradle.kts) to start the worker thread
+		// and populate:
+		// window.plantuml.render(lines, elementId) — render SVG into a DOM element
+		// window.plantuml.renderToString(lines, onSuccess, onError) — return SVG as a
+		// string
+		registerNamespace(PlantUMLBrowser::requestRender, PlantUMLBrowser::requestRenderToString);
 
 		BrowserLog.jsStatusDuration();
 	}
@@ -192,28 +218,58 @@ public class PlantUMLBrowser {
 	// =========================================================================
 
 	/**
-	 * Registers a callback function as {@code window.plantumlRender} in JavaScript.
-	 * 
-	 * After this call, JavaScript code can invoke:
-	 * 
-	 * <pre>
-	 * plantumlRender(["@startuml", "Alice -> Bob", "@enduml"], "out");
-	 * </pre>
+	 * Creates the {@code window.plantuml} namespace and registers all API methods
+	 * on it:
+	 * <ul>
+	 * <li>{@code window.plantuml.render(lines, elementId)} — render SVG into a DOM
+	 * element</li>
+	 * <li>{@code window.plantuml.renderToString(lines, callback)} — call
+	 * {@code callback(svgString)}</li>
+	 * </ul>
+	 *
+	 * {@code window.plantuml.loadWorker} is set to a no-op after this call
+	 * completes, so callers that do {@code window.plantuml.loadWorker()} to
+	 * initialize will still work (the worker is already running by the time this
+	 * method is called from {@code main}).
 	 */
-	@JSBody(params = "cb", script = "window.plantumlRender = cb;")
-	private static native void registerRender(RenderCallback cb);
+	@JSBody(params = { "renderCb", "renderToStringCb" }, script = "var ns = window.plantuml = window.plantuml || {};"
+			+ "ns.render = renderCb;" + "ns.renderToString = renderToStringCb;")
+	private static native void registerNamespace(RenderCallback renderCb, RenderToStringCallback renderToStringCb);
 
-	/**
-	 * Functional interface for the render callback, compatible with TeaVM's JS
-	 * interop.
-	 * 
-	 * The @JSFunctor annotation tells TeaVM to generate a JavaScript function that
-	 * can be stored and called from JS code.
-	 */
+	/** Callback for {@code window.plantuml.render(lines, elementId, options)}. */
 	@JSFunctor
 	public interface RenderCallback extends JSObject {
-		void call(String[] lines, String elementId);
+		void call(String[] lines, String elementId, JSObject options);
 	}
+
+	/**
+	 * Callback for
+	 * {@code window.plantuml.renderToString(lines, onSuccess, onError, options)}.
+	 */
+	@JSFunctor
+	public interface RenderToStringCallback extends JSObject {
+		void call(String[] lines, StringCallback onSuccess, StringCallback onError, JSObject options);
+	}
+
+	/**
+	 * Single-string JS callback, used for both success (SVG) and error (message).
+	 */
+	@JSFunctor
+	public interface StringCallback extends JSObject {
+		void call(String value);
+	}
+
+	// =========================================================================
+	// Options extraction (called from JavaScript)
+	// =========================================================================
+
+	/**
+	 * Extracts the {@code dark} boolean property from a JavaScript options
+	 * object. Returns {@code false} if the object is null/undefined or if the
+	 * property is absent.
+	 */
+	@JSBody(params = "opts", script = "return (opts && opts.dark === true);")
+	private static native boolean isDark(JSObject opts);
 
 	// =========================================================================
 	// Request handling (called from JavaScript)
@@ -238,14 +294,27 @@ public class PlantUMLBrowser {
 	 * @param lines     the PlantUML source code, split into lines by the JavaScript
 	 *                  caller
 	 * @param elementId the ID of the HTML element where the SVG should be rendered
+	 * @param options   optional JS object with rendering options (e.g. {dark: true})
 	 */
-	private static void requestRender(String[] lines, String elementId) {
+	private static void requestRender(String[] lines, String elementId, JSObject options) {
 		synchronized (LOCK) {
-			// Store the request (overwrites any previous pending request)
 			pendingLines = lines;
 			pendingElementId = elementId;
+			pendingOnSuccess = null;
+			pendingOnError = null;
+			pendingDarkMode = isDark(options);
+			LOCK.notify();
+		}
+	}
 
-			// Wake up the worker thread to process this request
+	private static void requestRenderToString(String[] lines, StringCallback onSuccess, StringCallback onError,
+			JSObject options) {
+		synchronized (LOCK) {
+			pendingLines = lines;
+			pendingElementId = null;
+			pendingOnSuccess = onSuccess;
+			pendingOnError = onError;
+			pendingDarkMode = isDark(options);
 			LOCK.notify();
 		}
 	}
@@ -275,11 +344,11 @@ public class PlantUMLBrowser {
 		while (true) {
 			String[] lines;
 			String elementId;
+			StringCallback onSuccess;
+			StringCallback onError;
+			boolean darkMode;
 
-			// Wait for a render request
 			synchronized (LOCK) {
-				// Spin-wait pattern: keep waiting until we have work to do.
-				// This handles spurious wakeups correctly.
 				while (pendingLines == null) {
 					try {
 						LOCK.wait();
@@ -288,16 +357,25 @@ public class PlantUMLBrowser {
 					}
 				}
 
-				// Capture the request and clear the pending state.
-				// This must be atomic (inside synchronized) to avoid race conditions.
+				// Capture the request and clear the pending state atomically.
 				lines = pendingLines;
 				elementId = pendingElementId;
+				onSuccess = pendingOnSuccess;
+				onError = pendingOnError;
+				darkMode = pendingDarkMode;
 				pendingLines = null;
+				pendingElementId = null;
+				pendingOnSuccess = null;
+				pendingOnError = null;
+				pendingDarkMode = false;
 			}
 
-			// Perform rendering OUTSIDE the synchronized block.
-			// This allows new requests to be queued while we're rendering.
-			doRender(lines, elementId);
+			// Perform rendering OUTSIDE the synchronized block so new requests
+			// can be queued while we're rendering.
+			if (onSuccess != null)
+				doRenderToString(lines, onSuccess, onError, darkMode);
+			else
+				doRender(lines, elementId, darkMode);
 		}
 	}
 
@@ -305,75 +383,66 @@ public class PlantUMLBrowser {
 	// Rendering
 	// =========================================================================
 
-	/**
-	 * Performs the actual PlantUML rendering and inserts the SVG into the DOM.
-	 * 
-	 * This method:
-	 * <ol>
-	 * <li>Clears the target element</li>
-	 * <li>Creates a PlantUML diagram from the source lines</li>
-	 * <li>Renders it to SVG using the TeaVM-compatible graphics system</li>
-	 * <li>Appends the SVG element to the target</li>
-	 * </ol>
-	 * 
-	 * For diagrams requiring GraphViz (class diagrams, etc.), this will internally
-	 * call Viz.js asynchronously. This works because we're running in the worker
-	 * thread's coroutine context.
-	 * 
-	 * @param lines     the PlantUML source lines
-	 * @param elementId the target DOM element ID
-	 */
-	private static void doRender(String[] lines, String elementId) {
-		// Find the target element in the DOM
-		HTMLElement out = HTMLDocument.current().getElementById(elementId);
+	/** Parses and renders PlantUML source lines to an SVG graphics context. */
+	private static SvgGraphicsTeaVM buildSvg(String[] lines, boolean darkMode) throws Exception {
+		final SvgGraphicsTeaVM svg = new SvgGraphicsTeaVM();
+		final ColorMapper colorMapper = darkMode ? ColorMapper.TEAVM_DARK : ColorMapper.TEAVM_LIGHT;
+		final HColor back = darkMode ? HColors.BLACK : HColors.WHITE;
+
+		UGraphic ug = UGraphicTeaVM.build(back, colorMapper, STRING_BOUNDER, svg);
+		final Diagram diagram = PSystemBuilder2.getInstance().createDiagram(lines);
+		final FileFormatOption fileFormat = new FileFormatOption(FileFormat.SVG);
+
+		if (diagram instanceof UgDiagram == false)
+			throw new RuntimeException("Unsupported diagram type");
+
+		final Scale scale = ((AbstractDiagram) diagram).getScale();
+		final UgDiagram ugDiagram = (UgDiagram) diagram;
+		TextBlock tb = ugDiagram.getTextBlock12026(0, fileFormat);
+
+		if (diagram instanceof TitledDiagram)
+			tb = DiagramChromeFactory12026.create(tb, (TitledDiagram) ugDiagram,
+					((TitledDiagram) ugDiagram).getSkinParam(), ugDiagram.getWarnings());
+
+		if (ugDiagram.isHandwritten())
+			ug = new UGraphicHandwritten(ug);
+
+		tb.drawU(ug);
+
+		final XDimension2D dim = tb.calculateDimension(STRING_BOUNDER);
+
+		if (dim.getWidth() > MAX_SVG_SIZE || dim.getHeight() > MAX_SVG_SIZE)
+			throw new RuntimeException("Diagram too large for browser rendering: "
+					+ (int) dim.getWidth() + "x" + (int) dim.getHeight()
+					+ " (max " + MAX_SVG_SIZE + ")");
+
+		final double scaleFactor = scale == null ? 1.0 : scale.getScale(dim.getWidth(), dim.getHeight());
+		svg.updateSvgSize(dim.getWidth(), dim.getHeight(), scaleFactor);
+		return svg;
+	}
+
+	private static void doRender(String[] lines, String elementId, boolean darkMode) {
+		final HTMLElement out = HTMLDocument.current().getElementById(elementId);
 		if (out == null)
 			return;
 
 		try {
-			// Create SVG graphics context with TeaVM-compatible implementation
 			BrowserLog.reset();
-			BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender");
-
-			SvgGraphicsTeaVM svg = new SvgGraphicsTeaVM(900, 900);
-			UGraphic ug = UGraphicTeaVM.build(BACK, COLOR_MAPPER, STRING_BOUNDER, svg);
-
-			BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender wip10");
-
-			// Parse and render the diagram.
-			// For class diagrams, this will call GraphVizjsTeaVMEngine internally,
-			// which uses Viz.js for layout. The @Async magic happens here.
-			Diagram diagram = BUILDER.createDiagram(lines);
-			final FileFormatOption fileFormat = new FileFormatOption(FileFormat.SVG);
-			if (diagram instanceof UgDiagram) {
-				BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender new10");
-				TextBlock tb = ((UgDiagram) diagram).getTextBlock12026(0, fileFormat);
-				final UgDiagram ugDiagram = (UgDiagram) diagram;
-
-				if (diagram instanceof TitledDiagram)
-					tb = DiagramChromeFactory12026.create(tb, (TitledDiagram) ugDiagram,
-							((TitledDiagram) ugDiagram).getSkinParam(), ugDiagram.getWarnings());
-
-				if (ugDiagram.isHandwritten())
-					ug = new UGraphicHandwritten(ug);
-
-				tb.drawU(ug);
-				BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender new20");
-			} else {
-				BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender ERROR");
-			}
-
-			// Clear any previous content (old SVG, error messages, etc.)
+			final SvgGraphicsTeaVM svg = buildSvg(lines, darkMode);
 			removeAllChildren(out);
-			BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender wip40");
-
-			// Insert the rendered SVG into the DOM
 			appendSvgElement(out, svg.getSvgRoot());
-			BrowserLog.consoleLog(PlantUMLBrowser.class, "doRender done");
-			BrowserLog.jsStatusDuration();
-
 		} catch (Exception e) {
-			// Display error message in the target element
 			out.setTextContent(String.valueOf(e));
+		}
+		BrowserLog.jsStatusDuration();
+	}
+
+	private static void doRenderToString(String[] lines, StringCallback onSuccess, StringCallback onError,
+			boolean darkMode) {
+		try {
+			onSuccess.call(serializeSvg(buildSvg(lines, darkMode).getSvgRoot()));
+		} catch (Exception e) {
+			onError.call(String.valueOf(e));
 		}
 	}
 
@@ -388,5 +457,9 @@ public class PlantUMLBrowser {
 	/** Removes all child nodes from a DOM element. */
 	@JSBody(params = "el", script = "while(el.firstChild)el.removeChild(el.firstChild);")
 	private static native void removeAllChildren(HTMLElement el);
+
+	/** Serializes an SVG DOM element to a string. */
+	@JSBody(params = "svg", script = "return new XMLSerializer().serializeToString(svg);")
+	private static native String serializeSvg(Element svg);
 
 }

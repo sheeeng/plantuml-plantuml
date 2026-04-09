@@ -88,7 +88,7 @@ public abstract class UBrexSingleLineCommand2<S extends Diagram> implements Comm
 		if (lines.size() != 1)
 			return CommandControl.NOT_OK;
 
-		if (isCommandForbidden())
+		if (isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		final StringLocated line2 = myTrim2(lines.getFirst());
@@ -115,10 +115,6 @@ public abstract class UBrexSingleLineCommand2<S extends Diagram> implements Comm
 
 		final String vline = lines.getAt(0).getString() + " {";
 		return isValid(BlocLines.singleString(vline));
-	}
-
-	protected boolean isCommandForbidden() {
-		return false;
 	}
 
 	protected CommandControl finalVerification() {

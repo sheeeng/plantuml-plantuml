@@ -101,10 +101,10 @@ public class CommandRepeatWhile3Multilines extends CommandMultilines3<ActivityDi
 		final Rainbow linkColor = Rainbow.none(); // diagram.getSkinParam().getIHtmlColorSet().getColorIfValid(arg.get("COLOR",
 		// 0));
 		final Display linkLabel = Display.NULL; // Display.getWithNewlines("arg.get(\"LABEL\", 0)");
-		final List<Display> splitted = testDisplay.splitMultiline(IS_OR_EQUALS);
-		if (splitted.size() == 2) {
-			testDisplay = splitted.get(0);
-			yes = splitted.get(1);
+		final List<Display> split = testDisplay.splitMultiline(IS_OR_EQUALS);
+		if (split.size() == 2) {
+			testDisplay = split.get(0);
+			yes = split.get(1);
 		}
 
 		return diagram.repeatWhile(testDisplay, yes, out, linkLabel, linkColor, null, null);

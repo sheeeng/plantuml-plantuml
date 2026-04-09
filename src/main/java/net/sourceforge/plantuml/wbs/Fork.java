@@ -44,6 +44,7 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.style.ISkinParam;
+import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.Direction;
 
@@ -51,9 +52,10 @@ class Fork extends WBSTextBlock {
 
 	private final TextBlock main;
 	private final List<ITF> right = new ArrayList<>();
+	private boolean autoWidthApplied;
 
 	public Fork(ISkinParam skinParam, WElement idea) {
-		super(idea.withBackColor(skinParam), idea.getStyleBuilder(), idea.getLevel(), idea.getStereotype());
+		super(idea.withBackColor(skinParam), idea);
 		if (idea.getLevel() != 0)
 			throw new IllegalArgumentException();
 
@@ -63,10 +65,28 @@ class Fork extends WBSTextBlock {
 
 	}
 
+	// Called from both calculateDimensionSlow() and drawU() because either
+	// may be invoked first. The flag ensures it runs only once.
+	private void applyAutoWidth(StringBounder stringBounder) {
+		if (autoWidthApplied)
+			return;
+		autoWidthApplied = true;
+
+		if (isAutoWidth() == false)
+			return;
+		double maxWidth = 0;
+		for (ITF child : right)
+			maxWidth = Math.max(maxWidth, child.getMainBoxWidth(stringBounder));
+		for (ITF child : right)
+			child.setForcedMinWidth(maxWidth);
+		invalidateDimensionCache();
+	}
+
 	final private double delta1x = 20;
 	final private double deltay = 40;
 
 	public void drawU(final UGraphic ug) {
+		applyAutoWidth(ug.getStringBounder());
 		final StringBounder stringBounder = ug.getStringBounder();
 		final XDimension2D mainDim = main.calculateDimension(stringBounder);
 
@@ -97,7 +117,8 @@ class Fork extends WBSTextBlock {
 			drawLine(ug, firstX, y1, lastX, y1);
 			posMain = firstX + (lastX - firstX - mainWidth) / 2;
 		} else {
-			if (TeaVM.a()) assert lastX == firstX;
+			if (TeaVM.a())
+				assert lastX == firstX;
 			final XDimension2D fullDim = calculateDimension(stringBounder);
 			posMain = (fullDim.getWidth() - mainWidth) / 2;
 			drawLine(ug, firstX, y1, posMain + mainWidth / 2, y1);
@@ -109,6 +130,7 @@ class Fork extends WBSTextBlock {
 
 	@Override
 	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+		applyAutoWidth(stringBounder);
 		double width = 0;
 		double height = 0;
 		for (ITF child : right) {

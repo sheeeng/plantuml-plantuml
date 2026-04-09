@@ -35,6 +35,9 @@
  */
 package net.sourceforge.plantuml.command;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.sourceforge.plantuml.Lazy;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
@@ -50,8 +53,7 @@ import net.sourceforge.plantuml.utils.BlocLines;
 
 public class CommandSpriteSvgMultiline extends CommandMultilines2<TitledDiagram> {
 
-	private final static Lazy<Pattern2> END = new Lazy<>(
-			() -> Pattern2.cmpile("(.*\\</svg\\>)$"));
+	private final static Lazy<Pattern2> END = new Lazy<>(() -> Pattern2.cmpile("(.*\\</svg\\>)$"));
 
 	public static final CommandSpriteSvgMultiline ME = new CommandSpriteSvgMultiline();
 
@@ -78,11 +80,12 @@ public class CommandSpriteSvgMultiline extends CommandMultilines2<TitledDiagram>
 		final String svgStart = line0.get("SVGSTART", 0);
 		lines = lines.subExtract(1, 0);
 
-		final StringBuilder svg = new StringBuilder(svgStart);
+		final List<String> svg = new ArrayList<>();
+		svg.add(svgStart);
 		for (StringLocated sl : lines)
-			svg.append(sl.getString());
+			svg.add(sl.getString());
 
-		final ISvgSpriteParser parser = SvgSpriteParserFactory.create(svg.toString(), system.getPragma());
+		final ISvgSpriteParser parser = SvgSpriteParserFactory.create(svg, system.getPragma(), system.getMd5map());
 		system.addSprite(line0.get("NAME", 0), parser);
 
 		return CommandExecutionResult.ok();

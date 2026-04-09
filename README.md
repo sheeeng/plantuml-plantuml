@@ -21,11 +21,13 @@ Generate UML diagrams from textual descriptions.
 [![CI](https://github.com/plantuml/plantuml/actions/workflows/ci.yml/badge.svg?color=chocolate)](https://github.com/plantuml/plantuml/actions/workflows/ci.yml)
 [![snapshot javadoc](https://img.shields.io/badge/javadoc-snapshot-chocolate.svg?logo=github)](https://plantuml.github.io/plantuml/javadoc)
 [![snapshot jacoco](https://img.shields.io/badge/code_coverage%3A_jacoco-snapshot-chocolate?logo=github)](https://plantuml.github.io/plantuml/jacoco/test/html/index.html)
+[![SonarQube Cloud](https://img.shields.io/badge/scanned_on-SonarQube-blue?logo=sonarqubecloud)](https://sonarcloud.io/project/overview?id=plantuml_plantuml)
 
 [![Dev Project Pages index](https://img.shields.io/badge/dev_project-pages-764ba2?logo=github)](https://plantuml.github.io/plantuml/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/plantuml/plantuml)
 
 [![JavaScript Demo](https://img.shields.io/badge/JavaScript_PlantUML_Demo-F7DF1E?logo=javascript&logoColor=000)](https://plantuml.github.io/plantuml/js-plantuml)
+
 
 ## ℹ️ About
 
@@ -45,8 +47,8 @@ PlantUML is a component that allows you to create various UML diagrams through s
   - [State diagram](http://plantuml.com/state-diagram)
   - [Timing diagram](http://plantuml.com/timing-diagram)
 - 📈 Non-UML Diagrams
-  - [JSON data](http://plantuml.com/json)
-  - [YAML data](http://plantuml.com/yaml)
+  - [JSON (JavaScript Object Notation) data](http://plantuml.com/json)
+  - [YAML (YAML Ain't Markup Language) data](http://plantuml.com/yaml)
   - [EBNF (Extended Backus-Naur Form)](http://plantuml.com/ebnf)
   - [Regex (Regular Expression)](http://plantuml.com/regex)
   - [Network diagram (nwdiag)](http://plantuml.com/nwdiag)
@@ -62,6 +64,8 @@ PlantUML is a component that allows you to create various UML diagrams through s
   - Entity Relationship (ER) diagram
     - [Information Engineering (IE) diagram](http://plantuml.com/ie-diagram)
     - [Entity Relationship (ER) diagram (Chen's notation)](http://plantuml.com/er-diagram)
+  -  [Chart diagram](http://plantuml.com/chart-diagram)
+  -  [Files (files tree) diagram](http://plantuml.com/files-diagram)
 
 ### 📣 Additional Features
 

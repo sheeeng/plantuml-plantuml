@@ -214,8 +214,8 @@ public class SURL {
 				return true;
 			}
 
-			if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE)
-				// We are UNSECURE anyway
+			if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE)
+				// We are INSECURE anyway
 				return true;
 
 			if (SecurityUtils.getSecurityProfile() == SecurityProfile.INTERNET) {
@@ -448,7 +448,7 @@ public class SURL {
 	 * This method disables user interactions for the connection and, if the
 	 * connection is an instance of {@link HttpURLConnection}, it also disables
 	 * automatic following of HTTP redirects, unless the security profile is set to
-	 * {@link SecurityProfile#UNSECURE}.
+	 * {@link SecurityProfile#INSECURE}.
 	 * </p>
 	 *
 	 * @param connection the {@link URLConnection} to be configured
@@ -461,7 +461,7 @@ public class SURL {
 	protected static void configure(URLConnection connection) {
 		connection.setAllowUserInteraction(false);
 
-		if (SecurityUtils.getSecurityProfile() != SecurityProfile.UNSECURE && connection instanceof HttpURLConnection)
+		if (SecurityUtils.getSecurityProfile() != SecurityProfile.INSECURE && connection instanceof HttpURLConnection)
 			((HttpURLConnection) connection).setInstanceFollowRedirects(false);
 	}
 

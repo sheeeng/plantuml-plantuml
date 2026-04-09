@@ -46,7 +46,7 @@ import net.sourceforge.plantuml.project.core.TaskInstant;
 public class SentenceTaskStartsWithColor extends SentenceSimple<GanttDiagram> {
 
 	public SentenceTaskStartsWithColor() {
-		super(SubjectTask.ME, Verbs.starts,
+		super(SubjectTask.ME, Verbs.starts.getRegex(),
 				new PairOfSomething<>(new ComplementBeforeOrAfterOrAtTaskStartOrEnd(), new ComplementWithColorLink()));
 	}
 

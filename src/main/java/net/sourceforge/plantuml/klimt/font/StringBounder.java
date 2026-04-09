@@ -35,6 +35,7 @@
  */
 package net.sourceforge.plantuml.klimt.font;
 
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 
 public interface StringBounder {
@@ -44,5 +45,7 @@ public interface StringBounder {
 	public double getDescent(UFont font, String text);
 
 	public boolean matchesProperty(String propertyName);
+
+	public FileFormat getFileFormat();
 
 }

@@ -36,14 +36,21 @@
 package net.sourceforge.plantuml.project.lang;
 
 import java.time.DayOfWeek;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+
+import com.plantuml.ubrex.UMatcher;
+import com.plantuml.ubrex.builder.UBrexNamed;
+import com.plantuml.ubrex.builder.UBrexPart;
 
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.project.Failable;
 import net.sourceforge.plantuml.project.GanttDiagram;
 import net.sourceforge.plantuml.project.time.DayOfWeekUtils;
+import net.sourceforge.plantuml.project.ulang.UbrexSentence;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexResult;
@@ -59,8 +66,35 @@ public class SubjectDayOfWeek implements Subject<GanttDiagram> {
 		return new RegexLeaf(1, "SUBJECT", "(" + DayOfWeekUtils.getRegexString() + ")");
 	}
 
+	@Override
+	public UBrexPart toUnicodeBracketedExpressionSubject() {
+		return new UBrexNamed("SUBJECT", DayOfWeekUtils.getUbrex());
+	}
+
+	@Override
+	public Collection<UbrexSentence<GanttDiagram>> getUSentences() {
+		final List<UbrexSentence<GanttDiagram>> result = new ArrayList<>();
+		result.add(new UbrexSentence<GanttDiagram>(this, Verbs.are, new ComplementClose()) {
+			@Override
+			public CommandExecutionResult execute(GanttDiagram project, Object subject, Object complement) {
+				final DayOfWeek day = (DayOfWeek) subject;
+				project.closeDayOfWeek(day, (String) complement);
+				return CommandExecutionResult.ok();
+			}
+		});
+		return result;
+
+	}
+
 	public Failable<? extends Object> getMe(GanttDiagram project, RegexResult arg) {
 		final String s = arg.get("SUBJECT", 0);
+		return Failable.ok(DayOfWeekUtils.fromString(s));
+	}
+
+	@Override
+	public Failable<? extends Object> ugetMe(GanttDiagram diagram, UMatcher arg) {
+		System.out.println("ugetMe " + arg);
+		final String s = arg.getCapture("SUBJECT").get(0);
 		return Failable.ok(DayOfWeekUtils.fromString(s));
 	}
 
@@ -70,7 +104,7 @@ public class SubjectDayOfWeek implements Subject<GanttDiagram> {
 
 	class AreOpen extends SentenceSimple<GanttDiagram> {
 		public AreOpen() {
-			super(SubjectDayOfWeek.this, Verbs.are, new ComplementOpen());
+			super(SubjectDayOfWeek.this, Verbs.are.getRegex(), new ComplementOpen());
 		}
 
 		@Override
@@ -84,7 +118,7 @@ public class SubjectDayOfWeek implements Subject<GanttDiagram> {
 	class AreClose extends SentenceSimple<GanttDiagram> {
 
 		public AreClose() {
-			super(SubjectDayOfWeek.this, Verbs.are, new ComplementClose());
+			super(SubjectDayOfWeek.this, Verbs.are.getRegex(), new ComplementClose());
 		}
 
 		@Override
@@ -99,7 +133,7 @@ public class SubjectDayOfWeek implements Subject<GanttDiagram> {
 	class InColor extends SentenceSimple<GanttDiagram> {
 
 		public InColor() {
-			super(SubjectDayOfWeek.this, Verbs.isOrAre, new ComplementInColors2());
+			super(SubjectDayOfWeek.this, Verbs.isOrAre.getRegex(), new ComplementInColors2());
 		}
 
 		@Override

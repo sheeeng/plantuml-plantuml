@@ -93,7 +93,7 @@ public class GraphvizCrash extends TextBlockMemoized implements IEntityImage {
 	}
 
 	private void init(ReportLog strings, Throwable rootCause) {
-		strings.anErrorHasOccured(null, flash);
+		strings.anErrorHasOccurred(null, flash);
 		strings.add("For some reason, dot/GraphViz has crashed.");
 		strings.addEmptyLine();
 		strings.add("RootCause " + rootCause);

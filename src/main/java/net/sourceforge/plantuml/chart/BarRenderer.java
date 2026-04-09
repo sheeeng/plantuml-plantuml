@@ -140,9 +140,11 @@ public class BarRenderer {
 			final double value = values.get(i);
 			final double x = i * categoryWidth + barOffset;
 
-			// For negative values, bar extends from zero down to the value
-			// For positive values, bar extends from zero up to the value
-			final double zeroY = plotHeight - (0 - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotHeight;
+			// If the range between axis.getMin() and axis.getMax() includes 0, zeroY represents the Y origin location
+			// If the range does not include zero, then zeroY will be bounded to 0 or plotHeight:
+			// 		If the range is negative, zeroY will be 0 (bars start at top and extend downwards)
+			//    If the range is positive, zeroY will be plotHeight (bars start at bottom and extend upwards)
+			final double zeroY = Math.max(0,Math.min(plotHeight,plotHeight - (0 - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotHeight));
 			final double valueY = plotHeight - (value - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotHeight;
 
 			final double y;
@@ -157,8 +159,11 @@ public class BarRenderer {
 				barHeight = zeroY - valueY;
 			}
 
-			final URectangle rect = URectangle.build(barWidth, barHeight);
-			ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+			if (barHeight > 0) {
+				final URectangle rect = URectangle.build(barWidth, barHeight);
+				ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y)))
+						.draw(rect);
+			}
 
 			// Draw label if enabled
 			if (series.isShowLabels()) {
@@ -251,7 +256,7 @@ public class BarRenderer {
 				final double x = categoryIndex * categoryWidth + groupOffset + seriesIndex * barWidth;
 
 				// Calculate bar position and height relative to zero
-				final double zeroY = plotHeight - (0 - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotHeight;
+				final double zeroY = Math.max(0,Math.min(plotHeight,plotHeight - (0 - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotHeight));
 				final double valueY = plotHeight - (value - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotHeight;
 
 				final double y;

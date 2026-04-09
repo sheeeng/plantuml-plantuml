@@ -42,6 +42,7 @@ import java.util.List;
 
 import net.sourceforge.plantuml.activitydiagram.ActivityDiagramFactory;
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagramFactory3;
+import net.sourceforge.plantuml.annotation.DuplicateCode;
 import net.sourceforge.plantuml.api.PSystemFactory;
 import net.sourceforge.plantuml.board.BoardDiagramFactory;
 import net.sourceforge.plantuml.bpm.BpmDiagramFactory;
@@ -53,6 +54,7 @@ import net.sourceforge.plantuml.cli.GlobalConfigKey;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
+import net.sourceforge.plantuml.crash.CrashDiagramFactory;
 import net.sourceforge.plantuml.dedication.PSystemDedicationFactory;
 import net.sourceforge.plantuml.definition.PSystemDefinitionFactory;
 import net.sourceforge.plantuml.descdiagram.DescriptionDiagramFactory;
@@ -121,75 +123,11 @@ import net.sourceforge.plantuml.yaml.YamlDiagramFactory;
  */
 public class PSystemBuilder {
 
-	public static final long startTime = System.currentTimeMillis();
+	private final static PSystemBuilder singleton = new PSystemBuilder();
 
-	final public Diagram createPSystem(PathSystem pathSystem, List<StringLocated> source, List<StringLocated> rawSource,
-			Previous previous, PreprocessingArtifact preprocessing) {
+	private final List<PSystemFactory> factories = new ArrayList<>();
 
-		final long now = System.currentTimeMillis();
-
-		Diagram result = null;
-		try {
-			final Collection<DiagramType> types = DiagramType.getTypesFromArobaseStart(source.get(0).getString());
-			final UmlSource umlSource = UmlSource.createWithRaw(source, types.contains(DiagramType.SEQUENCE),
-					rawSource);
-
-			for (StringLocated s : source) {
-				if (s.getPreprocessorError() != null) {
-					// Dead code : should not append
-					assert false;
-					Log.error("Preprocessor Error: " + s.getPreprocessorError());
-					final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, s.getPreprocessorError(), 0,
-							s.getLocation(), null);
-					return PSystemErrorUtils.buildV2(umlSource, err, Collections.<String>emptyList(), source,
-							preprocessing);
-				}
-			}
-
-			final Collection<DiagramType> diagramTypes = umlSource.getDiagramTypes();
-			if (diagramTypes.contains(DiagramType.UNKNOWN))
-				return new PSystemUnsupported(umlSource, preprocessing);
-
-			final List<PSystemError> errors = new ArrayList<>();
-			for (PSystemFactory systemFactory : factories) {
-				if (!diagramTypes.contains(systemFactory.getDiagramType()))
-					continue;
-
-				try {
-					// WasmLog.log("...trying " + systemFactory.getClass().getName() + " ...");
-					final Diagram sys = systemFactory.createSystem(pathSystem, umlSource, previous, preprocessing);
-					if (isOk(sys)) {
-						result = sys;
-						return sys;
-					}
-					errors.add((PSystemError) sys);
-				} catch (Throwable t) {
-					final StringLocated s = source.get(0);
-					final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR, "Fatal crash error: " + t, 0,
-							s.getLocation(), null);
-					errors.add(PSystemErrorUtils.buildV2(umlSource, err, Collections.<String>emptyList(), source,
-							preprocessing));
-					t.printStackTrace();
-				}
-			}
-			if (errors.size() == 0)
-				return new PSystemUnsupported(umlSource, preprocessing);
-
-			result = PSystemErrorUtils.merge(errors);
-			return result;
-		} finally {
-
-			if (result != null && GlobalConfig.getInstance().boolValue(GlobalConfigKey.ENABLE_STATS)) {
-				StatsUtilsIncrement.onceMoreParse(System.currentTimeMillis() - now, result.getClass());
-			}
-			Log.info(() -> "Compilation duration " + (System.currentTimeMillis() - now));
-			RegexConcat.printCacheInfo();
-		}
-	}
-
-	private static final List<PSystemFactory> factories = new ArrayList<>();
-
-	static {
+	private PSystemBuilder() {
 		factories.add(new PSystemWelcomeFactory());
 		factories.add(new PSystemColorsFactory());
 		factories.add(new SequenceDiagramFactory());
@@ -235,7 +173,7 @@ public class PSystemBuilder {
 		factories.add(new PSystemEggFactory());
 		factories.add(new PSystemAppleTwoFactory());
 		factories.add(new PSystemRIPFactory());
-		if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE)
+		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE)
 			factories.add(new PSystemPathFactory());
 
 		factories.add(new PSystemCharlieFactory());
@@ -257,10 +195,111 @@ public class PSystemBuilder {
 		factories.add(new PSystemRegexFactory());
 
 		factories.add(new ChenEerDiagramFactory());
+		factories.add(new CrashDiagramFactory());
+
+	}
+
+	public static PSystemBuilder getInstance() {
+		return singleton;
+	}
+
+	@DuplicateCode(reference = "PSystemBuilder2")
+	final public Diagram createPSystem(PathSystem pathSystem, List<StringLocated> source, List<StringLocated> rawSource,
+			Previous previous, PreprocessingArtifact preprocessing) {
+
+		final long now = System.currentTimeMillis();
+
+		Diagram result = null;
+		try {
+			final Collection<DiagramType> types = DiagramType.findStartTypes(source.get(0).getString());
+			final UmlSource umlSource = UmlSource.createWithRaw(source, types.contains(DiagramType.SEQUENCE),
+					rawSource);
+
+			umlSource.patchBase64();
+
+//			for (StringLocated s : source) {
+//				if (s.getPreprocessorError() != null) {
+//					// Dead code : should not append
+//					assert false;
+//					Log.error("Preprocessor Error: " + s.getPreprocessorError());
+//					final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, s.getPreprocessorError(), 0,
+//							s.getLocation(), null);
+//					return PSystemErrorUtils.buildV2(umlSource, err, Collections.<String>emptyList(), source,
+//							preprocessing);
+//				}
+//			}
+
+			final Collection<DiagramType> diagramTypes = umlSource.getDiagramTypes();
+			if (diagramTypes.contains(DiagramType.UNKNOWN))
+				return new PSystemUnsupported(umlSource, preprocessing);
+
+			// Detect misuse of @startuml for DOT or DITAA diagrams and
+			// return a helpful error
+			if (diagramTypes.contains(DiagramType.SEQUENCE) && source.size() > 1) {
+				final String secondLine = source.get(1).getString();
+				if (PSystemDotFactory.isGraphvizDotHeader(secondLine)) {
+					final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
+							"This looks like a DOT diagram. Please use @startdot instead of @startuml.", 100,
+							source.get(1).getLocation(), DiagramType.SEQUENCE);
+
+					return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
+							preprocessing);
+
+				} else if (secondLine.trim().equals("ditaa")) {
+					final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
+							"This looks like a DITAA diagram. Please use @startditaa instead of @startuml.", 100,
+							source.get(1).getLocation(), DiagramType.SEQUENCE);
+
+					return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
+							preprocessing);
+				} else if (secondLine.trim().equals("nwdiag {")) {
+					final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
+							"This looks like a network diagram. Please use @startnwdiag instead of @startuml.", 100,
+							source.get(1).getLocation(), DiagramType.SEQUENCE);
+
+					return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
+							preprocessing);
+				}
+			}
+			final List<PSystemError> errors = new ArrayList<>();
+			for (PSystemFactory systemFactory : factories) {
+				if (!diagramTypes.contains(systemFactory.getDiagramType()))
+					continue;
+
+				try {
+					// WasmLog.log("...trying " + systemFactory.getClass().getName() + " ...");
+					final Diagram sys = systemFactory.createSystem(pathSystem, umlSource, previous, preprocessing);
+					if (isOk(sys)) {
+						result = sys;
+						return sys;
+					}
+					errors.add((PSystemError) sys);
+				} catch (Throwable t) {
+					final StringLocated s = source.get(0);
+					final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
+							"Fatal crash error, you should send a mail to plantuml@gmail.com with: " + t, 0,
+							s.getLocation(), null);
+					errors.add(PSystemErrorUtils.buildV2(umlSource, err, Collections.<String>emptyList(), source,
+							preprocessing, t));
+				}
+			}
+			if (errors.size() == 0)
+				return new PSystemUnsupported(umlSource, preprocessing);
+
+			result = PSystemErrorUtils.merge(errors);
+			return result;
+		} finally {
+
+			if (result != null && GlobalConfig.getInstance().boolValue(GlobalConfigKey.ENABLE_STATS))
+				StatsUtilsIncrement.onceMoreParse(System.currentTimeMillis() - now, result.getClass());
+
+			Log.info(() -> "Compilation duration " + (System.currentTimeMillis() - now));
+			RegexConcat.printCacheInfo();
+		}
 	}
 
 	private boolean isOk(Diagram ps) {
-		if (ps == null || ps instanceof PSystemError)
+		if (ps == null || ps instanceof PSystemError || ps instanceof PSystemUnsupported)
 			return false;
 
 		return true;

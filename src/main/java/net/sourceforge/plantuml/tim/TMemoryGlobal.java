@@ -57,17 +57,17 @@ public class TMemoryGlobal extends ExecutionContexts implements TMemory {
 
 	@Override
 	public void dumpDebug(String message) {
-		Log.error("[MemGlobal] Start of memory_dump " + message);
+		Log.info(() -> "[MemGlobal] Start of memory_dump " + message);
 		dumpMemoryInternal();
-		Log.error("[MemGlobal] End of memory_dump");
+		Log.info(() -> "[MemGlobal] End of memory_dump");
 	}
 
 	void dumpMemoryInternal() {
-		Log.error("[MemGlobal] Number of variable(s) : " + globalVariables.size());
+		Log.info(() -> "[MemGlobal] Number of variable(s) : " + globalVariables.size());
 		for (Entry<String, TValue> ent : new TreeMap<String, TValue>(globalVariables).entrySet()) {
 			final String name = ent.getKey();
 			final TValue value = ent.getValue();
-			Log.error("[MemGlobal] " + name + " = " + value);
+			Log.info(() -> "[MemGlobal] " + name + " = " + value);
 		}
 	}
 

@@ -49,6 +49,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Date;
@@ -100,14 +101,21 @@ public class PicoWebServer implements Runnable {
 		final InetAddress bindAddress1 = bindAddress == null ? null : InetAddress.getByName(bindAddress);
 		final ServerSocket serverConnect = new ServerSocket(port, 50, bindAddress1);
 		System.err.println("webPort=" + serverConnect.getLocalPort());
+		System.err.println("webAddress=" + (bindAddress == null ? "0.0.0.0" : bindAddress));
 		serverLoop(serverConnect);
 	}
 
 	public static void serverLoop(final ServerSocket serverConnect) throws IOException {
-		while (true) {
-			final PicoWebServer myServer = new PicoWebServer(serverConnect.accept());
-			final Thread thread = new Thread(myServer);
-			thread.start();
+		try {
+			while (serverConnect.isClosed() == false) {
+				final PicoWebServer myServer = new PicoWebServer(serverConnect.accept());
+				final Thread thread = new Thread(myServer);
+				thread.start();
+			}
+		} catch (SocketException e) {
+			if (serverConnect.isClosed())
+				return;
+			throw e;
 		}
 	}
 
@@ -183,18 +191,6 @@ public class PicoWebServer implements Runnable {
 		write(out, "<html>Stoping...</html>");
 
 		out.flush();
-
-		final Thread stop = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3000L);
-				} catch (InterruptedException e) {
-				}
-				System.exit(0);
-			}
-		});
-		stop.start();
 
 		return true;
 	}

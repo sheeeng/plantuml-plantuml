@@ -143,8 +143,6 @@ public class SvgSpriteImageGenerationTest {
             assertTrue(svgContent.contains("</svg>"), "SVG file should have closing </svg> tag");
             
             // Check for error messages in SVG output (PlantUML renders exceptions as images)
-            assertFalse(svgContent.contains("An error has occured"), 
-                "SVG should not contain error message - check generated file: " + svgOutput);
             assertFalse(svgContent.contains("An error has occurred"), 
                 "SVG should not contain error message - check generated file: " + svgOutput);
 

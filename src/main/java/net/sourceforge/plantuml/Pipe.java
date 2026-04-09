@@ -56,11 +56,12 @@ import net.sourceforge.plantuml.cli.ExitStatus;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.error.PSystemError;
+import net.sourceforge.plantuml.error.PSystemUnsupported;
 import net.sourceforge.plantuml.preproc.Defines;
 import net.sourceforge.plantuml.security.SFile;
 
 public class Pipe {
-	
+
 	// ::remove file when __HAXE__
 
 	private final CliOptions option;
@@ -124,7 +125,8 @@ public class Pipe {
 
 	}
 
-	private void createPipeMapForDiagram(SourceStringReader sourceStringReader, ExitStatus exitStatus) throws IOException {
+	private void createPipeMapForDiagram(SourceStringReader sourceStringReader, ExitStatus exitStatus)
+			throws IOException {
 		final String result = sourceStringReader.getCMapData(option.getImageIndex(),
 				new FileFormatOption(FileFormat.PNG));
 		// https://forum.plantuml.net/10049/2019-pipemap-diagrams-containing-links-give-zero-exit-code
@@ -149,7 +151,7 @@ public class Pipe {
 		if (system instanceof TitledDiagram) {
 			ps.println(((TitledDiagram) system).getDiagramType().name());
 			ps.println(system.getDescription());
-		} else if (system instanceof PSystemError) {
+		} else if (system instanceof PSystemError || system instanceof PSystemUnsupported) {
 			exitStatus.goesHasErrors();
 			stdrpt.printInfo(ps, system);
 		} else {

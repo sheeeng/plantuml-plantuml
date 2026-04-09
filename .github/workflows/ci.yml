@@ -6,10 +6,12 @@ on:
       - '*'
   pull_request:
     types: [ opened, synchronize, reopened ]
+    branches: [ master ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
   push:
+    branches: [ master ]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -91,46 +93,7 @@ jobs:
           EVENT_ACTION: ${{ github.event.action }}
           REF_TYPE: ${{ github.event.ref_type }}
           REF: ${{ github.event.ref }}
-        run: |
-          cat <<-EOF
-            ::group::Debug Info
-            GITHUB_EVENT_NAME       : '${GITHUB_EVENT_NAME}'
-            EVENT_ACTION            : '${EVENT_ACTION}'
-            REF_TYPE                : '${REF_TYPE}'
-            REF                     : '${REF}'
-            ACTOR                   : '${ACTOR}'
-            GITHUB_REPOSITORY_OWNER : '${GITHUB_REPOSITORY_OWNER}'
-            ::endgroup::
-          EOF
-
-          # Do a release when a git tag starting with 'v' has been created by a suitable user.
-          # (We match against github.repository_owner as a kludge so that forked repos can release themselves when testing the workflow)
-          if [[ "${GITHUB_EVENT_NAME}" == "create" && "${REF_TYPE}" == "tag" && "${REF}" == v* && \
-                ( "${ACTOR}" == "arnaudroques" || "${ACTOR}" == "${GITHUB_REPOSITORY_OWNER}" ) \
-             ]]; then
-            echo "::notice title=::This run will release '${REF}'"
-            echo "do_release=true" >> $GITHUB_OUTPUT
-            echo "pom_version=${REF#v}"
-            echo "pom_version=${REF#v}" >> $GITHUB_OUTPUT # pom_version is the tag without the 'v' prefix
-            echo "do_javadoc=true" >> $GITHUB_OUTPUT
-            echo "This run will update the Javadoc"
-
-          elif [[ "${GITHUB_EVENT_NAME}" =~ push|workflow_dispatch && "${REF}" == "refs/heads/master" && ( "${ACTOR}" == "arnaudroques" || "${ACTOR}" == "The-Lum" ) ]]; then
-            echo "::notice title=::This run will release a snapshot"
-            echo "do_snapshot_release=true" >> $GITHUB_OUTPUT
-            V=$(perl -ne 'if (/return (\d{6,7});/) {$v=$1} if (/final int beta = (\d+);/) {$b=$1} END{print(substr($v, 0, 1),".", substr($v, 1, 4),"."); if ($b) {print(int(substr($v+1, 5)), "beta", $b);} else {print(int(substr($v, 5)))}}' src/net/sourceforge/plantuml/version/Version.java)
-            echo "pom_version=$V-SNAPSHOT"
-            echo "pom_version=$V-SNAPSHOT" >> $GITHUB_OUTPUT # pom_version is taken from Version.java
-            echo "do_javadoc=true" >> $GITHUB_OUTPUT
-            echo "This run will update the Javadoc"
-
-          else
-            echo "This run will NOT make a release"
-            echo "do_javadoc=false" >> $GITHUB_OUTPUT
-            echo "This run will NOT update the Javadoc"
-          fi
-          echo "do_test_linux=true" >> $GITHUB_OUTPUT
-          echo "do_test_windows=false" >> $GITHUB_OUTPUT
+        run: .github/scripts/workflow-config.sh
 
   # We run the tests on many OS / Java combinations but also the Compile step because some users build
   # their own jars from source, so it is good for CI to check that is working on all combinations.
@@ -158,9 +121,11 @@ jobs:
 
       # Use of `setup-gradle`, see https://github.com/gradle/actions/
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6.1.0
 
-      # Compile / Test / Package are separate steps so the reason for any failure is more obvious in GitHub UI
+      - name: Diagnostic
+        run: .github/scripts/diagnostic.sh
+
       - name: Compile
         if: needs.workflow_config.outputs.do_test_linux == 'true'
         run: gradle -q compileJava --no-daemon
@@ -168,6 +133,10 @@ jobs:
       - name: Test
         if: needs.workflow_config.outputs.do_test_linux == 'true'
         run: gradle test --no-daemon -i
+
+      - name: Test Summary
+        if: needs.workflow_config.outputs.do_test_linux == 'true' && always()
+        run: .github/scripts/test-summary.sh
 
       - name: Upload test reports
         uses: actions/upload-artifact@v7
@@ -177,6 +146,17 @@ jobs:
           name: ${{ github.run_number }}-${{ matrix.os }}-java-${{ matrix.java_version }}-test-reports
           path: build/reports/tests/
 
+      - name: Upload Vega test results
+        uses: actions/upload-artifact@v7
+        if: needs.workflow_config.outputs.do_test_linux == 'true' && always()
+        with:
+          name: vega-results
+          path: src/test/resources/vega/vega.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Add Gradle title to Summary
+        run: echo "## Gradle" >> $GITHUB_STEP_SUMMARY
 
   build_artifacts:
     needs: [ workflow_config ]
@@ -193,7 +173,7 @@ jobs:
           distribution: temurin
           cache: gradle
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6.1.0
 #      - name: Set version in gradle.properties
 #        if: env.POM_VERSION
 #        env:
@@ -279,7 +259,7 @@ jobs:
           distribution: temurin
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6.1.0
 
       - name: Download pre-built js-plantuml ZIP
         uses: actions/download-artifact@v8
@@ -322,7 +302,7 @@ jobs:
           cache: gradle
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6.1.0
 
       - name: Download Java 8 JAR (built by Ant)
         uses: actions/download-artifact@v8

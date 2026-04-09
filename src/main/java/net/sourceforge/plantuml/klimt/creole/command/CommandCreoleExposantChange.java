@@ -43,6 +43,7 @@ import com.plantuml.ubrex.UnicodeBracketedExpression;
 import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.FontPosition;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public class CommandCreoleExposantChange implements Command {
 
@@ -73,7 +74,8 @@ public class CommandCreoleExposantChange implements Command {
 		return value.get(0).length();
 	}
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe) {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe) {
 
 		final UMatcher matcher = ubrex.match(line);
 		final List<String> value = matcher.getCapture("V");

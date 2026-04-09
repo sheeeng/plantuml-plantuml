@@ -65,6 +65,9 @@ document {
   }
 }
 
+map {
+    HorizontalAlignment center
+}
 
 package {
   title {

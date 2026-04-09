@@ -39,9 +39,10 @@ import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public class CommandCreoleMonospaced implements Command {
-    // ::remove folder when __HAXE__
+	// ::remove folder when __HAXE__
 
 	@Override
 	public String startingChars() {
@@ -67,7 +68,8 @@ public class CommandCreoleMonospaced implements Command {
 		return m.group(1).length();
 	}
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe) {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe) {
 		final Matcher2 m = pattern.matcher(line);
 		if (m.find() == false)
 			throw new IllegalStateException();

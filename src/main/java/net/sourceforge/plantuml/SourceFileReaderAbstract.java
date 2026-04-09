@@ -60,6 +60,7 @@ import net.sourceforge.plantuml.cli.GlobalConfigKey;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.crash.CrashReportHandler;
 import net.sourceforge.plantuml.error.PSystemError;
+import net.sourceforge.plantuml.error.PSystemUnsupported;
 import net.sourceforge.plantuml.file.SuggestedFile;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.log.Logme;
@@ -69,8 +70,6 @@ import net.sourceforge.plantuml.security.SecurityUtils;
 import net.sourceforge.plantuml.utils.Log;
 
 public abstract class SourceFileReaderAbstract implements ISourceFileReader {
-	
-	// ::remove file when __HAXE__
 
 	final private File file;
 
@@ -110,7 +109,7 @@ public abstract class SourceFileReaderAbstract implements ISourceFileReader {
 		for (BlockUml blockUml : builder.getBlockUmls()) {
 			errorStatus.goesHasBlocks();
 			final Diagram system = blockUml.getDiagram();
-			if (system instanceof PSystemError)
+			if (system instanceof PSystemError || system instanceof PSystemUnsupported)
 				errorStatus.goesHasErrors();
 		}
 
@@ -124,9 +123,9 @@ public abstract class SourceFileReaderAbstract implements ISourceFileReader {
 		this.checkMetadata = checkMetadata;
 	}
 
-	public boolean hasError() {
+	public final boolean hasError() {
 		for (final BlockUml b : builder.getBlockUmls())
-			if (b.getDiagram() instanceof PSystemError)
+			if (b.getDiagram() instanceof PSystemError || b.getDiagram() instanceof PSystemUnsupported)
 				return true;
 		return false;
 	}
@@ -154,11 +153,12 @@ public abstract class SourceFileReaderAbstract implements ISourceFileReader {
 	}
 
 	private List<GeneratedImage> getCrashedImage(BlockUml blockUml, Throwable t, SFile outputFile) throws IOException {
-		final GeneratedImage image = new GeneratedImageImpl(outputFile, "Crash Error", blockUml, FileImageData.CRASH);
+		final GeneratedImage image = new GeneratedImageImpl(outputFile, "Crash Error", blockUml, FileImageData.CRASH,
+				t);
 		try (OutputStream os = outputFile.createBufferedOutputStream()) {
 			final String flash = blockUml.getFlashData();
 			final CrashReportHandler report = new CrashReportHandler(t, null, flash);
-			report.anErrorHasOccured(t, flash);
+			report.anErrorHasOccurred(t, flash);
 			report.youShouldSendThisDiagram();
 			report.addEmptyLine();
 			report.exportDiagramError(fileFormatOption, (long) 42, os);
@@ -193,12 +193,12 @@ public abstract class SourceFileReaderAbstract implements ISourceFileReader {
 				system = blockUml.getDiagram();
 
 				if (GlobalConfig.getInstance().boolValue(GlobalConfigKey.SILENTLY_COMPLETELY_IGNORE_ERRORS)
-						&& system instanceof PSystemError)
+						&& (system instanceof PSystemError || system instanceof PSystemUnsupported))
 					continue;
 
 				// GlobalConfig.getInstance().logData(SFile.fromFile(file), system);
 				final List<FileImageData> exportDiagrams;
-				if (noErrorImage && system instanceof PSystemError) {
+				if (noErrorImage && (system instanceof PSystemError || system instanceof PSystemUnsupported)) {
 					exportDiagrams = new ArrayList<FileImageData>();
 					exportDiagrams.add(
 							new FileImageData(null, new ImageDataSimple(new XDimension2D(0, 0), FileImageData.ERROR)));
@@ -212,7 +212,8 @@ public abstract class SourceFileReaderAbstract implements ISourceFileReader {
 					final String desc = "[" + file.getName() + "] " + system.getDescription();
 					final SFile f = fdata.getFile();
 					exportWarnOrErrIfWord(f, system);
-					final GeneratedImage generatedImage = new GeneratedImageImpl(f, desc, blockUml, fdata.getStatus());
+					final GeneratedImage generatedImage = new GeneratedImageImpl(f, desc, blockUml, fdata.getStatus(),
+							fdata.getRootCause());
 					result.add(generatedImage);
 				}
 

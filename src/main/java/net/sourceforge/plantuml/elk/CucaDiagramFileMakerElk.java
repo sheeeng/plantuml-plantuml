@@ -462,7 +462,7 @@ public class CucaDiagramFileMakerElk extends CucaDiagramFileMaker {
 		if (ent.getSvekImage() == null) {
 			final ISkinParam skinParam = diagram.getSkinParam();
 			if (skinParam.sameClassWidth())
-				System.err.println("NOT YET IMPLEMENED");
+				System.err.println("NOT YET IMPLEMENTED");
 
 			return GeneralImageBuilder.createEntityImageBlock(ent, diagram.isHideEmptyDescriptionForState(), diagram,
 					getBibliotekon(), null, diagram.getLinks());

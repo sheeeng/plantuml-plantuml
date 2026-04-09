@@ -44,7 +44,7 @@ import net.sourceforge.plantuml.project.core.Task;
 public class SentencePausesAbsoluteDate extends SentenceSimple<GanttDiagram> {
 
 	public SentencePausesAbsoluteDate() {
-		super(SubjectTask.ME, Verbs.pauses, Words.zeroOrMore(Words.THE, Words.ON, Words.AT, Words.FROM),
+		super(SubjectTask.ME, Verbs.pauses.getRegex(), Words.zeroOrMore(Words.THE, Words.ON, Words.AT, Words.FROM),
 				ComplementDate.any());
 	}
 

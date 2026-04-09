@@ -60,22 +60,22 @@ public class Jaws {
 	public static List<StringLocated> expandsJawsForPreprocessor(List<StringLocated> input) {
 		final List<StringLocated> output = new ArrayList<StringLocated>();
 		for (int i = 0; i < input.size(); i++) {
-			List<StringLocated> splitted = input.get(i).expandsJawsForPreprocessor();
-			StringLocated line = splitted.get(0);
-			if (splitted.size() == 2) {
+			List<StringLocated> split = input.get(i).expandsJawsForPreprocessor();
+			StringLocated line = split.get(0);
+			if (split.size() == 2) {
 				final int headerLength = line.length() + 3;
 				line = line.append(BLOCK_E1_INVISIBLE_QUOTE);
-				final MultilinesBloc bloc = new MultilinesBloc(headerLength, splitted.get(1).getString());
+				final MultilinesBloc block = new MultilinesBloc(headerLength, split.get(1).getString());
 				while (true) {
 					i++;
-					splitted = input.get(i).expandsJawsForPreprocessor();
-					bloc.add(splitted.get(0).getString());
-					if (splitted.size() == 2)
+					split = input.get(i).expandsJawsForPreprocessor();
+					block.add(split.get(0).getString());
+					if (split.size() == 2)
 						break;
 				}
-				line = line.append(bloc.getMerged());
+				line = line.append(block.getMerged());
 				line = line.append(BLOCK_E1_INVISIBLE_QUOTE);
-				line = line.append(splitted.get(1).getString());
+				line = line.append(split.get(1).getString());
 			}
 			output.add(line);
 		}

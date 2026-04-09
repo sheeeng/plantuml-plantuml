@@ -40,6 +40,7 @@ import java.time.YearMonth;
 
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.project.data.DayCalendarData;
@@ -104,6 +105,8 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 	}
 
 	private void drawYears(final UGraphic ug) {
+		final FontConfiguration fcMonth = getFontConfigurationSLOW(SName.month, true, openFontColor());
+
 		final double h1 = timelineStyle.getFontSizeYear();
 		YearMonth last = null;
 		double lastChange = -1;
@@ -113,7 +116,7 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 			if (last == null || wink.monthYear().getYear() != last.getYear()) {
 				drawVline(ug.apply(getLineColor()), x1, 0, h1 + 2);
 				if (last != null)
-					printYear(ug, last, lastChange, x1);
+					printYear(ug, last, lastChange, x1, fcMonth);
 
 				lastChange = x1;
 				last = wink.monthYear();
@@ -121,7 +124,7 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 		}
 		final double x1 = getTimeScale().getPosition(TimePoint.ofStartOfDay(getMaxDay().plusDays(1)));
 		if (x1 > lastChange)
-			printYear(ug, last, lastChange, x1);
+			printYear(ug, last, lastChange, x1, fcMonth);
 
 		final double end = x1;
 		drawVline(ug.apply(getLineColor()), end, 0, h1 + 2);
@@ -129,6 +132,9 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 
 	private void drawQuarters(UGraphic ug) {
 		final double h2 = timelineStyle.getFontSizeMonth();
+
+		final FontConfiguration fcDay = getFontConfigurationSLOW(SName.day, false, openFontColor());
+
 		String last = null;
 		double lastChange = -1;
 		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) < 0; day = day.plusDays(1)) {
@@ -137,7 +143,7 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 			if (quarter(wink).equals(last) == false) {
 				drawVline(ug.apply(getLineColor()), x1, 0, h2 + 2);
 				if (last != null)
-					printQuarter(ug, last, lastChange, x1);
+					printQuarter(ug, last, lastChange, x1, fcDay);
 
 				lastChange = x1;
 				last = quarter(wink);
@@ -145,7 +151,7 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 		}
 		final double x1 = getTimeScale().getPosition(TimePoint.ofStartOfDay(getMaxDay().plusDays(1)));
 		if (x1 > lastChange)
-			printQuarter(ug, last, lastChange, x1);
+			printQuarter(ug, last, lastChange, x1, fcDay);
 
 		final double end = x1;
 		drawVline(ug.apply(getLineColor()), end, 0, h2 + 2);
@@ -155,13 +161,13 @@ class TimeHeaderQuarterly extends TimeHeaderCalendar {
 		return "Q" + ((day.month().ordinal() + 3) / 3);
 	}
 
-	private void printYear(UGraphic ug, YearMonth monthYear, double start, double end) {
-		final TextBlock small = getTextBlock(SName.month, "" + monthYear.getYear(), true, openFontColor());
+	private void printYear(UGraphic ug, YearMonth monthYear, double start, double end, FontConfiguration fc) {
+		final TextBlock small = getTextBlockSLOW("" + monthYear.getYear(), fc);
 		printCentered(ug, false, start, end, small);
 	}
 
-	private void printQuarter(UGraphic ug, String quarter, double start, double end) {
-		final TextBlock small = getTextBlock(SName.day, quarter, false, openFontColor());
+	private void printQuarter(UGraphic ug, String quarter, double start, double end, FontConfiguration fc) {
+		final TextBlock small = getTextBlockSLOW(quarter, fc);
 		printCentered(ug, false, start, end, small);
 	}
 

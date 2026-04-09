@@ -50,7 +50,7 @@ class SvgSaxParserFontWeightTest {
 		final String svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 20\">"
 				+ text.toString()
 				+ "</svg>";
-		return new SvgSaxParser(Arrays.asList(svg));
+		return new SvgSaxParser(svg);
 	}
 
 	/** Draws the parser, captures the first UText argument passed to draw(), and returns its UFontFace. */

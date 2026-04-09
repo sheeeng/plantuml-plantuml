@@ -45,7 +45,7 @@ import net.sourceforge.plantuml.project.time.TimePoint;
 public class SentenceTaskStartsAbsolute extends SentenceSimple<GanttDiagram> {
 
 	public SentenceTaskStartsAbsolute() {
-		super(SubjectTask.ME, Verbs.starts, Words.zeroOrMore(Words.THE, Words.ON, Words.AT), ComplementDate.any());
+		super(SubjectTask.ME, Verbs.starts.getRegex(), Words.zeroOrMore(Words.THE, Words.ON, Words.AT), ComplementDate.any());
 	}
 
 	@Override

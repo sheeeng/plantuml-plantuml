@@ -51,6 +51,11 @@ public class NaturalCommand<D extends Diagram> extends SingleLineCommand2<D> {
 		super(sentence.toRegex());
 		this.sentence = sentence;
 	}
+	
+	@Override
+	public String toString() {
+		return sentence.toString();
+	}
 
 	@Override
 	final protected CommandExecutionResult executeArg(D system, LineLocation location, RegexResult arg,

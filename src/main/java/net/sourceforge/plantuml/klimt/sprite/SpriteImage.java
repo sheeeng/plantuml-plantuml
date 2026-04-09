@@ -55,6 +55,7 @@ import net.sourceforge.plantuml.security.SImageIO;
 import net.sourceforge.plantuml.svg.parser.ISvgSpriteParser;
 import net.sourceforge.plantuml.svg.parser.SvgSpriteParserFactory;
 import net.sourceforge.plantuml.teavm.TeaVM;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.utils.Log;
 
 public class SpriteImage implements Sprite {
@@ -73,6 +74,14 @@ public class SpriteImage implements Sprite {
 			public void drawU(UGraphic ug) {
 				final ColorMapper colorMapper = ug.getColorMapper();
 				final HColor usedColor = forcedColor == null ? fontColor : forcedColor;
+
+				if (TeaVM.isTeaVM()) {
+					// Under TeaVM, pixel data is not available for PNG-backed images,
+					// so muteColor/monochrome would produce a blank image.
+					// We draw the original image directly, like AtomImg does.
+					ug.draw(img.scale(scale));
+					return;
+				}
 
 				if (colorMapper == ColorMapper.MONOCHROME)
 					ug.draw(img.monochrome().scale(scale));

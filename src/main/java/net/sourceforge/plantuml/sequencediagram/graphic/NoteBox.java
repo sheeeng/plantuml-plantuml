@@ -127,9 +127,9 @@ final class NoteBox extends GraphicalElement implements InGroupable {
 		} else if (position == NotePosition.OVER) {
 			xStart = (int) (p1.getParticipantBox().getCenterX(stringBounder) - getPreferredWidth(stringBounder) / 2);
 		} else if (position == NotePosition.OVER_SEVERAL) {
-			final double centre = (p1.getParticipantBox().getCenterX(stringBounder)
+			final double center = (p1.getParticipantBox().getCenterX(stringBounder)
 					+ p2.getParticipantBox().getCenterX(stringBounder)) / 2.0;
-			xStart = (int) (centre - getPreferredWidth(stringBounder) / 2.0);
+			xStart = (int) (center - getPreferredWidth(stringBounder) / 2.0);
 		} else {
 			throw new IllegalStateException();
 		}

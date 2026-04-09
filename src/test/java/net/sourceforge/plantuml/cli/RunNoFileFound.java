@@ -87,6 +87,19 @@ class RunNoFileFound extends AbstractCliTest {
 
 	@Test
 	@StdIo
+	void test_unknown_diagram_type(StdErr err) throws Exception {
+		final Path file = tempDir.resolve("unknown_type.txt");
+		Files.writeString(file, "@startfoo\n@endfoo\n");
+
+		assertExit(ExitStatus.ERROR_200_SOME_DIAGRAMS_HAVE_ERROR, () -> {
+			Run.main(new String[] { file.toAbsolutePath().toString() });
+		});
+
+		assertLs("[unknown_type.png, unknown_type.txt]", tempDir);
+	}
+
+	@Test
+	@StdIo
 	void test_subdirectory_with_multiple_empty_files(StdErr err) throws Exception {
 		final Path subdir = tempDir.resolve("subdir_with_multiple_empty_files");
 		Files.createDirectory(subdir);

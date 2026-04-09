@@ -39,6 +39,7 @@ import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public class CommandCreoleSizeChange implements Command {
 
@@ -72,11 +73,12 @@ public class CommandCreoleSizeChange implements Command {
 		return m.group(2).length();
 	}
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe) {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe) {
 		final Matcher2 m = mypattern.matcher(line);
-		if (m.find() == false) {
+		if (m.find() == false) 
 			throw new IllegalStateException();
-		}
+		
 		final int size = Integer.parseInt(m.group(2));
 		final FontConfiguration fc1 = stripe.getActualFontConfiguration();
 		final FontConfiguration fc2 = fc1.changeSize(size);

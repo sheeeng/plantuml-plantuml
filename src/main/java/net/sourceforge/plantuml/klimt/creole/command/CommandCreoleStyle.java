@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.FontStyle;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public class CommandCreoleStyle implements Command {
 
@@ -89,7 +90,8 @@ public class CommandCreoleStyle implements Command {
 		return null;
 	}
 
-	public String executeAndGetRemaining(final String line, StripeSimple stripe) {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, final String line, StripeSimple stripe) {
 		final UMatcher matcher = ubrex.match(line);
 
 		final List<String> value = matcher.getCapture("V");

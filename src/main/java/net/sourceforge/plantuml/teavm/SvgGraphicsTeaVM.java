@@ -34,10 +34,16 @@
  */
 package net.sourceforge.plantuml.teavm;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.teavm.jso.JSBody;
 import org.teavm.jso.dom.html.HTMLDocument;
 import org.teavm.jso.dom.xml.Document;
 import org.teavm.jso.dom.xml.Element;
+
+import net.sourceforge.plantuml.klimt.UGroupType;
 
 /**
  * SVG Graphics implementation for TeaVM. Uses browser's native DOM API instead
@@ -53,21 +59,29 @@ public class SvgGraphicsTeaVM {
 	private final Element mainGroup;
 	private final Document document;
 
+	private final List<Element> groupStack = new ArrayList<Element>();
+
 	private String fillColor = "#000000";
 	private String strokeColor = "#000000";
 	private double strokeWidth = 1.0;
 	private double[] strokeDasharray = null;
 
-	public SvgGraphicsTeaVM(int width, int height) {
+	/**
+	 * Creates a new SVG graphics context for TeaVM rendering.
+	 *
+	 * <p>
+	 * The SVG root element is created without explicit {@code width},
+	 * {@code height}, or {@code viewBox} attributes. These are set later by
+	 * {@link #updateSvgSize(double, double, double)} once the actual diagram
+	 * dimensions and scale factor are known.
+	 */
+	public SvgGraphicsTeaVM() {
 		this.document = HTMLDocument.current();
 
 		// Create SVG root element
 		this.svgRoot = createSvgElement("svg");
 		svgRoot.setAttribute("xmlns", SVG_NS);
 		svgRoot.setAttribute("version", "1.1");
-		svgRoot.setAttribute("width", String.valueOf(width));
-		svgRoot.setAttribute("height", String.valueOf(height));
-		svgRoot.setAttribute("viewBox", "0 0 " + width + " " + height);
 
 		// Create defs for gradients, filters, etc.
 		this.defs = createSvgElement("defs");
@@ -76,6 +90,32 @@ public class SvgGraphicsTeaVM {
 		// Create main group for all drawings
 		this.mainGroup = createSvgElement("g");
 		svgRoot.appendChild(mainGroup);
+		groupStack.add(mainGroup);
+	}
+
+	private Element currentGroup() {
+		return groupStack.get(groupStack.size() - 1);
+	}
+
+	public void startGroup(Map<UGroupType, String> attrs) {
+		Element g = createSvgElement("g");
+		for (Map.Entry<UGroupType, String> entry : attrs.entrySet()) {
+			final UGroupType key = entry.getKey();
+			final String value = entry.getValue();
+			if (key == UGroupType.DATA_UID)
+				g.setAttribute("id", value);
+			else if (key == UGroupType.TITLE) {
+				// skip — no DOM title element in TeaVM SVG
+			} else if (key != UGroupType.ID)
+				g.setAttribute(key.getSvgKeyAttributeName(), value);
+		}
+		currentGroup().appendChild(g);
+		groupStack.add(g);
+	}
+
+	public void closeGroup() {
+		if (groupStack.size() > 1)
+			groupStack.remove(groupStack.size() - 1);
 	}
 
 	@JSBody(params = { "tagName" }, script = "return document.createElementNS('http://www.w3.org/2000/svg', tagName);")
@@ -83,6 +123,28 @@ public class SvgGraphicsTeaVM {
 
 	public Element getSvgRoot() {
 		return svgRoot;
+	}
+
+	/**
+	 * Updates the SVG root element dimensions to match the actual diagram content,
+	 * applying a scale factor.
+	 *
+	 * <p>
+	 * The {@code viewBox} is set to the logical (unscaled) dimensions, while
+	 * {@code width} and {@code height} are set to the scaled dimensions. This lets
+	 * the browser render the SVG at the desired display size while preserving the
+	 * internal coordinate system.
+	 *
+	 * @param width  the logical width of the diagram content
+	 * @param height the logical height of the diagram content
+	 * @param scale  the scale factor (1.0 = no scaling)
+	 */
+	public void updateSvgSize(double width, double height, double scale) {
+		final int w = (int) Math.ceil(width);
+		final int h = (int) Math.ceil(height);
+		svgRoot.setAttribute("viewBox", "0 0 " + w + " " + h);
+		svgRoot.setAttribute("width", format(w * scale));
+		svgRoot.setAttribute("height", format(h * scale));
 	}
 
 	public void setFillColor(String color) {
@@ -118,7 +180,7 @@ public class SvgGraphicsTeaVM {
 		if (ry > 0)
 			rect.setAttribute("ry", format(ry));
 		applyStyles(rect);
-		mainGroup.appendChild(rect);
+		currentGroup().appendChild(rect);
 	}
 
 	public void drawCircle(double cx, double cy, double r) {
@@ -127,7 +189,7 @@ public class SvgGraphicsTeaVM {
 		circle.setAttribute("cy", format(cy));
 		circle.setAttribute("r", format(r));
 		applyStyles(circle);
-		mainGroup.appendChild(circle);
+		currentGroup().appendChild(circle);
 	}
 
 	public void drawEllipse(double cx, double cy, double rx, double ry) {
@@ -137,7 +199,7 @@ public class SvgGraphicsTeaVM {
 		ellipse.setAttribute("rx", format(rx));
 		ellipse.setAttribute("ry", format(ry));
 		applyStyles(ellipse);
-		mainGroup.appendChild(ellipse);
+		currentGroup().appendChild(ellipse);
 	}
 
 	public void drawLine(double x1, double y1, double x2, double y2) {
@@ -147,7 +209,7 @@ public class SvgGraphicsTeaVM {
 		line.setAttribute("x2", format(x2));
 		line.setAttribute("y2", format(y2));
 		applyStrokeStyle(line);
-		mainGroup.appendChild(line);
+		currentGroup().appendChild(line);
 	}
 
 	public void drawPolyline(double... points) {
@@ -155,21 +217,21 @@ public class SvgGraphicsTeaVM {
 		polyline.setAttribute("points", formatPoints(points));
 		polyline.setAttribute("fill", "none");
 		applyStrokeStyle(polyline);
-		mainGroup.appendChild(polyline);
+		currentGroup().appendChild(polyline);
 	}
 
 	public void drawPolygon(double... points) {
 		Element polygon = createSvgElement("polygon");
 		polygon.setAttribute("points", formatPoints(points));
 		applyStyles(polygon);
-		mainGroup.appendChild(polygon);
+		currentGroup().appendChild(polygon);
 	}
 
 	public void drawPath(String pathData) {
 		Element path = createSvgElement("path");
 		path.setAttribute("d", pathData);
 		applyStyles(path);
-		mainGroup.appendChild(path);
+		currentGroup().appendChild(path);
 	}
 
 	public void drawText(String text, double x, double y, String fontFamily, int fontSize) {
@@ -178,6 +240,11 @@ public class SvgGraphicsTeaVM {
 
 	public void drawText(String text, double x, double y, String fontFamily, int fontSize, String fontWeight,
 			String fontStyle, String textDecoration, String backColor) {
+		drawText(text, x, y, fontFamily, fontSize, fontWeight, fontStyle, textDecoration, backColor, 0);
+	}
+
+	public void drawText(String text, double x, double y, String fontFamily, int fontSize, String fontWeight,
+			String fontStyle, String textDecoration, String backColor, int orientation) {
 		// Draw background rectangle if backColor is specified
 		if (backColor != null) {
 			double[] metrics = measureTextCanvas(text, fontFamily, fontSize,
@@ -191,7 +258,7 @@ public class SvgGraphicsTeaVM {
 			rect.setAttribute("height", format(height));
 			rect.setAttribute("fill", backColor);
 			rect.setAttribute("stroke", "none");
-			mainGroup.appendChild(rect);
+			currentGroup().appendChild(rect);
 		}
 
 		Element textElem = createSvgElement("text");
@@ -202,15 +269,15 @@ public class SvgGraphicsTeaVM {
 		// Preserve whitespace (multiple spaces, tabs, etc.)
 		textElem.setAttribute("xml:space", "preserve");
 		textElem.setAttribute("style", "white-space: pre");
-		if (fontWeight != null) {
+		if (fontWeight != null)
 			textElem.setAttribute("font-weight", fontWeight);
-		}
-		if (fontStyle != null) {
+
+		if (fontStyle != null)
 			textElem.setAttribute("font-style", fontStyle);
-		}
-		if (textDecoration != null) {
+
+		if (textDecoration != null)
 			textElem.setAttribute("text-decoration", textDecoration);
-		}
+
 		if (fontFamily != null) {
 			textElem.setAttribute("font-family", fontFamily);
 
@@ -220,13 +287,19 @@ public class SvgGraphicsTeaVM {
 			// fontFamily.equalsIgnoreCase("courier"))
 			// text = text.replace(' ', (char) 160);
 		}
+
+		if (orientation == 90)
+			textElem.setAttribute("transform", "rotate(-90 " + format(x) + " " + format(y) + ")");
+		else if (orientation == 270)
+			textElem.setAttribute("transform", "rotate(90 " + format(x) + " " + format(y) + ")");
+
 		textElem.setTextContent(text);
-		mainGroup.appendChild(textElem);
+		currentGroup().appendChild(textElem);
 	}
 
 	public Element createGroup() {
 		Element group = createSvgElement("g");
-		mainGroup.appendChild(group);
+		currentGroup().appendChild(group);
 		return group;
 	}
 
@@ -425,7 +498,7 @@ public class SvgGraphicsTeaVM {
 		// Center vertically (dominant-baseline: central centers on x-height)
 		textElem.setAttribute("dominant-baseline", "central");
 		textElem.setTextContent(String.valueOf(c));
-		mainGroup.appendChild(textElem);
+		currentGroup().appendChild(textElem);
 	}
 
 	// ========================================================================
@@ -452,7 +525,7 @@ public class SvgGraphicsTeaVM {
 		image.setAttribute("href", dataUrl);
 		// Also set xlink:href for older browser compatibility
 		setXlinkHref(image, dataUrl);
-		mainGroup.appendChild(image);
+		currentGroup().appendChild(image);
 	}
 
 	@JSBody(params = { "element",
@@ -487,7 +560,7 @@ public class SvgGraphicsTeaVM {
 		// Parse and insert the SVG content
 		insertSvgContent(wrapper, svg);
 
-		mainGroup.appendChild(wrapper);
+		currentGroup().appendChild(wrapper);
 	}
 
 	/**

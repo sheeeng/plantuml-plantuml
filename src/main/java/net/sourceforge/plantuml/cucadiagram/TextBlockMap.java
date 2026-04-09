@@ -70,10 +70,12 @@ public class TextBlockMap extends TextBlockMemoized implements WithPorts {
 	private final Map<TextBlock, TextBlock> blocksMap = new LinkedHashMap<>();
 	private final List<String> keys = new ArrayList<>();
 	private double totalWidth;
+	private final HorizontalAlignment horizontalAlignment;
 
 	public TextBlockMap(FontConfiguration fontConfiguration, ISkinParam skinParam, Map<String, String> map,
-			LineBreakStrategy wordWrap) {
+			LineBreakStrategy wordWrap, HorizontalAlignment horizontalAlignment) {
 		this.skinParam = skinParam;
+		this.horizontalAlignment = horizontalAlignment;
 		this.fontConfiguration = fontConfiguration;
 		for (Map.Entry<String, String> ent : map.entrySet()) {
 			String key = ent.getKey();
@@ -138,11 +140,12 @@ public class TextBlockMap extends TextBlockMemoized implements WithPorts {
 			final UGraphic ugline = ug.apply(UTranslate.dy(y));
 			ugline.draw(ULine.hline(trueWidth));
 			final double heightOfRow = getHeightOfRow(stringBounder, key, value);
+			final double keyWidth = key.calculateDimension(stringBounder).getWidth();
 			if (value instanceof Point) {
-				final double posColA = (trueWidth - key.calculateDimension(stringBounder).getWidth()) / 2;
+				final double posColA = horizontalAlignment.getPosition(keyWidth, trueWidth);
 				key.drawU(ugline.apply(UTranslate.dx(posColA)));
 			} else {
-				final double posColA = (widthColA - key.calculateDimension(stringBounder).getWidth()) / 2;
+				final double posColA = horizontalAlignment.getPosition(keyWidth, widthColA);
 				key.drawU(ugline.apply(UTranslate.dx(posColA)));
 				value.drawU(ugline.apply(UTranslate.dx(widthColA)));
 				ugline.apply(UTranslate.dx(widthColA)).draw(ULine.vline(heightOfRow));

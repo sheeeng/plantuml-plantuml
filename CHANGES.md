@@ -149,7 +149,7 @@
 - See directly on GitHub: [All GitHub Issues fixed or GitHub Pull Request accepted of the version](https://github.com/plantuml/plantuml/issues?q=milestone%3A1.2025.3)
 - [Javadoc improvement](https://plantuml.github.io/plantuml/javadoc)
 - [Jacoco improvement (Add Java Code Coverage Report)](https://plantuml.github.io/plantuml/jacoco)
-- [Activity - How to change colour on new Activity Diagram goto](https://forum.plantuml.net/17445/how-to-change-colour-on-new-activity-diagram-goto)
+- [Activity - How to change color on new Activity Diagram goto](https://forum.plantuml.net/17445/how-to-change-colour-on-new-activity-diagram-goto)
 - [Activity - How to draw send signal action and accept event action in activity diagram?](https://forum.plantuml.net/16558/draw-send-signal-action-accept-event-action-activity-diagram)
 - [DITAA has crashed](https://forum.plantuml.net/19704/ditaa-has-crashed)
 - [DITAA - empty lines seem to be ignored; this may result in additionally rendered boxes](https://forum.plantuml.net/19777/ditaa-empty-lines-ignored-result-additionally-rendered-boxes)
@@ -428,7 +428,7 @@
 - [Sequence diagram: Multi-level nested boxes overlaying each other](https://github.com/plantuml/plantuml/issues/1535)
 - [Using -cypher does not always recognize restricted words](https://forum.plantuml.net/18151/using-cypher-does-not-always-recognize-restricted-words)
 - [Verticals separators in gantt chart don't appear under certain conditions](https://forum.plantuml.net/17187/verticals-separators-gantt-chart-appear-certain-conditions?show=18171#c18171)
-- [namespace/package consolidation broke existing remove/restore behaviour when using namespace separators](https://github.com/plantuml/plantuml/issues/1515)
+- [namespace/package consolidation broke existing remove/restore behavior when using namespace separators](https://github.com/plantuml/plantuml/issues/1515)
 - [Last label on last elseif branch does not get rendered](https://forum.plantuml.net/18157/last-label-on-last-elseif-branch-does-not-get-rendered)
 - [no colored border on state start/end](https://forum.plantuml.net/18163/no-colored-border-on-state-start-end)
 - [Qualifier labels and associations' lines not correctly drawn for qualified associations](https://github.com/plantuml/plantuml/issues/1467)
@@ -909,7 +909,7 @@
 - [Bug Report: automatic text color will crash if participant body includes icon](https://forum.plantuml.net/13879/report-automatic-text-color-will-crash-participant-includes)
 - [Crash when using @startnwdiag](https://forum.plantuml.net/13837/crash-when-using-%40startnwdiag?show=13841#c13841)
 - [Missing arrowheads in sequence diagram](https://forum.plantuml.net/13843/missing-arrowheads-in-sequence-diagram?show=13846#c13846)
-- [An error has occured : java.lang.UnsupportedOperationException](https://forum.plantuml.net/13848/error-has-occured-java-lang-unsupportedoperationexception?show=13849)
+- [An error has occurred : java.lang.UnsupportedOperationException](https://forum.plantuml.net/13848/error-has-occured-java-lang-unsupportedoperationexception?show=13849)
 - [message to itself on left side?](https://forum.plantuml.net/1361/message-to-itself-on-left-side?show=13828#a13828)
 - [[Activity] Layout issue or java error, on end merge, with more than 2 fork](https://forum.plantuml.net/13731/activity-layout-issue-java-error-end-merge-with-more-than-fork)
 - [Getting UnsupportedOperation when adding stop and/or end to case](https://forum.plantuml.net/13824/getting-unsupportedoperation-when-adding-stop-and-end-case)
@@ -958,7 +958,7 @@
 - [The ability to customise the highlight for json/yaml](https://forum.plantuml.net/13288/the-ability-to-customise-the-highlight-for-json-yaml?show=13397#c13397)
 - [C4 and Archimate StdLib update](https://forum.plantuml.net/13415/function-containerdb-rendering-deployment-diagram-plantuml?show=13465#c13465)
 - [Could you allow MaximumWidth on style for note [test on activity]](https://forum.plantuml.net/13408/could-you-allow-maximumwidth-on-style-for-note-test-activity)
-- [Unsupported background colour for YAML parser](https://github.com/plantuml/plantuml/issues/503)
+- [Unsupported background color for YAML parser](https://github.com/plantuml/plantuml/issues/503)
 - [Crash when there is a missing label on timing diagram](https://forum.plantuml.net/13473/crash-when-there-is-a-missing-label-on-timing-diagram)
 - [Fix style for simple nested package](https://forum.plantuml.net/13261/accept-hexagon-on-style-deployment-diagram?show=13452#c13452)
 
@@ -1272,7 +1272,7 @@
 - [interface does not work when allow_mixing](https://forum.plantuml.net/10825/interface-or-does-not-work-when-allow_mixing)
 - [Font Style not working on title](https://forum.plantuml.net/10800/font-style-not-working-on-title)
 - [https://forum.plantuml.net/10761/latex-export-limitations](https://forum.plantuml.net/10761/latex-export-limitations)
-- [Repeat: Plus Colour](https://forum.plantuml.net/10676/repeat-plus-colour?show=10746#c10746)
+- [Repeat: Plus Color](https://forum.plantuml.net/10676/repeat-plus-colour?show=10746#c10746)
 - [Encountering java.lang.IllegalArgumentException](https://forum.plantuml.net/10664/encountering-java-lang-illegalargumentexception)
 
 ## V1.2020.0 (January 12, 2020)
@@ -1359,7 +1359,7 @@
 - [No text alignment skinparam for labels in state diagram](https://github.com/plantuml/plantuml/issues/210)
 - [Is it possible to add an hyperlink to an image](https://forum.plantuml.net/9671/is-it-possible-to-add-an-hyperlink-to-an-image)
 - ["hide empty description" in state diagram breaks sequence diagram](https://github.com/plantuml/plantuml/issues/212)
-- [Changed behaviour from Vers. 2019.5 to Vers. 2019.6](https://forum.plantuml.net/9880/changed-behaviour-from-vers-2019-5-to-vers-2019-6)
+- [Changed behavior from Vers. 2019.5 to Vers. 2019.6](https://forum.plantuml.net/9880/changed-behavior-from-vers-2019-5-to-vers-2019-6)
 - [Teoz group header overlaps note](https://forum.plantuml.net/9861/teoz-group-header-overlaps-note)
 - [Adding [dashed] style fails diagram generation](https://forum.plantuml.net/9845/adding-dashed-style-fails-diagram-generation)
 - [New Activity diagrams don't support function calls in else branch](https://github.com/plantuml/plantuml/issues/226)
@@ -1901,7 +1901,7 @@ have been renamed to generateImage
 
 - [Different colors on if and elseif](https://forum.plantuml.net/4916/different-colors-on-if-and-elseif)
 - [Activity beta --- Any way to put a text on arrow going to elseif node](https://forum.plantuml.net/4819/activity-beta-any-way-to-put-text-on-arrow-going-to-elseif-node)
-- [An error has occured while creating diagram with ports and separators](https://forum.plantuml.net/4909/error-occured-whilst-creating-diagram-with-ports-separators)
+- [An error has occurred while creating diagram with ports and separators](https://forum.plantuml.net/4909/error-occured-whilst-creating-diagram-with-ports-separators)
 - [Lifelines broken for txt seq diagrams when create is used](https://forum.plantuml.net/4826/lifelines-broken-for-txt-seq-diagrams-when-create-is-used)
 - [Skinparam LegendBorderThickness is missing](https://forum.plantuml.net/4941/skinparam-legendborderthickness-is-missing)
 - [Skinparam NoteBorderThickness seems not to work](https://forum.plantuml.net/4939/skinparam-noteborderthickness-seems-not-to-work)
@@ -1954,7 +1954,7 @@ have been renamed to generateImage
 
 - [newpage makes the actors go vertical](https://forum.plantuml.net/4580/newpage-makes-the-actors-go-vertical-why)
 - [Need a way to color and number different routes on an activity diagram](https://forum.plantuml.net/4411/need-way-color-and-number-different-routes-activity-diagram)
-- [Set colour of font to hide text in Sequence Diagram](https://forum.plantuml.net/4566/set-colour-of-font-to-%23hidden-hide-text-in-sequence-diagram)
+- [Set color of font to hide text in Sequence Diagram](https://forum.plantuml.net/4566/set-colour-of-font-to-%23hidden-hide-text-in-sequence-diagram)
 - [StackOverflowError](https://forum.plantuml.net/4563/stackoverflowerror)
 - [Syntax error causes 10x slower syntax checking and generation of image](https://forum.plantuml.net/4553/syntax-error-causes-slower-syntax-checking-generation-image)
 - [JDK 1.6.0.45 java.lang.IllegalArgumentException: Illegal pattern character u](https://forum.plantuml.net/4544/lang-illegalargumentexception-illegal-pattern-character)
@@ -2039,7 +2039,7 @@ have been renamed to generateImage
 - [How do I add link notes in sub states](https://forum.plantuml.net/3964/how-do-i-add-link-notes-in-sub-states)
 - [How to set font color inside controling elements in activity2 diagrams](https://forum.plantuml.net/3166/font-color-inside-controling-elements-activity2-diagrams)
 - [json content tooltip on sequence diagram](https://forum.plantuml.net/3945/json-content-tooltip-on-sequence-diagram)
-- [An error has occured java.lang.NullPointerException](https://forum.plantuml.net/3941/an-error-has-occured-java-lang-nullpointerexception)
+- [An error has occurred java.lang.NullPointerException](https://forum.plantuml.net/3941/an-error-has-occured-java-lang-nullpointerexception)
 
 ## V8032
 

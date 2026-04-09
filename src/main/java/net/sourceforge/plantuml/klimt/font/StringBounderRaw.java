@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.klimt.font;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.text.RichText;
 import net.sourceforge.plantuml.text.StyledString;
@@ -45,9 +46,16 @@ import net.sourceforge.plantuml.text.StyledString;
 public abstract class StringBounderRaw implements StringBounder {
 
 	private final FontRenderContext frc;
+	private final FileFormat fileFormat;
 
-	protected StringBounderRaw(FontRenderContext frc) {
+	protected StringBounderRaw(FontRenderContext frc, FileFormat fileFormat) {
 		this.frc = frc;
+		this.fileFormat = fileFormat;
+	}
+
+	@Override
+	public FileFormat getFileFormat() {
+		return fileFormat;
 	}
 
 	public final XDimension2D calculateDimension(UFont font, String text) {

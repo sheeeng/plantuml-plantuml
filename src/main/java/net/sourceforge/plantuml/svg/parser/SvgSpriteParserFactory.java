@@ -37,7 +37,11 @@ package net.sourceforge.plantuml.svg.parser;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.skin.Pragma;
 import net.sourceforge.plantuml.skin.PragmaKey;
 import net.sourceforge.plantuml.teavm.TeaVM;
@@ -45,8 +49,9 @@ import net.sourceforge.plantuml.teavm.TeaVM;
 /**
  * Factory for selecting an SVG sprite parser implementation.
  *
- * <p>Selection is based on the {@code svgparser} pragma when provided. The
- * default remains Nano unless explicitly set to {@code sax}.
+ * <p>
+ * Selection is based on the {@code svgparser} pragma when provided. The default
+ * remains Nano unless explicitly set to {@code sax}.
  */
 public final class SvgSpriteParserFactory {
 
@@ -60,54 +65,46 @@ public final class SvgSpriteParserFactory {
 	 * @return parser instance
 	 */
 	public static ISvgSpriteParser create(String svg) {
-		return create(Collections.singletonList(svg), null);
+		return create(Collections.singletonList(svg), null, null);
 	}
 
 	/**
-	 * Create a parser for multiple SVG sprite fragments using the default selection logic.
+	 * Create a parser for multiple SVG sprite fragments using pragma-based
+	 * selection.
 	 *
-	 * @param svg SVG fragments
-	 * @return parser instance
-	 */
-	public static ISvgSpriteParser create(List<String> svg) {
-		return create(svg, null);
-	}
-
-	/**
-	 * Create a parser for a single SVG sprite using pragma-based selection.
-	 *
-	 * @param svg SVG content
+	 * @param svg    SVG fragments
 	 * @param pragma diagram pragma (may be null)
 	 * @return parser instance
 	 */
-	public static ISvgSpriteParser create(String svg, Pragma pragma) {
-		return create(Collections.singletonList(svg), pragma);
-	}
-
-	/**
-	 * Create a parser for multiple SVG sprite fragments using pragma-based selection.
-	 *
-	 * @param svg SVG fragments
-	 * @param pragma diagram pragma (may be null)
-	 * @return parser instance
-	 */
-	public static ISvgSpriteParser create(List<String> svg, Pragma pragma) {
+	public static ISvgSpriteParser create(List<String> svg, Pragma pragma, Map<String, String> md5map) {
 		final String parser = getParserSelector(pragma);
+
+		final StringBuilder sb = new StringBuilder();
+		for (String s : svg) {
+			if (md5map != null && md5map.size() > 0)
+				for (Entry<String, String> ent : md5map.entrySet())
+					s = s.replace(UmlSource.BASE64_TAG_REPLACEMENT + ent.getKey(),
+							UmlSource.BASE64_TAG_START + ent.getValue());
+			sb.append(s);
+		}
+
 		// TeaVM does not provide javax.xml.parsers; this branch forces Nano and is
 		// evaluated at compile time, so TeaVM removes the unreachable JVM-only path
 		// from the generated JavaScript output and class stubs.
 		if (TeaVM.isTeaVM())
-			return new SvgNanoParser(svg);
+			return new SvgNanoParser(sb.toString());
 
-		if ("sax".equals(parser))
-			return new SvgSaxParser(svg);
+		if ("sax".equals(parser)) {
+			return new SvgSaxParser(sb.toString());
+		}
 
 		// Default parser: nano unless explicitly set to sax.
-		return new SvgNanoParser(svg);
+		return new SvgNanoParser(sb.toString());
 	}
 
 	/**
-	 * Resolve the parser selector value from the pragma, defaulting to {@code nano}.
+	 * Resolve the parser selector value from the pragma, defaulting to
+	 * {@code nano}.
 	 */
 	private static String getParserSelector(Pragma pragma) {
 		if (pragma != null && pragma.isDefine(PragmaKey.SVG_PARSER)) {

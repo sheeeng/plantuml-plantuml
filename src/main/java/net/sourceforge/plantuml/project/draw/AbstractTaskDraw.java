@@ -237,9 +237,4 @@ public abstract class AbstractTaskDraw implements TaskDraw {
 		getOpaleNote().drawU(ug);
 
 	}
-
-//	public ISkinParam getSkinParam() {
-//		return skinParam;
-//	}
-
 }

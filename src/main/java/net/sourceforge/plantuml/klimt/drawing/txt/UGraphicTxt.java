@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.asciiart.TranslatedCharArea;
 import net.sourceforge.plantuml.asciiart.UmlCharArea;
 import net.sourceforge.plantuml.asciiart.UmlCharAreaImpl;
@@ -71,8 +72,8 @@ public class UGraphicTxt extends AbstractCommonUGraphic implements ClipContainer
 		this.charArea = other.charArea;
 	}
 
-	public UGraphicTxt() {
-		super(new StringBounderDebug());
+	public UGraphicTxt(FileFormat fileFormat) {
+		super(new StringBounderDebug(fileFormat));
 		basicCopy(HColors.BLACK, ColorMapper.IDENTITY);
 		this.charArea = new UmlCharAreaImpl();
 	}

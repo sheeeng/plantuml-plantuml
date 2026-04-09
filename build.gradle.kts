@@ -82,6 +82,7 @@ repositories {
 teavm {
 	js {
 		mainClass.set("net.sourceforge.plantuml.teavm.browser.PlantUMLBrowser")
+		entryPointName.set("plantumlLoad")
 		obfuscated.set(true)
 		optimization.set(org.teavm.gradle.api.OptimizationLevel.BALANCED)
 		// obfuscated.set(false)
@@ -107,6 +108,9 @@ tasks.withType<Jar>().configureEach {
     from(runtimeClasspath) {
         exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA") // Avoid conflict on signature
     }
+
+    // Exclude TeaVM resources (JS stdlib, HTML demo pages) from the Java JAR
+    exclude("teavm/**")
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -209,6 +213,62 @@ tasks.test {
 	useJUnitPlatform()
 	testLogging.showStandardStreams = true
 	jvmArgs("-ea")
+	maxHeapSize = "1g"
+
+	doLast {
+		val vegaSummary = file("src/test/resources/vega/vega-summary.txt")
+		if (vegaSummary.exists()) {
+			println("")
+			println(vegaSummary.readText().trim())
+		}
+	}
+
+	val failedTests = mutableListOf<String>()
+	val skippedTests = mutableListOf<String>()
+
+	addTestListener(object : TestListener {
+		override fun beforeSuite(suite: TestDescriptor) {}
+		override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+			if (suite.parent == null) {
+				val passed = result.successfulTestCount
+				val failed = result.failedTestCount
+				val skipped = result.skippedTestCount
+				val total = result.testCount
+				println("\n===========================================")
+				println(" TEST SUMMARY")
+				println("===========================================")
+				println(" Total:    $total")
+				println(" Passed:   $passed")
+				println(" Failed:   $failed")
+				println(" Skipped:  $skipped")
+				println(" Result:   ${result.resultType}")
+				println("===========================================")
+				if (failedTests.isNotEmpty()) {
+					println(" Failed tests:")
+					for (name in failedTests)
+						println("   - $name")
+					println("===========================================")
+				}
+				if (skippedTests.isNotEmpty()) {
+					println(" Skipped tests:")
+					for (name in skippedTests)
+						println("   - $name")
+					println("===========================================")
+				}
+			}
+		}
+		override fun beforeTest(testDescriptor: TestDescriptor) {}
+		override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+			val label = if (testDescriptor.displayName != testDescriptor.name)
+				"${testDescriptor.className}.${testDescriptor.name} [${testDescriptor.displayName}]"
+			else
+				"${testDescriptor.className}.${testDescriptor.name}"
+			if (result.resultType == TestResult.ResultType.FAILURE)
+				failedTests.add(label)
+			if (result.resultType == TestResult.ResultType.SKIPPED)
+				skippedTests.add(label)
+		}
+	})
 }
 
 tasks.register<Test>("runIntermediateTest") {
@@ -216,9 +276,30 @@ tasks.register<Test>("runIntermediateTest") {
     group = "dev"
     useJUnitPlatform()
     jvmArgs("-ea")
+	testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
     filter {
         includeTestsMatching("IntermediateTest*")
     }
+}
+
+tasks.register<Test>("runVegaTest") {
+    description = "Runs the 'VegaTest'"
+    group = "dev"
+    useJUnitPlatform()
+    jvmArgs("-ea")
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    filter {
+        includeTestsMatching("VegaTest")
+    }
+	doLast {
+		val vegaSummary = file("src/test/resources/vega/vega-summary.txt")
+		if (vegaSummary.exists()) {
+			println("")
+			println(vegaSummary.readText().trim())
+		}
+	}
 }
 
 tasks.jacocoTestReport {
@@ -676,6 +757,79 @@ val filterSourcesWithBuildInfo by tasks.registering {
 		println("Injected version into ${targetFile.name}: $projectVersion")
 		println("Injected git.commit.id into ${targetFile.name}: $commitId")
 		println("Injected compile timestamp into ${targetFile.name}: $compileTs")
+
+		// 5) Transform non-ASCII chars in string literals so TeaVM emits correct JS.
+		// TeaVM misreads CONSTANT_Utf8 class file entries for non-ASCII chars, treating
+		// each UTF-8 byte as a separate Latin-1 char. Replacing "〶" with
+		// "" + (char)0x3016 + "" avoids CONSTANT_Utf8 entirely -- the value is computed
+		// at runtime via char arithmetic. Char literals (e.g. '〶') use integer constants
+		// in bytecode and are NOT affected, so they are left as-is.
+		fun transformNonAsciiInStringLiterals(source: String): String {
+			val sb = StringBuilder(source.length)
+			var i = 0
+			var inString = false
+			var inChar = false
+			var inLineComment = false
+			var inBlockComment = false
+			while (i < source.length) {
+				val c = source[i]
+				when {
+					inLineComment -> {
+						sb.append(c)
+						if (c == '\n') inLineComment = false
+					}
+					inBlockComment -> {
+						sb.append(c)
+						if (c == '*' && i + 1 < source.length && source[i + 1] == '/') {
+							sb.append('/')
+							i++
+							inBlockComment = false
+						}
+					}
+					inChar -> {
+						sb.append(c)
+						if (c == '\\' && i + 1 < source.length) {
+							i++
+							sb.append(source[i])
+						} else if (c == '\'') {
+							inChar = false
+						}
+					}
+					inString -> when {
+						c == '\\' && i + 1 < source.length -> {
+							sb.append(c); i++; sb.append(source[i])
+						}
+						c == '"' -> { sb.append(c); inString = false }
+						c.code > 127 -> sb.append("\" + String.valueOf((char)0x${c.code.toString(16).uppercase()}) + \"")
+						else -> sb.append(c)
+					}
+					else -> when {
+						c == '"' -> { sb.append(c); inString = true }
+						c == '\'' -> { sb.append(c); inChar = true }
+						c == '/' && i + 1 < source.length && source[i + 1] == '/' -> {
+							sb.append(c); inLineComment = true
+						}
+						c == '/' && i + 1 < source.length && source[i + 1] == '*' -> {
+							sb.append(c); inBlockComment = true
+						}
+						else -> sb.append(c)
+					}
+				}
+				i++
+			}
+			return sb.toString()
+		}
+
+		var transformedCount = 0
+		outDir.walkTopDown().filter { it.isFile && it.name.endsWith(".java") }.forEach { file ->
+			val original = file.readText(Charsets.UTF_8)
+			val transformed = transformNonAsciiInStringLiterals(original)
+			if (transformed != original) {
+				file.writeText(transformed, Charsets.UTF_8)
+				transformedCount++
+			}
+		}
+		println("Transformed non-ASCII string literals in $transformedCount file(s)")
 	}
 }
 
@@ -708,11 +862,9 @@ tasks.register("teavm") {
 	val outputDir = teavmJsOutputDir.get().asFile
 	
 	doLast {
-		// Copy the HTML template and all js files (without erasing existing files)
+		// Copy the HTML template and other resources (without erasing existing files)
 		copy {
-			from("src/main/resources/teavm") {
-				include("index.html", "*.js")
-			}
+			from("src/main/resources/teavm")
 			into(outputDir)
 		}
 
@@ -753,7 +905,7 @@ tasks.register<Zip>("teavmZip") {
 	
 	// Use lazy evaluation to ensure files are read after teavm task completes
 	from(teavmJsOutputDir) {
-		include("*.js", "*.html")
+		include("*.js", "*.html", "*.css", "*.svg", "*.ico")
 	}
 	
 	destinationDirectory.set(layout.buildDirectory.dir("libs"))
@@ -772,12 +924,11 @@ tasks.register<Zip>("teavmZip") {
 
 
 if (fastBuild) {
-    // 1) Skip tests
-    tasks.withType<Test>().configureEach {
-        enabled = false
-    }
+    // -Pfast: build only the GPL jar, skip everything else.
+    // Tests are NOT disabled here so that `./gradlew test -Pfast` still works
+    // (useful in CI to compile fast then run tests).
 
-    // 2) Skip javadoc (both generation and jar)
+    // 1) Skip javadoc (both generation and jar)
     tasks.withType<Javadoc>().configureEach {
         enabled = false
     }
@@ -788,17 +939,22 @@ if (fastBuild) {
         enabled = false
     }
 
-    // 3) Optional but consistent: skip jacoco in fast mode
+    // 2) Skip jacoco
     tasks.matching { it.name.startsWith("jacoco") }.configureEach {
         enabled = false
     }
 
-    // 4) Key point: build only produces the jar
+    // 3) Skip pdfJar
+    tasks.matching { it.name == "pdfJar" }.configureEach {
+        enabled = false
+    }
+
+    // 4) Key point: build only produces the GPL jar (no check, no pdfJar)
     tasks.named("build") {
         setDependsOn(listOf(tasks.named("jar")))
     }
 
-    // Optional: if someone runs "check" explicitly, skip it in fast mode
+    // 5) Skip check when invoked via build (tests can still be run explicitly)
     tasks.named("check") {
         enabled = false
     }

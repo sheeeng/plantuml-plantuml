@@ -93,7 +93,7 @@ class SecurityUtilsTest {
 	}
 
 	/**
-	 * Tests unsecure names.
+	 * Tests INSECURE names.
 	 *
 	 * @param name name of filepart
 	 */

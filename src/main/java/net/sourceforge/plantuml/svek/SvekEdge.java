@@ -669,7 +669,7 @@ public class SvekEdge extends XAbstractEdge implements XEdge, UDrawable {
 
 		final LinkType linkType = link.getType();
 
-		if (getLinkStrategy() == LinkStrategy.SIMPLIER) {
+		if (getLinkStrategy() == LinkStrategy.SIMPLEST) {
 			this.extremity1 = getExtremitySimplier(dotPath.getStartPoint(),
 					linkType.getDecor2().getExtremityFactoryComplete(backgroundColor),
 					dotPath.getStartAngle() + Math.PI, ltail, svekNode1, true, kal1);

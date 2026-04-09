@@ -73,7 +73,7 @@ public final class CucaDiagramTxtMaker {
 
 	// private final CucaDiagram diagram;
 	private final FileFormat fileFormat;
-	private final UGraphicTxt globalUg = new UGraphicTxt();
+	private final UGraphicTxt globalUg;
 	private final PortionShower portionShower;
 	private final Pragma pragma;
 
@@ -96,6 +96,7 @@ public final class CucaDiagramTxtMaker {
 			this.fileFormat = fileFormat;
 			this.portionShower = diagram;
 			this.pragma = diagram.getPragma();
+			this.globalUg = new UGraphicTxt(fileFormat);
 
 			final Cluster root = new Cluster(null, 0, 0);
 			int uid = 0;

@@ -70,7 +70,7 @@ public class SubjectSeparator implements Subject<GanttDiagram> {
 	class JustBefore extends SentenceSimple<GanttDiagram> {
 
 		public JustBefore() {
-			super(SubjectSeparator.this, Verbs.just, Words.exactly(Words.BEFORE), ComplementDate.any());
+			super(SubjectSeparator.this, Verbs.just.getRegex(), Words.exactly(Words.BEFORE), ComplementDate.any());
 		}
 
 		@Override
@@ -86,7 +86,7 @@ public class SubjectSeparator implements Subject<GanttDiagram> {
 	class JustAfter extends SentenceSimple<GanttDiagram> {
 
 		public JustAfter() {
-			super(SubjectSeparator.this, Verbs.just, Words.exactly(Words.AFTER), ComplementDate.any());
+			super(SubjectSeparator.this, Verbs.just.getRegex(), Words.exactly(Words.AFTER), ComplementDate.any());
 		}
 
 		@Override
@@ -102,7 +102,7 @@ public class SubjectSeparator implements Subject<GanttDiagram> {
 	class Just extends SentenceSimple<GanttDiagram> {
 
 		public Just() {
-			super(SubjectSeparator.this, Verbs.just, new ComplementBeforeOrAfterOrAtTaskStartOrEnd());
+			super(SubjectSeparator.this, Verbs.just.getRegex(), new ComplementBeforeOrAfterOrAtTaskStartOrEnd());
 		}
 
 		@Override

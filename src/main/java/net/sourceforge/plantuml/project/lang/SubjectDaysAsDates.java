@@ -144,7 +144,7 @@ public class SubjectDaysAsDates implements Subject<GanttDiagram> {
 	class Close extends SentenceSimple<GanttDiagram> {
 
 		public Close() {
-			super(SubjectDaysAsDates.this, Verbs.isOrAre, new ComplementClose());
+			super(SubjectDaysAsDates.this, Verbs.isOrAre.getRegex(), new ComplementClose());
 		}
 
 		@Override
@@ -160,7 +160,7 @@ public class SubjectDaysAsDates implements Subject<GanttDiagram> {
 	class Open extends SentenceSimple<GanttDiagram> {
 
 		public Open() {
-			super(SubjectDaysAsDates.this, Verbs.isOrAre, new ComplementOpen());
+			super(SubjectDaysAsDates.this, Verbs.isOrAre.getRegex(), new ComplementOpen());
 		}
 
 		@Override
@@ -177,7 +177,7 @@ public class SubjectDaysAsDates implements Subject<GanttDiagram> {
 	class InColor extends SentenceSimple<GanttDiagram> {
 
 		public InColor() {
-			super(SubjectDaysAsDates.this, Verbs.isOrAre, new ComplementInColors2());
+			super(SubjectDaysAsDates.this, Verbs.isOrAre.getRegex(), new ComplementInColors2());
 		}
 
 		@Override
@@ -195,7 +195,7 @@ public class SubjectDaysAsDates implements Subject<GanttDiagram> {
 	class Named extends SentenceSimple<GanttDiagram> {
 
 		public Named() {
-			super(SubjectDaysAsDates.this, Verbs.isOrAreNamed, new ComplementNamed());
+			super(SubjectDaysAsDates.this, Verbs.isOrAreNamed.getRegex(), new ComplementNamed());
 		}
 
 		@Override

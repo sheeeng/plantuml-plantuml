@@ -35,6 +35,12 @@
  */
 package net.sourceforge.plantuml.project.lang;
 
+import com.plantuml.ubrex.builder.UBrexConcat;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexOr;
+import com.plantuml.ubrex.builder.UBrexPart;
+import com.plantuml.ubrex.builder.UBrexZeroOrMore;
+
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
@@ -70,12 +76,33 @@ public class Words {
 		return new RegexRepeatedZeroOrMore(new RegexConcat(RegexLeaf.spaceOneOrMore(), or));
 	}
 
+	public static UBrexPart uzeroOrMore(String... words) {
+		final UBrexLeaf tmp[] = new UBrexLeaf[words.length];
+		for (int i = 0; i < words.length; i++)
+			tmp[i] = new UBrexLeaf(words[i]);
+
+		final UBrexOr or = new UBrexOr(tmp);
+		return new UBrexZeroOrMore(UBrexConcat.build(or, UBrexLeaf.spaceOneOrMore()));
+	}
+
+	public static UBrexPart uoneOf(String... words) {
+		final UBrexLeaf tmp[] = new UBrexLeaf[words.length];
+		for (int i = 0; i < words.length; i++)
+			tmp[i] = new UBrexLeaf(words[i]);
+
+		return new UBrexOr(tmp);
+	}
+
 	public static IRegex exactly(String... words) {
 		final IRegex tmp[] = new IRegex[words.length];
 		for (int i = 0; i < words.length; i++)
 			tmp[i] = new RegexConcat(RegexLeaf.spaceOneOrMore(), new RegexLeaf(words[i]));
 
 		return new RegexConcat(tmp);
+	}
+
+	public static UBrexPart usingle(String word) {
+		return new UBrexLeaf(word);
 	}
 
 	public static IRegex single(String word) {

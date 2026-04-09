@@ -3,6 +3,7 @@ package net.sourceforge.plantuml;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.awt.Color;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,8 +48,8 @@ class SkinParamTest {
 	@EnumSource(DiagramType.class)
 	public void testDefaultValues(DiagramType diagramType) {
 
-		final SkinParam skinParam = SkinParam.create(PathSystem.fetch(), diagramType, Pragma.createEmpty(),
-				ConfigurationStore.createEmpty());
+		final SkinParam skinParam = SkinParam.create(Collections.emptyMap(), PathSystem.fetch(), diagramType,
+				Pragma.createEmpty(), ConfigurationStore.createEmpty());
 		final Stereotype fooStereotype = Stereotype.build("<<foo>>");
 
 		assertThat(skinParam.actorStyle()).isEqualTo(ActorStyle.STICKMAN);
@@ -447,8 +448,8 @@ class SkinParamTest {
 	private SkinParam createSkinParam(String... keyValuePairs) {
 		// Using SEQUENCE here is an arbitrary decision that should not affect test
 		// outcome
-		final SkinParam skinParam = SkinParam.create(PathSystem.fetch(), DiagramType.SEQUENCE, Pragma.createEmpty(),
-				ConfigurationStore.createEmpty());
+		final SkinParam skinParam = SkinParam.create(Collections.emptyMap(), PathSystem.fetch(), DiagramType.SEQUENCE,
+				Pragma.createEmpty(), ConfigurationStore.createEmpty());
 		for (int i = 0; i < keyValuePairs.length; i += 2) {
 			skinParam.setParam(StringUtils.goLowerCase(keyValuePairs[i]), keyValuePairs[i + 1]);
 		}

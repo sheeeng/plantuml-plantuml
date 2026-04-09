@@ -153,15 +153,15 @@ public class CommandLinkActivity extends SingleLineCommand2<ActivityDiagram> {
 		final String arrowDirection = CommandLinkClass.notNull(arg.get("ARROW_DIRECTION", 0));
 
 		final String arrow = StringUtils.manageArrowForCuca(arrowBody1 + arrowDirection + arrowBody2 + ">");
-		int lenght = arrow.length() - 1;
+		int length = arrow.length() - 1;
 		if (arrowDirection.contains("*"))
-			lenght = 2;
+			length = 2;
 
 		LinkType type = new LinkType(LinkDecor.ARROW, LinkDecor.NONE);
 		if ((arrowBody1 + arrowBody2).contains("."))
 			type = type.goDotted();
 
-		final LinkArg linkArg = LinkArg.build(linkLabel, lenght, diagram.getSkinParam().classAttributeIconSize() > 0);
+		final LinkArg linkArg = LinkArg.build(linkLabel, length, diagram.getSkinParam().classAttributeIconSize() > 0);
 		Link link = new Link(location, diagram, diagram.getSkinParam().getCurrentStyleBuilder(), entity1, entity2, type,
 				linkArg);
 		if (arrowDirection.contains("*"))

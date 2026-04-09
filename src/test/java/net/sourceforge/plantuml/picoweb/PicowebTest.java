@@ -32,6 +32,8 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junitpioneer.jupiter.StdErr;
 import org.junitpioneer.jupiter.StdIo;
 
@@ -40,6 +42,7 @@ import net.sourceforge.plantuml.json.Json;
 import net.sourceforge.plantuml.json.JsonObject;
 import net.sourceforge.plantuml.log.Logme;
 
+@ResourceLock(value = "java.lang.System.err", mode = ResourceAccessMode.READ_WRITE)
 @DisabledOnOs(OS.WINDOWS)
 @Execution(ExecutionMode.SAME_THREAD)
 @Isolated
@@ -47,7 +50,7 @@ class PicowebTest {
 
 	private int port;
 	private HttpClient http;
-
+	private ServerSocket serverSocket;
 	private ExecutorService executor;
 
 	@BeforeEach
@@ -55,7 +58,7 @@ class PicowebTest {
 		GraphvizRuntimeEnvironment.getInstance().setDotExecutable("this_exe_do_not_exist");
 
 		PicoWebServer.enableStop = true;
-		final ServerSocket serverSocket = new ServerSocket(0, 0, InetAddress.getByName("localhost"));
+		serverSocket = new ServerSocket(0, 0, InetAddress.getByName("localhost"));
 		port = serverSocket.getLocalPort();
 
 		executor = Executors.newSingleThreadExecutor();
@@ -78,8 +81,9 @@ class PicowebTest {
 	void stopServer() throws Exception {
 		GraphvizRuntimeEnvironment.getInstance().setDotExecutable(null);
 
-		http_get("/stopserver");
+		serverSocket.close();
 		executor.shutdownNow();
+		executor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
 	}
 
 	@Test

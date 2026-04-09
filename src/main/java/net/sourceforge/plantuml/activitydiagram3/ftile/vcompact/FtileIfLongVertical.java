@@ -456,14 +456,14 @@ class FtileIfLongVertical extends AbstractFtile {
 		return new UTranslate(x, dimTotal.getHeight() - dimLast.getHeight());
 	}
 
-	private UTranslate getTranslate1(Ftile candidat, StringBounder stringBounder) {
-		final int idx = tiles.indexOf(candidat);
+	private UTranslate getTranslate1(Ftile candidate, StringBounder stringBounder) {
+		final int idx = tiles.indexOf(candidate);
 		if (idx == -1)
 			throw new IllegalArgumentException();
 
 		final double y1 = getTranslateDy(idx, stringBounder);
 		final FtileGeometry diam = diamonds.get(idx).calculateDimension(stringBounder);
-		final FtileGeometry dim1 = candidat.calculateDimension(stringBounder);
+		final FtileGeometry dim1 = candidate.calculateDimension(stringBounder);
 		final FtileGeometry dimTotal = calculateDimensionInternal(stringBounder);
 		final double allDiamondsWidth = allDiamondsWidth(stringBounder);
 		final double x = allDiamondsWidth + (dimTotal.getWidth() - allDiamondsWidth - dim1.getWidth()) / 2;

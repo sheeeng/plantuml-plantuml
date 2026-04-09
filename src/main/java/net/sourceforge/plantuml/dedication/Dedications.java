@@ -74,8 +74,8 @@ public class Dedications {
 		}
 	}
 
-	private static DedicationCrypted secret(int tiny, String sig, BigInteger pq) throws IOException {
-		return new DedicationCrypted(load(sig), tiny, sig, pq);
+	private static DedicationEncrypted secret(int tiny, String sig, BigInteger pq) throws IOException {
+		return new DedicationEncrypted(load(sig), tiny, sig, pq);
 	}
 
 	private static byte[] load(String name) throws IOException {

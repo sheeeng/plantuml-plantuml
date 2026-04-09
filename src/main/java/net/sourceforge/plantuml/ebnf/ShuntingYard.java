@@ -53,7 +53,7 @@ public class ShuntingYard {
 //			System.err.println("token=" + token);
 //			System.err.println("ouputQueue=" + ouputQueue);
 //			System.err.println("operatorStack=" + operatorStack);
-			if (token.getSymbol() == Symbol.LITTERAL || token.getSymbol() == Symbol.TERMINAL_STRING1
+			if (token.getSymbol() == Symbol.LITERAL || token.getSymbol() == Symbol.TERMINAL_STRING1
 					|| token.getSymbol() == Symbol.TERMINAL_STRING2 || token.getSymbol() == Symbol.SPECIAL_SEQUENCE) {
 				ouputQueue.add(token);
 				while (thereIsAnCommentOnTopOfTheOperatorStack())

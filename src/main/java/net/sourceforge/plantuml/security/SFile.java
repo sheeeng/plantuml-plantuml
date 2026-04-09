@@ -207,7 +207,7 @@ public class SFile implements Comparable<SFile>, InputFile {
 	}
 
 	public String getPrintablePath() {
-		if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE) {
+		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE) {
 			try {
 				return internal.getCanonicalPath();
 			} catch (IOException e) {
@@ -273,8 +273,8 @@ public class SFile implements Comparable<SFile>, InputFile {
 		if (SecurityUtils.getSecurityProfile() == SecurityProfile.ALLOWLIST)
 			return false;
 
-		if (SecurityUtils.getSecurityProfile() != SecurityProfile.UNSECURE) {
-			// For UNSECURE, we did not do those checks
+		if (SecurityUtils.getSecurityProfile() != SecurityProfile.INSECURE) {
+			// For INSECURE, we did not do those checks
 			final String path = getCleanPathSecure();
 			if (path.startsWith("/etc/") || path.startsWith("/dev/") || path.startsWith("/boot/")
 					|| path.startsWith("/proc/") || path.startsWith("/sys/"))

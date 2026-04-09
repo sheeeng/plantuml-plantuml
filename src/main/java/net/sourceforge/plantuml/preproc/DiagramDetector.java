@@ -102,7 +102,7 @@ public class DiagramDetector {
 		try {
 			StringLocated s = null;
 			while ((s = r.readLine()) != null)
-				if (StartUtils.isArobaseStartDiagram(s.getString()))
+				if (StartUtils.isStartDirective(s.getString()))
 					return true;
 
 		} finally {

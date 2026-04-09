@@ -255,7 +255,7 @@ public class SmetanaEdge extends XAbstractEdge implements XEdge, UDrawable {
 		try {
 			final Extremity extremity2 = (Extremity) extremityFactory2.createUDrawable(p0, startAngle, null);
 			if (extremity2 != null) {
-				if (getLinkStrategy() == LinkStrategy.SIMPLIER) {
+				if (getLinkStrategy() == LinkStrategy.SIMPLEST) {
 					final double decorationLength = extremity2.getDecorationLength();
 					dotPath.moveStartPoint(new UTranslate(decorationLength, 0).rotate(startAngle - Math.PI));
 				}
@@ -280,7 +280,7 @@ public class SmetanaEdge extends XAbstractEdge implements XEdge, UDrawable {
 		try {
 			final Extremity extremity1 = (Extremity) extremityFactory1.createUDrawable(p0, endAngle, null);
 			if (extremity1 != null) {
-				if (getLinkStrategy() == LinkStrategy.SIMPLIER) {
+				if (getLinkStrategy() == LinkStrategy.SIMPLEST) {
 					final double decorationLength = extremity1.getDecorationLength();
 					dotPath.moveEndPoint(new UTranslate(decorationLength, 0).rotate(endAngle - Math.PI));
 				}

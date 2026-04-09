@@ -35,6 +35,13 @@
  */
 package net.sourceforge.plantuml.project.lang;
 
+import com.plantuml.ubrex.UMatcher;
+import com.plantuml.ubrex.builder.UBrexConcat;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexNamed;
+import com.plantuml.ubrex.builder.UBrexOptional;
+import com.plantuml.ubrex.builder.UBrexPart;
+
 import net.sourceforge.plantuml.project.Failable;
 import net.sourceforge.plantuml.project.GanttDiagram;
 import net.sourceforge.plantuml.regex.IRegex;
@@ -45,6 +52,26 @@ public class ComplementClose implements Something<GanttDiagram> {
 
 	public IRegex toRegex(String suffix) {
 		return new RegexLeaf(2, "CLOSED" + suffix, "(closed?(?: for " + SubjectTask.REGEX_TASK_CODE + ")?)");
+	}
+
+	@Override
+	public UBrexPart toUnicodeBracketedExpressionComplement() {
+		return new UBrexNamed("CLOSED", //
+				UBrexConcat.build( //
+						new UBrexLeaf("close〇?d"), //
+						new UBrexOptional(new UBrexLeaf("∙for∙" + SubjectTask.UBREX_TASK_CODE))));
+	}
+
+	@Override
+	public Failable<? extends Object> ugetMe(GanttDiagram diagram, UMatcher arg) {
+		final String value = arg.getCapture("CLOSED").get(0);
+		final int x = value.indexOf('[');
+		if (x > 0) {
+			final int y = value.lastIndexOf(']');
+			final String s = value.substring(x + 1, y);
+			return Failable.ok(s);
+		}
+		return Failable.ok("");
 	}
 
 	public Failable<String> getMe(GanttDiagram project, RegexResult arg, String suffix) {

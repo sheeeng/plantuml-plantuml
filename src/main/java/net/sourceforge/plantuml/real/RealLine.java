@@ -110,7 +110,7 @@ class RealLine {
 			cpt++;
 			if (cpt > 99999) {
 				printCounter(counter);
-				throw new IllegalStateException("Inifinite Loop?");
+				throw new IllegalStateException("Infinite Loop?");
 			}
 		} while (true);
 

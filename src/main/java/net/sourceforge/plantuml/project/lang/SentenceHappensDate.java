@@ -46,7 +46,7 @@ import net.sourceforge.plantuml.project.time.TimePoint;
 public class SentenceHappensDate extends SentenceSimple<GanttDiagram> {
 
 	public SentenceHappensDate() {
-		super(SubjectTask.ME, Verbs.happens, Words.zeroOrMore(Words.THE, Words.ON, Words.AT), ComplementDate.any());
+		super(SubjectTask.ME, Verbs.happens.getRegex(), Words.zeroOrMore(Words.THE, Words.ON, Words.AT), ComplementDate.any());
 	}
 
 	@Override

@@ -366,24 +366,6 @@ TEXT:
 
 PATH:
    - type: SEG_MOVETO
-     pt1: [ 0.0000 ; 0.0000 ]
-   - type: SEG_LINETO
-     pt1: [ 0.0000 ; 23.0000 ]
-   - type: SEG_LINETO
-     pt1: [ 439.0000 ; 23.0000 ]
-   - type: SEG_LINETO
-     pt1: [ 439.0000 ; 10.0000 ]
-   - type: SEG_LINETO
-     pt1: [ 429.0000 ; 0.0000 ]
-   - type: SEG_LINETO
-     pt1: [ 0.0000 ; 0.0000 ]
-  stroke: 0.0-0.0-1.0
-  shadow: 4
-  color: ffa80036
-  backcolor: fffbfb77
-
-PATH:
-   - type: SEG_MOVETO
      pt1: [ 429.0000 ; 0.0000 ]
    - type: SEG_LINETO
      pt1: [ 429.0000 ; 10.0000 ]

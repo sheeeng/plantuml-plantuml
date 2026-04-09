@@ -44,7 +44,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.klimt.ClipContainer;
+import net.sourceforge.plantuml.klimt.UClip;
 import net.sourceforge.plantuml.klimt.UPath;
 import net.sourceforge.plantuml.klimt.UShape;
 import net.sourceforge.plantuml.klimt.awt.XColor;
@@ -100,7 +102,7 @@ public class UGraphicDebug extends AbstractCommonUGraphic implements ClipContain
 
 	public UGraphicDebug(double scaleFactor, XDimension2D dim, String svgLinkTarget, String hoverPathColorRGB,
 			long seed, String preserveAspectRatio) {
-		super(new StringBounderDebug());
+		super(new StringBounderDebug(FileFormat.DEBUG));
 		basicCopy(HColors.WHITE, ColorMapper.IDENTITY);
 		this.output = new ArrayList<>();
 		this.scaleFactor = scaleFactor;
@@ -112,6 +114,9 @@ public class UGraphicDebug extends AbstractCommonUGraphic implements ClipContain
 	}
 
 	public void draw(UShape shape) {
+		if (isOutOfClip(shape))
+			return;
+
 		if (shape instanceof ULine) {
 			outLine((ULine) shape);
 		} else if (shape instanceof URectangle) {
@@ -136,6 +141,39 @@ public class UGraphicDebug extends AbstractCommonUGraphic implements ClipContain
 			System.err.println("UGraphicDebug " + shape.getClass().getSimpleName());
 			output.add("UGraphicDebug " + shape.getClass().getSimpleName() + " " + new Date());
 		}
+	}
+
+	private boolean isOutOfClip(UShape shape) {
+		final UClip clip = getClip();
+		if (clip == null)
+			return false;
+
+		if (shape instanceof URectangle) {
+			final URectangle rect = (URectangle) shape;
+			return clip.isInside(getTranslateX(), getTranslateY()) == false
+					&& clip.isInside(getTranslateX() + rect.getWidth(), getTranslateY() + rect.getHeight()) == false;
+		}
+		if (shape instanceof UEllipse) {
+			final UEllipse ell = (UEllipse) shape;
+			return clip.isInside(getTranslateX(), getTranslateY()) == false
+					&& clip.isInside(getTranslateX() + ell.getWidth(), getTranslateY() + ell.getHeight()) == false;
+		}
+		if (shape instanceof ULine) {
+			final ULine line = (ULine) shape;
+			return clip.isInside(getTranslateX(), getTranslateY()) == false
+					&& clip.isInside(getTranslateX() + line.getDX(), getTranslateY() + line.getDY()) == false;
+		}
+		if (shape instanceof UText) {
+			final UText text = (UText) shape;
+			final XDimension2D textDim = getStringBounder().calculateDimension(text.getFontConfiguration().getFont(),
+					text.getText());
+			return clip.isInside(getTranslateX(), getTranslateY()) == false && clip
+					.isInside(getTranslateX() + textDim.getWidth(), getTranslateY() - textDim.getHeight()) == false;
+		}
+		if (shape instanceof UPath) {
+			return clip.isInside(getTranslateX(), getTranslateY(), (UPath) shape) == false;
+		}
+		return false;
 	}
 
 	private void outCenteredCharacter(UCenteredCharacter shape) {

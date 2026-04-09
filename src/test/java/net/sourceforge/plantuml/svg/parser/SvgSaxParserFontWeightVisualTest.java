@@ -87,7 +87,6 @@ public class SvgSaxParserFontWeightVisualTest {
 	void multiWeightFonts_noRenderError() throws IOException {
 		final String svg = renderSvg("svgFontWeightMultiWeight.puml");
 		assertThat(svg).doesNotContain("An error has occurred");
-		assertThat(svg).doesNotContain("An error has occured");
 	}
 
 	@Test
@@ -147,7 +146,6 @@ public class SvgSaxParserFontWeightVisualTest {
 	void standardFonts_noRenderError() throws IOException {
 		final String svg = renderSvg("svgFontWeightStandardFonts.puml");
 		assertThat(svg).doesNotContain("An error has occurred");
-		assertThat(svg).doesNotContain("An error has occured");
 	}
 
 	@Test

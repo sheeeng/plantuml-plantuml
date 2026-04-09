@@ -3,7 +3,7 @@
 rootProject.name = "plantuml"
 
 val isCiBuild = System.getenv("CI") != null || settings.providers.gradleProperty("ci").isPresent
-val isDevTest = System.getenv("DEV_TEST") != null
+val isGPLOnly = System.getenv("GPL_ONLY") != null
 val version: String by settings
 
 println("Running settings.gradle.kts")
@@ -13,7 +13,11 @@ println("Version is " + version)
 val javaVersion = JavaVersion.current()
 println("Current Java version is " + javaVersion)
 
-if (isCiBuild && !isDevTest) {
+val fastBuild = settings.providers.gradleProperty("fast").isPresent
+
+if (fastBuild) {
+    println("-Pfast: only GPL will be built (skipping licence subprojects)")
+} else if (isCiBuild && !isGPLOnly) {
     include("plantuml-asl")
     include("plantuml-bsd")
     include("plantuml-epl")

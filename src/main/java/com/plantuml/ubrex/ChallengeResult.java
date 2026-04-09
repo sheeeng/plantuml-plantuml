@@ -87,6 +87,11 @@ public class ChallengeResult {
 	}
 
 
+	public List<String> getRootKeys() {
+		return capture.getRootKeys();
+	}
+
+
 	public Capture getCapture() {
 		return capture;
 	}

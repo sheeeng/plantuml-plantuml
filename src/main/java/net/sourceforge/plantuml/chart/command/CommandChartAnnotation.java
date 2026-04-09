@@ -59,6 +59,7 @@ public class CommandChartAnnotation extends SingleLineCommand2<ChartDiagram> {
 
 	static IRegex getRegexConcat() {
 		return RegexConcat.build(CommandChartAnnotation.class.getName(), RegexLeaf.start(), //
+				RegexLeaf.spaceZeroOrMore(), //
 				new RegexLeaf("annotation"), //
 				RegexLeaf.spaceOneOrMore(), //
 				new RegexLeaf(1, "TEXT", "\"([^\"]+)\""), //
@@ -76,6 +77,7 @@ public class CommandChartAnnotation extends SingleLineCommand2<ChartDiagram> {
 				new RegexLeaf("\\)"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional(new RegexLeaf(1, "ARROW", "<<(arrow)>>")), //
+				RegexLeaf.spaceZeroOrMore(), //
 				RegexLeaf.end());
 	}
 
@@ -85,7 +87,7 @@ public class CommandChartAnnotation extends SingleLineCommand2<ChartDiagram> {
 		final String text = arg.get("TEXT", 0);
 		final String xPosStr = arg.get("XPOS", 0).trim();
 		final String yPosStr = arg.get("YPOS", 0).trim();
-		final String arrowStr = arg.getLazzy("ARROW", 0);
+		final String arrowStr = arg.get("ARROW", 0);
 
 		// Parse X position - can be either a string (categorical) or numeric
 		Object xPosition;

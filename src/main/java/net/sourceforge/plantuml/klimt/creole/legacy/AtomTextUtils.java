@@ -127,7 +127,7 @@ public class AtomTextUtils {
 				}
 			} else if (valImg != null) {
 				final double scale = Parser.getScale(m.group(8), 1);
-				result.add(AtomImg.create(valImg, ImgValign.TOP, 0, scale, url));
+				result.add(AtomImg.create(skinSimple, valImg, ImgValign.TOP, 0, scale, url));
 
 			}
 		}

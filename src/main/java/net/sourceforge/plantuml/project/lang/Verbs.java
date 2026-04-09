@@ -35,30 +35,60 @@
  */
 package net.sourceforge.plantuml.project.lang;
 
-import net.sourceforge.plantuml.regex.IRegex;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexNamed;
+import com.plantuml.ubrex.builder.UBrexPart;
+
 import net.sourceforge.plantuml.regex.RegexLeaf;
 
 public class Verbs {
 
-	public static IRegex are = new RegexLeaf("are");
-	public static IRegex areColored = new RegexLeaf("are[%s]+colou?red");
-	public static IRegex displayOnSameRowAs = new RegexLeaf("displays?[%s]+on[%s]+same[%s]+row[%s]+as");
-	public static IRegex ends = new RegexLeaf("ends");
-	public static IRegex happens = new RegexLeaf("happens");
-	public static IRegex is = new RegexLeaf("is");
-	public static IRegex isColored = new RegexLeaf("is[%s]+colou?red");
-	public static IRegex isDeleted = new RegexLeaf("is[%s]+deleted");
-	public static IRegex isDisplayedAs = new RegexLeaf("is[%s]+displayed[%s]+as");
-	public static IRegex isOff = new RegexLeaf("is[%s]+off");
-	public static IRegex isOn = new RegexLeaf("is[%s]+on");
-	public static IRegex isOrAre = new RegexLeaf(1, "(is|are)");
-	public static IRegex isOrAreNamed = new RegexLeaf(1, "(is|are)[%s]+named");
-	public static IRegex just = new RegexLeaf("just");
-	public static IRegex linksTo = new RegexLeaf("links[%s]+to");
-	public static IRegex occurs = new RegexLeaf("occurs");
-	public static IRegex pauses = new RegexLeaf("pauses");
-	public static IRegex requires = new RegexLeaf(1, "(lasts|requires)");
-	public static IRegex starts = new RegexLeaf("starts");
-	public static IRegex worksOn = new RegexLeaf("works[%s]+on");
+	private final RegexLeaf regex;
+	private final UBrexPart ubrex;
+
+	public UBrexPart toUnicodeBracketedExpression() {
+		return ubrex;
+	}
+
+	public RegexLeaf getRegex() {
+		return regex;
+	}
+
+	@Override
+	public String toString() {
+		return regex.getPatternAsString();
+	}
+
+	public Verbs(RegexLeaf regex) {
+		this.regex = regex;
+		this.ubrex = null;
+	}
+
+	public Verbs(RegexLeaf regex, String name, UBrexLeaf ubrex) {
+		this.regex = regex;
+		this.ubrex = new UBrexNamed("V_" + name, ubrex);
+	}
+
+	public static Verbs are = new Verbs(new RegexLeaf("are"), "are", new UBrexLeaf("are"));
+	public static Verbs areColored = new Verbs(new RegexLeaf("are[%s]+colou?red"));
+	public static Verbs displayOnSameRowAs = new Verbs(new RegexLeaf("displays?[%s]+on[%s]+same[%s]+row[%s]+as"));
+	public static Verbs ends = new Verbs(new RegexLeaf("ends"), "ends", new UBrexLeaf("ends"));
+	public static Verbs happens = new Verbs(new RegexLeaf("happens"), "happens", new UBrexLeaf("happens"));
+	public static Verbs is = new Verbs(new RegexLeaf("is"), "is", new UBrexLeaf("is"));
+	public static Verbs isColored = new Verbs(new RegexLeaf("is[%s]+colou?red"));
+	public static Verbs isDeleted = new Verbs(new RegexLeaf("is[%s]+deleted"));
+	public static Verbs isDisplayedAs = new Verbs(new RegexLeaf("is[%s]+displayed[%s]+as"));
+	public static Verbs isOff = new Verbs(new RegexLeaf("is[%s]+off"));
+	public static Verbs isOn = new Verbs(new RegexLeaf("is[%s]+on"));
+	public static Verbs isOrAre = new Verbs(new RegexLeaf(1, "(is|are)"), "isOrAre", new UBrexLeaf("【is┇are】"));
+	public static Verbs isOrAreNamed = new Verbs(new RegexLeaf(1, "(is|are)[%s]+named"));
+	public static Verbs just = new Verbs(new RegexLeaf("just"), "", new UBrexLeaf("just"));
+	public static Verbs linksTo = new Verbs(new RegexLeaf("links[%s]+to"));
+	public static Verbs occurs = new Verbs(new RegexLeaf("occurs"), "occurs", new UBrexLeaf("occurs"));
+	public static Verbs pauses = new Verbs(new RegexLeaf("pauses"), "pauses", new UBrexLeaf("pauses"));
+	public static Verbs requires = new Verbs(new RegexLeaf(1, "(lasts|requires)"), "requires",
+			new UBrexLeaf("【lasts┇requires】"));
+	public static Verbs starts = new Verbs(new RegexLeaf("starts"), "starts", new UBrexLeaf("starts"));
+	public static Verbs worksOn = new Verbs(new RegexLeaf("works[%s]+on"));
 
 }

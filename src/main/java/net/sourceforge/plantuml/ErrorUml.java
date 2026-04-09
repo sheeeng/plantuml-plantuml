@@ -41,7 +41,6 @@ import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.utils.LineLocation;
 
 public class ErrorUml {
-	// ::remove file when __HAXE__
 
 	private final String error;
 	private final ErrorUmlType errorType;

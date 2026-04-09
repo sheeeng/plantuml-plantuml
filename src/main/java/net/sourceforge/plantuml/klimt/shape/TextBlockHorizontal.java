@@ -80,12 +80,14 @@ public class TextBlockHorizontal extends TextBlockMemoized {
 		final XDimension2D dimtotal = calculateDimension(ug.getStringBounder());
 		for (TextBlock block : blocks) {
 			final XDimension2D dimb = block.calculateDimension(ug.getStringBounder());
-			if (alignment == VerticalAlignment.CENTER) {
-				final double dy = (dimtotal.getHeight() - dimb.getHeight()) / 2;
-				block.drawU(ug.apply(new UTranslate(x, dy)));
-			} else {
-				block.drawU(ug.apply(UTranslate.dx(x)));
-			}
+			final double dy;
+			if (alignment == VerticalAlignment.CENTER)
+				dy = (dimtotal.getHeight() - dimb.getHeight()) / 2;
+			else if (alignment == VerticalAlignment.BOTTOM)
+				dy = dimtotal.getHeight() - dimb.getHeight();
+			else
+				dy = 0;
+			block.drawU(ug.apply(new UTranslate(x, dy)));
 			x += dimb.getWidth();
 		}
 	}

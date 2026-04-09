@@ -51,6 +51,7 @@ import net.sourceforge.plantuml.braille.UGraphicBraille;
 import net.sourceforge.plantuml.cli.GlobalConfig;
 import net.sourceforge.plantuml.cli.GlobalConfigKey;
 import net.sourceforge.plantuml.klimt.drawing.debug.StringBounderDebug;
+import net.sourceforge.plantuml.klimt.drawing.debug.StringBounderFixed;
 import net.sourceforge.plantuml.klimt.drawing.svg.SvgGraphics;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.StringBounderRaw;
@@ -89,6 +90,7 @@ public enum FileFormat {
 	VDX("vdx", "application/vnd.visio.xml"), //
 	LATEX("eps", "application/x-latex"), //
 	LATEX_NO_PREAMBLE("eps-no-preamble", "application/x-latex"), //
+	LATEX_FIXED("eps", "application/x-latex"), //
 	BASE64("base64", "text/plain; charset=x-user-defined"), //
 	BRAILLE_PNG("braille-png", "image/png"), //
 	OBFUSCATE("obfuscate", "text/plain"), //
@@ -98,6 +100,7 @@ public enum FileFormat {
 	PNG("png", "image/png"), //
 	PNG_EMPTY("png-empty", "image/png"), //
 	RAW("raw", "image/raw"), //
+	SVG_FIXED("svg", "image/svg+xml"), //
 	SVG("svg", "image/svg+xml"); //
 
 	private final String mimeType;
@@ -136,11 +139,14 @@ public enum FileFormat {
 			if (name().startsWith("XMI"))
 				return ".xmi";
 
-			if (this == LATEX || this == LATEX_NO_PREAMBLE)
+			if (this == LATEX || this == LATEX_NO_PREAMBLE || this == LATEX_FIXED)
 				return ".tex";
 
 			if (this == BRAILLE_PNG)
 				return ".braille.png";
+
+			if (this == SVG_FIXED)
+				return ".svg";
 
 			if (this == EPS_TEXT)
 				return EPS.getFileSuffix();
@@ -177,10 +183,13 @@ public enum FileFormat {
 			return getBrailleStringBounder();
 
 		if (this == DEBUG)
-			return new StringBounderDebug();
+			return new StringBounderDebug(this);
 
 		if (this == SVG)
 			return getSvgStringBounder(charSizeHack);
+
+		if (this == SVG_FIXED || this == LATEX_FIXED)
+			return new StringBounderFixed(this);
 
 		return getNormalStringBounder();
 	}
@@ -238,7 +247,7 @@ public enum FileFormat {
 	}
 
 	private StringBounder getSvgStringBounder(final SvgCharSizeHack charSizeHack) {
-		return new StringBounderRaw(FileFormat.gg.getFontRenderContext()) {
+		return new StringBounderRaw(FileFormat.gg.getFontRenderContext(), this) {
 			public String toString() {
 				return "FileFormat::getSvgStringBounder";
 			}
@@ -256,7 +265,7 @@ public enum FileFormat {
 	}
 
 	private StringBounder getNormalStringBounder() {
-		return new StringBounderRaw(FileFormat.gg.getFontRenderContext()) {
+		return new StringBounderRaw(FileFormat.gg.getFontRenderContext(), this) {
 			public String toString() {
 				return "FileFormat::getNormalStringBounder";
 			}
@@ -273,7 +282,7 @@ public enum FileFormat {
 	}
 
 	private StringBounder getBrailleStringBounder() {
-		return new StringBounderRaw(FileFormat.gg.getFontRenderContext()) {
+		return new StringBounderRaw(FileFormat.gg.getFontRenderContext(), this) {
 			public String toString() {
 				return "FileFormat::getBrailleStringBounder";
 			}
@@ -299,7 +308,7 @@ public enum FileFormat {
 	}
 
 	private StringBounder getTikzStringBounder(final TikzFontDistortion tikzFontDistortion) {
-		return new StringBounderRaw(FileFormat.gg.getFontRenderContext()) {
+		return new StringBounderRaw(FileFormat.gg.getFontRenderContext(), this) {
 
 			private final LatexManager latexManager = new LatexManager(tikzFontDistortion.getTexSystem(),
 					tikzFontDistortion.getTexPreamble());

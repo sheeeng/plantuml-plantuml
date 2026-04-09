@@ -56,8 +56,10 @@ public abstract class CommandMultilines2<S extends Diagram> implements Command<S
 	private final Lazy<Pattern2> end;
 
 	public CommandMultilines2(IRegex patternStart, MultilinesStrategy strategy, Trim trimEnd, Lazy<Pattern2> end) {
-		if (TeaVM.a()) assert patternStart.getPatternAsString().startsWith("^") && patternStart.getPatternAsString().endsWith("$");
-		if (TeaVM.a()) assert end != null;
+		if (TeaVM.a())
+			assert patternStart.getPatternAsString().startsWith("^") && patternStart.getPatternAsString().endsWith("$");
+		if (TeaVM.a())
+			assert end != null;
 
 		this.strategy = strategy;
 		this.starting = patternStart;
@@ -75,7 +77,7 @@ public abstract class CommandMultilines2<S extends Diagram> implements Command<S
 
 	final public CommandControl isValid(BlocLines lines) {
 		lines = lines.cleanList(strategy);
-		if (isCommandForbidden())
+		if (isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		if (syntaxWithFinalBracket()) {
@@ -120,10 +122,6 @@ public abstract class CommandMultilines2<S extends Diagram> implements Command<S
 
 	protected abstract CommandExecutionResult executeNow(S system, BlocLines lines, ParserPass currentPass)
 			throws NoSuchColorException;
-
-	protected boolean isCommandForbidden() {
-		return false;
-	}
 
 	protected CommandControl finalVerification(BlocLines lines) {
 		return CommandControl.OK;

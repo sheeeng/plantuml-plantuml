@@ -75,7 +75,7 @@ public class CommandNoteLong extends CommandMultilines2<TimingDiagram> {
 		final String code = line0.get("CODE", 0);
 		final Player player = diagram.getPlayer(code);
 		if (player == null)
-			return CommandExecutionResult.error("Unkown \"" + code + "\"");
+			return CommandExecutionResult.error("Unknown \"" + code + "\"");
 
 		final Display note = lines.toDisplay();
 		final TimeTick now = diagram.getNow();

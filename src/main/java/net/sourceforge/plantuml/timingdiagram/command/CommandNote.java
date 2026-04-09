@@ -85,7 +85,7 @@ public class CommandNote extends SingleLineCommand2<TimingDiagram> {
 		final String code = arg.get("CODE", 0);
 		final Player player = diagram.getPlayer(code);
 		if (player == null)
-			return CommandExecutionResult.error("Unkown \"" + code + "\"");
+			return CommandExecutionResult.error("Unknown \"" + code + "\"");
 
 		final Display note = Display.getWithNewlines(diagram.getPragma(), arg.get("NOTE", 0));
 		final TimeTick now = diagram.getNow();

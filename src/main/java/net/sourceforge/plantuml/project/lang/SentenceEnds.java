@@ -45,7 +45,7 @@ import net.sourceforge.plantuml.project.core.TaskInstant;
 public class SentenceEnds extends SentenceSimple<GanttDiagram> {
 
 	public SentenceEnds() {
-		super(SubjectTask.ME, Verbs.ends, new ComplementBeforeOrAfterOrAtTaskStartOrEnd());
+		super(SubjectTask.ME, Verbs.ends.getRegex(), new ComplementBeforeOrAfterOrAtTaskStartOrEnd());
 	}
 
 	@Override

@@ -72,7 +72,7 @@ public enum VisibilityModifier {
 	private final ColorParam backgroundParam;
 	private final char unicode;
 
-	public static String regexForVisibilityCharacterInClassName() {
+	public static String regexForVisibilityCharacter() {
 		return "[-#+~]";
 	}
 

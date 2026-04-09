@@ -38,11 +38,15 @@ package net.sourceforge.plantuml.teavm;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.plantuml.DefinitionsContainer;
+import net.sourceforge.plantuml.ErrorUml;
+import net.sourceforge.plantuml.ErrorUmlType;
 import net.sourceforge.plantuml.activitydiagram.ActivityDiagramFactory;
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagramFactory3;
+import net.sourceforge.plantuml.annotation.DuplicateCode;
 import net.sourceforge.plantuml.api.PSystemFactory;
 import net.sourceforge.plantuml.chart.ChartDiagramFactory;
 import net.sourceforge.plantuml.classdiagram.ClassDiagramFactory;
@@ -50,6 +54,7 @@ import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.descdiagram.DescriptionDiagramFactory;
+import net.sourceforge.plantuml.directdot.PSystemDotFactory;
 import net.sourceforge.plantuml.ebnf.PSystemEbnfFactory;
 import net.sourceforge.plantuml.error.PSystemError;
 import net.sourceforge.plantuml.error.PSystemErrorPreprocessor;
@@ -64,6 +69,7 @@ import net.sourceforge.plantuml.nwdiag.NwDiagramFactory;
 import net.sourceforge.plantuml.packetdiag.PacketDiagramFactory;
 import net.sourceforge.plantuml.preproc.Defines;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.project.GanttDiagramFactory;
 import net.sourceforge.plantuml.regexdiagram.PSystemRegexFactory;
 import net.sourceforge.plantuml.sequencediagram.SequenceDiagramFactory;
 import net.sourceforge.plantuml.statediagram.StateDiagramFactory;
@@ -80,10 +86,12 @@ import net.sourceforge.plantuml.yaml.YamlDiagramFactory;
 public class PSystemBuilder2 {
 	// ::remove file when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__
 
+	private final static PSystemBuilder2 singleton = new PSystemBuilder2();
+
 	private final List<PSystemFactory> factories = new ArrayList<>();
 	private PSystemFactory lastFactory;
 
-	public PSystemBuilder2() {
+	private PSystemBuilder2() {
 		factories.add(new SequenceDiagramFactory());
 		factories.add(new ClassDiagramFactory());
 		factories.add(new ActivityDiagramFactory());
@@ -91,6 +99,7 @@ public class PSystemBuilder2 {
 		factories.add(new StateDiagramFactory());
 		factories.add(new ActivityDiagramFactory3());
 		factories.add(new PSystemVersionFactory());
+		factories.add(new GanttDiagramFactory());
 		// factories.add(new PSystemDotFactory(DiagramType.UML));
 		factories.add(new MindMapDiagramFactory());
 		factories.add(new WBSDiagramFactory());
@@ -107,11 +116,22 @@ public class PSystemBuilder2 {
 		factories.add(new PSystemSudokuFactory());
 	}
 
+	public static PSystemBuilder2 getInstance() {
+		return singleton;
+	}
+
+	public void reset() {
+		lastFactory = null;
+	}
+
 	public Diagram createDiagram(String[] split) {
 		BrowserLog.consoleLog(PSystemBuilder2.class, "createDiagram start");
 		final List<StringLocated> rawSource = new ArrayList<>();
-		for (String s : clean(split))
-			rawSource.add(new StringLocated(s, new LineLocationImpl("textarea", null)));
+		LineLocationImpl location = new LineLocationImpl("textarea", null);
+		for (String s : clean(split)) {
+			location = location.oneLineRead();
+			rawSource.add(new StringLocated(s, location));
+		}
 
 		final PathSystem pathSystem = PathSystem.fetch();
 		final Defines defines = Defines.createEmpty();
@@ -126,23 +146,45 @@ public class PSystemBuilder2 {
 		List<StringLocated> tmp = timLoader.getResultList();
 		tmp = Jaws.expands0(tmp);
 		tmp = Jaws.expandsJawsForPreprocessor(tmp);
-		// System.err.println("resultList=" + resultList);
-
-		final UmlSource source = UmlSource.create(tmp, false);
-		final Collection<DiagramType> diagramTypes = source.getDiagramTypes();
 
 		final PreprocessingArtifact preprocessing = timLoader.getPreprocessingArtifact();
 
 		if (timLoader.isPreprocessorError())
-			return new PSystemErrorPreprocessor(tmp, timLoader.getDebug(), timLoader.getPreprocessingArtifact());
+			return new PSystemErrorPreprocessor(tmp, timLoader.getDebug(), preprocessing);
 
+		return createDiagramFromPreprocessed(tmp, preprocessing);
+	}
+
+	@DuplicateCode(reference = "PSystemBuilder")
+	public Diagram createDiagramFromPreprocessed(List<StringLocated> source, PreprocessingArtifact preprocessing) {
+		final UmlSource umlSource = UmlSource.create(source, false);
+
+		if (umlSource.getTotalLineCount() < 10)
+			lastFactory = null;
+
+		umlSource.patchBase64();
+
+		final Collection<DiagramType> diagramTypes = umlSource.getDiagramTypes();
+		if (diagramTypes.contains(DiagramType.UNKNOWN))
+			return new PSystemUnsupported(umlSource, preprocessing);
+
+		if (diagramTypes.contains(DiagramType.SEQUENCE) && source.size() > 1) {
+			final String secondLine = source.get(1).getString();
+			if (secondLine.trim().equals("nwdiag {")) {
+				final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
+						"This looks like a network diagram. Please use @startnwdiag instead of @startuml.", 100,
+						source.get(1).getLocation(), DiagramType.SEQUENCE);
+
+				return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
+						preprocessing);
+			}
+		}
 		final List<PSystemError> errors = new ArrayList<>();
 
 		if (lastFactory != null && diagramTypes.contains(lastFactory.getDiagramType())) {
-			final Diagram sys = lastFactory.createSystem(null, source, null, preprocessing);
+			final Diagram sys = lastFactory.createSystem(null, umlSource, null, preprocessing);
 			if (isOk(sys))
 				return sys;
-
 		}
 
 		for (PSystemFactory f : factories) {
@@ -152,7 +194,7 @@ public class PSystemBuilder2 {
 				continue;
 			BrowserLog.consoleLog(PSystemBuilder2.class, "trying " + f.getClass());
 
-			final Diagram sys = f.createSystem(null, source, null, preprocessing);
+			final Diagram sys = f.createSystem(null, umlSource, null, preprocessing);
 			if (isOk(sys)) {
 				BrowserLog.consoleLog(PSystemBuilder2.class, "ok!");
 				this.lastFactory = f;
@@ -162,14 +204,13 @@ public class PSystemBuilder2 {
 		}
 
 		if (errors.size() == 0)
-			return new PSystemUnsupported(source, preprocessing);
+			return new PSystemUnsupported(umlSource, preprocessing);
 
 		return PSystemErrorUtils.merge(errors);
-
 	}
 
 	private boolean isOk(Diagram ps) {
-		if (ps == null || ps instanceof PSystemError)
+		if (ps == null || ps instanceof PSystemError || ps instanceof PSystemUnsupported)
 			return false;
 
 		return true;

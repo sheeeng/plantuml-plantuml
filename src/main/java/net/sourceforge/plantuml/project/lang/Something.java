@@ -35,6 +35,9 @@
  */
 package net.sourceforge.plantuml.project.lang;
 
+import com.plantuml.ubrex.UMatcher;
+import com.plantuml.ubrex.builder.UBrexPart;
+
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.project.Failable;
 import net.sourceforge.plantuml.regex.IRegex;
@@ -45,5 +48,13 @@ public interface Something<D extends Diagram> {
 	public IRegex toRegex(String suffix);
 
 	public Failable<? extends Object> getMe(D diagram, RegexResult arg, String suffix);
+
+	default public Failable<? extends Object> ugetMe(D diagram, UMatcher arg) {
+		throw new IllegalArgumentException("wip8542 " + getClass());
+	}
+
+	default public UBrexPart toUnicodeBracketedExpressionComplement() {
+		throw new IllegalArgumentException("wip8541 " + getClass());
+	}
 
 }

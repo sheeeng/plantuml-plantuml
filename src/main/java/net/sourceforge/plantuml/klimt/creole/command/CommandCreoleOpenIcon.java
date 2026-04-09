@@ -66,7 +66,8 @@ public class CommandCreoleOpenIcon implements Command {
 		return m.group(1).length();
 	}
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe) {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe) {
 		final Matcher2 m = pattern.matcher(line);
 		if (m.find() == false)
 			throw new IllegalStateException();

@@ -75,7 +75,7 @@ public abstract class PSystemBasicFactory<P extends Diagram> extends PSystemAbst
 				continue;
 
 			first = false;
-			if (StartUtils.isArobaseEndDiagram(s.getString())) {
+			if (StartUtils.isEndDirective(s.getString())) {
 				if (source.getTotalLineCount() == 2 && source.isStartDef() == false)
 					return buildEmptyError(source, s.getLocation(), it.getTrace(), preprocessing);
 

@@ -711,7 +711,7 @@ public class CucaDiagramFileMakerSmetana extends CucaDiagramFileMaker {
 		if (ent.getSvekImage() == null) {
 			ISkinParam skinParam = diagram.getSkinParam();
 			if (skinParam.sameClassWidth()) {
-				System.err.println("NOT YET IMPLEMENED");
+				System.err.println("NOT YET IMPLEMENTED");
 //				throw new UnsupportedOperationException();
 				// final double width = getMaxWidth();
 				// skinParam = new SkinParamSameClassWidth(dotData.getSkinParam(), width);

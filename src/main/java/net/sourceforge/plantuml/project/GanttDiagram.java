@@ -161,6 +161,8 @@ public class GanttDiagram extends TitledDiagram implements GanttStyle {
 	public String checkFinalError() {
 		try {
 			initMinMax();
+			if (timeBounds.durationInDays() > 365 * 20)
+				return "Gantt diagrams cannot last more than 20 years";
 		} catch (ImpossibleSolvingException ex) {
 			return ex.getMessage();
 		}

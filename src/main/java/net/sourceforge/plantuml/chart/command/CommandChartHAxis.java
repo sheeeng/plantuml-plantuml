@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.command.SingleLineCommand2;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
+import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.utils.LineLocation;
 
@@ -56,35 +57,37 @@ public class CommandChartHAxis extends SingleLineCommand2<ChartDiagram> {
 
 	static IRegex getRegexConcat() {
 		return RegexConcat.build(CommandChartHAxis.class.getName(), RegexLeaf.start(), //
-				new RegexLeaf("h-axis"), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new net.sourceforge.plantuml.regex.RegexOptional(new RegexLeaf(1, "TITLE", "\"([^\"]+)\"")), //
+				new RegexLeaf("[hx]-axis"), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new net.sourceforge.plantuml.regex.RegexOptional(new RegexLeaf(2, "RANGE", "(-?[0-9.]+)\\s*-->\\s*(-?[0-9.]+)")), //
+				new RegexOptional(new RegexLeaf(1, "TITLE", "\"([^\"]+)\"")), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new net.sourceforge.plantuml.regex.RegexOptional(new RegexLeaf(1, "DATA", "\\[(.*)\\]")), //
+				new RegexOptional(new RegexLeaf(2, "RANGE", "(-?[0-9.]+)\\s*-?->\\s*(-?[0-9.]+)")), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new net.sourceforge.plantuml.regex.RegexOptional(new net.sourceforge.plantuml.regex.RegexConcat( //
+				new RegexOptional(new RegexLeaf(1, "DATA", "\\[(.*)\\]")), //
+				RegexLeaf.spaceZeroOrMore(), //
+				new RegexOptional(new RegexConcat( //
 						new RegexLeaf("spacing"), //
-						net.sourceforge.plantuml.regex.RegexLeaf.spaceOneOrMore(), //
+						RegexLeaf.spaceOneOrMore(), //
 						new RegexLeaf(1, "SPACING", "([0-9]+)"))), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new net.sourceforge.plantuml.regex.RegexOptional(new RegexLeaf(1, "LABELRIGHT", "(label-right)")), //
+				new RegexOptional(new RegexLeaf(1, "LABELRIGHT", "(label-right)")), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new net.sourceforge.plantuml.regex.RegexOptional(new RegexLeaf(1, "GRID", "(grid)")), //
+				new RegexOptional(new RegexLeaf(1, "GRID", "(grid)")), //
+				RegexLeaf.spaceZeroOrMore(), //
 				RegexLeaf.end());
 	}
 
 	@Override
 	protected CommandExecutionResult executeArg(ChartDiagram diagram, LineLocation location, RegexResult arg,
 			ParserPass currentPass) {
-		final String title = arg.getLazzy("TITLE", 0);
-		final String minStr = arg.getLazzy("RANGE", 0);
-		final String maxStr = arg.getLazzy("RANGE", 1);
-		final String data = arg.getLazzy("DATA", 0);
-		final String spacingStr = arg.getLazzy("SPACING", 0);
-		final String labelRightStr = arg.getLazzy("LABELRIGHT", 0);
-		final String gridStr = arg.getLazzy("GRID", 0);
+		final String title = arg.get("TITLE", 0);
+		final String minStr = arg.get("RANGE", 0);
+		final String maxStr = arg.get("RANGE", 1);
+		final String data = arg.get("DATA", 0);
+		final String spacingStr = arg.get("SPACING", 0);
+		final String labelRightStr = arg.get("LABELRIGHT", 0);
+		final String gridStr = arg.get("GRID", 0);
 
 		// Parse tick spacing if present (do this first, before any returns)
 		if (spacingStr != null) {

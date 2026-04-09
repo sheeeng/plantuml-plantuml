@@ -104,6 +104,10 @@ public class PSystemSalt extends TitledDiagram {
 		data.addAll(StringLocated.expandsNewline(s));
 	}
 
+	public int size() {
+		return data.size();
+	}
+
 	@Override
 	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) {
 		final Element salt = createElement(manageSprite());
@@ -155,13 +159,13 @@ public class PSystemSalt extends TitledDiagram {
 				this.setScale(new ScaleSimple(scale));
 				// System.err.println("skipping " + s);
 			} else if (s.startsWith("sprite $")) {
-				BlocLines bloc = BlocLines.singleString(s);
+				BlocLines block = BlocLines.singleString(s);
 				do {
 					s = it.next();
-					bloc = bloc.addString(s);
+					block = block.addString(s);
 				} while (s.equals("}") == false);
 				try {
-					final CommandExecutionResult cmdResult = cmd.execute(this, bloc, ParserPass.ONE);
+					final CommandExecutionResult cmdResult = cmd.execute(this, block, ParserPass.ONE);
 				} catch (NoSuchColorException e) {
 				}
 			} else {
@@ -217,16 +221,6 @@ public class PSystemSalt extends TitledDiagram {
 		cpxFactory.addFactory(new ElementFactoryImage(source, dictionary));
 		cpxFactory.addFactory(new ElementFactoryRetrieveFromDictonnary(source, dictionary));
 		cpxFactory.addFactory(new ElementFactoryText(source, dictionary));
-	}
-
-	private boolean iamSalt;
-
-	public void setIamSalt(boolean iamSalt) {
-		this.iamSalt = true;
-	}
-
-	public final boolean isIamSalt() {
-		return iamSalt;
 	}
 
 	@Override

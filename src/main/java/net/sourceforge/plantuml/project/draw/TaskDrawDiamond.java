@@ -148,6 +148,32 @@ public class TaskDrawDiamond extends AbstractTaskDraw {
 	}
 
 	@Override
+	public double getLabelOverflow(StringBounder stringBounder, double barsWidth) {
+		final TextBlock title = getTitle();
+		final XDimension2D titleDim = title.calculateDimension(stringBounder);
+
+		final Style style = getStyle();
+		final ClockwiseTopRightBottomLeft padding = style.getPadding();
+
+		final double x2 = timeScale.getPosition(start) + timeScale.getWidth(start);
+		final double width = getDiamondHeight();
+		final double delta = x2 - timeScale.getPosition(start) - width;
+		final double labelStart = x2 - delta / 2 + padding.getLeft();
+		final double labelEnd = labelStart + titleDim.getWidth();
+		double overflow = 0;
+		if (labelEnd > barsWidth)
+			overflow = labelEnd - barsWidth;
+
+		if (note != null) {
+			final double noteEnd = timeScale.getPosition(start) + getOpaleNote().calculateDimension(stringBounder).getWidth();
+			if (noteEnd - barsWidth > overflow)
+				overflow = noteEnd - barsWidth;
+		}
+
+		return overflow;
+	}
+
+	@Override
 	public void drawU(UGraphic ug) {
 
 		final double x1 = timeScale.getPosition(start);

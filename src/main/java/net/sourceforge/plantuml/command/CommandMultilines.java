@@ -56,7 +56,7 @@ public abstract class CommandMultilines<S extends Diagram> implements Command<S>
 	}
 
 	final public CommandControl isValid(BlocLines lines) {
-		if (isCommandForbidden())
+		if (isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		Matcher2 m1 = starting.matcher(lines.getFirst().getTrimmed().getString());
@@ -71,10 +71,6 @@ public abstract class CommandMultilines<S extends Diagram> implements Command<S>
 			return CommandControl.OK_PARTIAL;
 
 		return finalVerification();
-	}
-
-	protected boolean isCommandForbidden() {
-		return false;
 	}
 
 	protected CommandControl finalVerification() {

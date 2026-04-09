@@ -108,7 +108,6 @@ public class Capture {
 
 	private List<Map.Entry<String, String>> list;
 
-
 	public List<String> findValuesByKey(String key) {
 		if (this.list == null)
 			return Collections.emptyList();
@@ -120,10 +119,19 @@ public class Capture {
 
 	}
 
-	
 	public List<String> getKeysToBeRefactored() {
-		return this.list.stream() //
-				.map(Map.Entry::getKey) //
-				.collect(Collectors.toList());
+		final List<String> result = new ArrayList<>();
+		for (Map.Entry<String, String> entry : this.list)
+			result.add(entry.getKey());
+		return result;
 	}
+
+	public List<String> getRootKeys() {
+		final List<String> result = new ArrayList<>();
+		for (Map.Entry<String, String> entry : this.list)
+			if (entry.getKey().indexOf('/') == -1)
+				result.add(entry.getKey());
+		return result;
+	}
+
 }

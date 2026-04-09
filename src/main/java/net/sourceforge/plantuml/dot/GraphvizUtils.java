@@ -108,7 +108,7 @@ public class GraphvizUtils {
 		}
 
 		final File dotExe = GraphvizRuntimeEnvironment.getInstance().getDotExe();
-		if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE) {
+		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE) {
 			final String ent = GraphvizRuntimeEnvironment.getInstance().getenvGraphvizDot();
 			if (ent == null)
 				result.add("The environment variable GRAPHVIZ_DOT has not been set");

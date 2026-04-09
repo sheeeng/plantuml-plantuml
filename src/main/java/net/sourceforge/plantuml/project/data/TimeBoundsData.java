@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.project.data;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 import net.sourceforge.plantuml.project.core.Task;
 import net.sourceforge.plantuml.project.core.TaskGroup;
@@ -122,7 +123,7 @@ public class TimeBoundsData {
 
 	public double getBarsColumnWidth(TimeHeader timeHeader) {
 		final double xmin = timeHeader.getTimeScale().getPosition(TimePoint.ofStartOfDay(getMinDay()));
-		final double xmax = timeHeader.getTimeScale().getPosition(TimePoint.ofEndOfDayMinusOneSecond(getMaxDay()));
+		final double xmax = timeHeader.getTimeScale().getPosition(TimePoint.ofStartOfDay(getMaxDay()).addDays(1));
 		return xmax - xmin;
 	}
 
@@ -148,6 +149,10 @@ public class TimeBoundsData {
 		for (TimePoint d : dayCalendar.getNameDays().keySet())
 			if (d.toDay().compareTo(this.getMaxDay()) > 0)
 				this.setMaxDay(d.toDay());
+	}
+
+	public long durationInDays() {
+		return ChronoUnit.DAYS.between(minDay, maxDay);
 	}
 
 }

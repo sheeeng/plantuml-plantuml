@@ -225,7 +225,7 @@ final public class CommandLinkLollipop extends SingleLineCommand2<AbstractClassO
 			// }
 			// if (type.contains(LinkDecor.ARROW) ||
 			// type.contains(LinkDecor.COMPOSITION)
-			// || type.contains(LinkDecor.AGREGATION)) {
+			// || type.contains(LinkDecor.AGGREGATION)) {
 			// link.setWeight(2);
 			// }
 			// }

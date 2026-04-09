@@ -100,8 +100,8 @@ public class PanelsRobust extends Panels {
 			return Collections.emptyList();
 
 		for (int i = 0; i < changes.size(); i++) {
-			final int comparaison = changes.get(i).getWhen().compareTo(tick);
-			if (comparaison == 0) {
+			final int comparison = changes.get(i).getWhen().compareTo(tick);
+			if (comparison == 0) {
 				if (i == 0 && initialState == null)
 					return Arrays.asList(changes.get(i).getState());
 
@@ -110,7 +110,7 @@ public class PanelsRobust extends Panels {
 
 				return Arrays.asList(changes.get(i - 1).getState(), changes.get(i).getState());
 			}
-			if (comparaison > 0) {
+			if (comparison > 0) {
 				final int changeIndex;
 				if (i == 0) {
 					// if this time tick was not yet defined in any place, and is less then the

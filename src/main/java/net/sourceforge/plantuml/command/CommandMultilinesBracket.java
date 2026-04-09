@@ -53,10 +53,6 @@ public abstract class CommandMultilinesBracket<S extends Diagram> implements Com
 		this.starting = Pattern2.cmpile(p);
 	}
 
-	protected boolean isCommandForbidden() {
-		return false;
-	}
-
 	protected CommandControl finalVerification() {
 		return CommandControl.OK;
 	}
@@ -66,7 +62,7 @@ public abstract class CommandMultilinesBracket<S extends Diagram> implements Com
 	}
 
 	final public CommandControl isValid(BlocLines lines) {
-		if (isCommandForbidden())
+		if (isCommandForbidden(lines))
 			return CommandControl.NOT_OK;
 
 		final Matcher2 m1 = starting.matcher(lines.getFirst().getTrimmed().getString());

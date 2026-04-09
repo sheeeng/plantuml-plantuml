@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.project.data.DayCalendarData;
@@ -93,6 +94,8 @@ class TimeHeaderYearly extends TimeHeaderCalendar {
 	private void drawYears(final UGraphic ug) {
 		final double h1 = timelineStyle.getFontSizeYear();
 
+		final FontConfiguration fc = getFontConfigurationSLOW(SName.year, true, openFontColor());
+
 		YearMonth last = null;
 		double lastChange = -1;
 		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) <= 0; day = day.plusDays(1)) {
@@ -101,7 +104,7 @@ class TimeHeaderYearly extends TimeHeaderCalendar {
 			if (last == null || wink.monthYear().getYear() != last.getYear()) {
 				drawVline(ug.apply(getLineColor()), x1, 0, h1 + 2);
 				if (last != null)
-					printYear(ug, last, lastChange, x1);
+					printYear(ug, last, lastChange, x1, fc);
 
 				lastChange = x1;
 				last = wink.monthYear();
@@ -109,14 +112,14 @@ class TimeHeaderYearly extends TimeHeaderCalendar {
 		}
 		final double x1 = getTimeScale().getPosition(TimePoint.ofStartOfDay(getMaxDay().plusDays(1)));
 		if (x1 > lastChange)
-			printYear(ug, last, lastChange, x1);
+			printYear(ug, last, lastChange, x1, fc);
 
 		final double end = x1;
 		drawVline(ug.apply(getLineColor()), end, 0, h1 + 2);
 	}
 
-	private void printYear(UGraphic ug, YearMonth monthYear, double start, double end) {
-		final TextBlock small = getTextBlock(SName.year, "" + monthYear.getYear(), true, openFontColor());
+	private void printYear(UGraphic ug, YearMonth monthYear, double start, double end, FontConfiguration fc) {
+		final TextBlock small = getTextBlockSLOW("" + monthYear.getYear(), fc);
 		printCentered(ug, true, start, end, small);
 	}
 

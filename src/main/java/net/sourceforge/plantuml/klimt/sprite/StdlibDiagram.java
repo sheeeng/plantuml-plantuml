@@ -111,9 +111,9 @@ public class StdlibDiagram extends TitledDiagram {
 //		int nb = 0;
 //		for (String s : all) {
 //			// System.err.println("s="+s);
-//			final BlocLines bloc = BlocLines.fromArray(s.split("\n"));
+//			final BlocLines block = BlocLines.fromArray(s.split("\n"));
 //			try {
-//				cmd.execute(this, bloc, ParserPass.ONE);
+//				cmd.execute(this, block, ParserPass.ONE);
 //			} catch (NoSuchColorException e) {
 //				Logme.error(e);
 //			}

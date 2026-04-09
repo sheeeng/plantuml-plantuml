@@ -54,11 +54,9 @@ public class TimLoader {
 	private boolean preprocessorError;
 	private List<StringLocated> resultList;
 	private PreprocessingArtifact preprocessingArtifact;
-	private final PathSystem pathSystem;
 
 	public TimLoader(PathSystem pathSystem, Defines defines, Charset charset, DefinitionsContainer definitionsContainer,
 			StringLocated location) {
-		this.pathSystem = pathSystem;
 		this.context = new TContext(pathSystem, defines, charset, definitionsContainer);
 		try {
 			defines.copyTo(global, location);

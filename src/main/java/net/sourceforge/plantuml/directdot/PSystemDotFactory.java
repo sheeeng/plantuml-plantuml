@@ -81,8 +81,8 @@ public class PSystemDotFactory extends PSystemBasicFactory<PSystemDot> {
 		return new PSystemDot(source, data.toString(), preprocessing);
 	}
 
-	private boolean isGraphvizDotHeader(String line) {
-		Matcher matcher = GRAPHVIZ_DOT_HEADER_PATTERN.matcher(line);
+	public static boolean isGraphvizDotHeader(String line) {
+		final Matcher matcher = GRAPHVIZ_DOT_HEADER_PATTERN.matcher(line);
 		return matcher.matches();
 	}
 

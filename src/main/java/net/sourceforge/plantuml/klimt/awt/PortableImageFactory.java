@@ -23,4 +23,16 @@ public class PortableImageFactory {
 			throw new UnsupportedOperationException("TEAVM92734");
 	}
 
+	/**
+	 * Creates a PortableImage from raw PNG bytes (TeaVM only).
+	 * Dimensions are parsed from the PNG IHDR header; the base64 string
+	 * is stored for direct use in SVG output via {@code toPngDataUrl()}.
+	 */
+	public static PortableImage buildFromPngBytes(byte[] pngBytes, String base64) {
+		// ::revert when JAVA8
+		return new PortableImageTeaVM(pngBytes, base64);
+		// throw new UnsupportedOperationException();
+		// ::done
+	}
+
 }

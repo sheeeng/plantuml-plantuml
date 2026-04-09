@@ -81,5 +81,7 @@ public interface Diagram extends WarningHandler {
 	public String checkFinalError();
 
 	public Set<ParserPass> getRequiredPass();
+	
+	public Throwable getRootCause();
 
 }

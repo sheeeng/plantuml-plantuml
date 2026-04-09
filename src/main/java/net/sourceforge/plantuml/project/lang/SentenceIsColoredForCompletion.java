@@ -42,7 +42,7 @@ import net.sourceforge.plantuml.project.core.Task;
 public class SentenceIsColoredForCompletion extends SentenceSimple<GanttDiagram> {
 
 	public SentenceIsColoredForCompletion() {
-		super(SubjectTask.ME, Verbs.isColored, Words.exactly(Words.FOR, Words.COMPLETION),
+		super(SubjectTask.ME, Verbs.isColored.getRegex(), Words.exactly(Words.FOR, Words.COMPLETION),
 				new ComplementInColorsFromTo());
 	}
 

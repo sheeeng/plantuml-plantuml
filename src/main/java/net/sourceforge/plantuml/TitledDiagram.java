@@ -62,7 +62,6 @@ import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.font.FontParam;
-import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
@@ -107,7 +106,7 @@ public abstract class TitledDiagram extends UgDiagram implements Annotated, With
 	public TitledDiagram(UmlSource source, DiagramType type, Previous previous, PreprocessingArtifact preprocessing) {
 		super(source, preprocessing);
 		this.type = type;
-		this.skinParam = SkinParam.create(source.getPathSystem(), type, Pragma.createEmpty(),
+		this.skinParam = SkinParam.create(getMd5map(), source.getPathSystem(), type, Pragma.createEmpty(),
 				preprocessing.getOption());
 		if (previous != null)
 			this.skinParam.copyAllFrom(previous);
@@ -367,7 +366,7 @@ public abstract class TitledDiagram extends UgDiagram implements Annotated, With
 //			Logme.error(e);
 //			final CrashReportHandler report = new CrashReportHandler(e.getCause(), getMetadata(), getFlashData());
 //
-//			report.anErrorHasOccured(e.getCause(), getFlashData());
+//			report.anErrorHasOccurred(e.getCause(), getFlashData());
 //			report.add("PlantUML (" + Version.versionString() + ") cannot parse result from dot/GraphViz.");
 //			if (e.getCause() instanceof EmptySvgException)
 //				report.add("Because dot/GraphViz returns an empty string.");
@@ -389,7 +388,7 @@ public abstract class TitledDiagram extends UgDiagram implements Annotated, With
 //		} catch (Throwable e) {
 //			Logme.error(e);
 //			final CrashReportHandler report = new CrashReportHandler(e, getMetadata(), getFlashData());
-//			report.anErrorHasOccured(e, getFlashData());
+//			report.anErrorHasOccurred(e, getFlashData());
 //			report.addProperties();
 //			report.addEmptyLine();
 //			report.youShouldSendThisDiagram();
@@ -458,7 +457,7 @@ public abstract class TitledDiagram extends UgDiagram implements Annotated, With
 	}
 
 	@Override
-	public TextBlock addChrome(TextBlock result, FileFormatOption fileFormatOption) {
+	public TextBlock addChrome(TextBlock result) {
 		final TitledDiagram titledDiagram = (TitledDiagram) this;
 		result = DiagramChromeFactory12026.create(result, titledDiagram, titledDiagram.getSkinParam(), getWarnings());
 		return result;

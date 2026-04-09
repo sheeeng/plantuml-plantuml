@@ -51,6 +51,7 @@ import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.error.PSystemError;
+import net.sourceforge.plantuml.error.PSystemUnsupported;
 import net.sourceforge.plantuml.klimt.shape.GraphicStrings;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.core.TextBlockExporter12026;
@@ -161,7 +162,8 @@ public class SourceStringReader {
 	}
 
 	/**
-	 * @deprecated Use {@link #outputImage(OutputStream, int, FileFormatOption)} instead
+	 * @deprecated Use {@link #outputImage(OutputStream, int, FileFormatOption)}
+	 *             instead
 	 */
 	@Deprecated
 	public String generateImage(OutputStream os, int numImage, FileFormatOption fileFormatOption) throws IOException {
@@ -192,7 +194,7 @@ public class SourceStringReader {
 				// return system.getDescription().getDescription() + BackSlash.BS_N +
 				// imageData.getCMapData("plantuml");
 				// }
-				return system.getDescription();
+				return system.getDescription().withImageData(imageData);
 			}
 			numImage -= nbInSystem;
 		}
@@ -272,10 +274,10 @@ public class SourceStringReader {
 		for (BlockUml blockUml : getBlocks()) {
 			exitStatus.goesHasBlocks();
 			final Diagram system = blockUml.getDiagram();
-			if (system instanceof PSystemError)
+			if (system instanceof PSystemError || system instanceof PSystemUnsupported)
 				exitStatus.goesHasErrors();
 		}
-		
+
 	}
 
 }

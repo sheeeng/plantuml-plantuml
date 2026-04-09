@@ -348,8 +348,8 @@ TEXT:
   extendedColor: NULL_COLOR
 
 LINE:
-  pt1: [ 234.4499 ; 176.5000 ]
-  pt2: [ 307.4499 ; 176.5000 ]
+  pt1: [ 237.4499 ; 176.5000 ]
+  pt2: [ 304.4499 ; 176.5000 ]
   stroke: 0.0-0.0-1.5
   shadow: 0
   color: ff8b0000

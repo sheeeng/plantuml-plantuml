@@ -132,10 +132,9 @@ public class Obfuscate {
 
 	public void addException(String word) {
 		word = word.toLowerCase();
-		if (words.contains(word)) {
-			System.err.println("Obfuscate Warning:" + word);
-			words.remove(word);
-		}
+		if (words.contains(word))
+			throw new IllegalArgumentException("Obfuscate collision on word: " + word);
+
 		except.add(word);
 	}
 

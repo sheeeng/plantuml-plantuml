@@ -28,7 +28,7 @@ import test.utils.PlantUmlTestUtils;
  *   <li>Unit: {@code FontWeight} overrides the weight that would have come
  *     from {@code FontStyle: bold}.</li>
  *   <li>Unit: When only {@code FontStyle: bold} is set (no explicit
- *     {@code FontWeight}), weight defaults to 700 (legacy behaviour).</li>
+ *     {@code FontWeight}), weight defaults to 700 (legacy behavior).</li>
  *   <li>Integration: The user-requested sequence diagram with
  *     {@code FontWeight: 900} + {@code FontStyle: italic} in a
  *     {@code participant} style block produces SVG {@code <text>} elements
@@ -108,7 +108,7 @@ class StyleFontWeightTest {
 	}
 
 	@Test
-	@DisplayName("No FontWeight: FontStyle: bold still defaults to weight 700 (legacy behaviour)")
+	@DisplayName("No FontWeight: FontStyle: bold still defaults to weight 700 (legacy behavior)")
 	void noFontWeightBoldStyleDefaultsTo700() {
 		final Style s = style(PName.FontStyle, "bold");
 		assertThat(s.getUFont().getFontFace().getCssWeight()).isEqualTo(700);
@@ -186,8 +186,7 @@ class StyleFontWeightTest {
 
 		assertThat(svg)
 				.as("Diagram should render without error")
-				.doesNotContain("An error has occurred")
-				.doesNotContain("An error has occured");
+				.doesNotContain("An error has occurred");
 
 		assertThat(svg)
 				.as("font-weight='900' must appear in SVG output")

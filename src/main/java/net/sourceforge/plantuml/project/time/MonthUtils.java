@@ -39,6 +39,11 @@ import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.Locale;
 
+import com.plantuml.ubrex.UnicodeBracketedExpression;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexOr;
+import com.plantuml.ubrex.builder.UBrexPart;
+
 import net.sourceforge.plantuml.StringUtils;
 
 public class MonthUtils {
@@ -52,6 +57,26 @@ public class MonthUtils {
 			sb.append(month.name().substring(0, 3) + "[a-z]*");
 		}
 		return sb.toString();
+	}
+
+	public static UnicodeBracketedExpression getUbrex() {
+		final UBrexPart[] alternatives = new UBrexPart[Month.values().length];
+		int i = 0;
+		for (Month month : Month.values()) {
+			final String prefix = month.name().substring(0, 3);
+			final StringBuilder sb = new StringBuilder();
+			for (char c : prefix.toCharArray()) {
+				final char upper = Character.toUpperCase(c);
+				final char lower = Character.toLowerCase(c);
+				sb.append('「');
+				sb.append(upper);
+				sb.append(lower);
+				sb.append('」');
+			}
+			sb.append(" 〇*〴le");
+			alternatives[i++] = new UBrexLeaf(sb.toString());
+		}
+		return new UBrexOr(alternatives);
 	}
 
 	public static Month fromString(String value) {

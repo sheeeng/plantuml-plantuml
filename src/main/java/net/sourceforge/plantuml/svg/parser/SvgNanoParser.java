@@ -118,7 +118,7 @@ public class SvgNanoParser implements ISvgSpriteParser, GrayLevelRange {
 	private final List<String> data = new ArrayList<>();
 	private int minGray = 999;
 	private int maxGray = -1;
-	private List<String> svg;
+	private final String svg;
 
 	private String extract(Pattern p, String s) {
 		final Matcher m = p.matcher(s);
@@ -129,10 +129,6 @@ public class SvgNanoParser implements ISvgSpriteParser, GrayLevelRange {
 	}
 
 	public SvgNanoParser(String svg) {
-		this(Collections.singletonList(svg));
-	}
-
-	public SvgNanoParser(List<String> svg) {
 		this.svg = svg;
 	}
 
@@ -171,19 +167,17 @@ public class SvgNanoParser implements ISvgSpriteParser, GrayLevelRange {
 
 	private synchronized Collection<String> getData() {
 		if (data.isEmpty()) {
-			for (String singleLine : svg) {
-				final Matcher m = P_TEXT_OR_DRAW.matcher(singleLine);
-				while (m.find()) {
-					final String s = m.group(0);
-					if (s.startsWith("<path") || s.startsWith("<g ") || s.startsWith("<g>") || s.startsWith("</g>")
-							|| s.startsWith("<circle ") || s.startsWith("<ellipse ") || s.startsWith("<text "))
-						data.add(s);
-					else if (s.startsWith("<svg") || s.startsWith("</svg")) {
-						// Ignore
-					} else {
-						if (TRACE)
-							System.err.println("ignored2=" + s);
-					}
+			final Matcher m = P_TEXT_OR_DRAW.matcher(svg);
+			while (m.find()) {
+				final String s = m.group(0);
+				if (s.startsWith("<path") || s.startsWith("<g ") || s.startsWith("<g>") || s.startsWith("</g>")
+						|| s.startsWith("<circle ") || s.startsWith("<ellipse ") || s.startsWith("<text "))
+					data.add(s);
+				else if (s.startsWith("<svg") || s.startsWith("</svg")) {
+					// Ignore
+				} else {
+					if (TRACE)
+						System.err.println("ignored2=" + s);
 				}
 			}
 		}
@@ -464,7 +458,7 @@ public class SvgNanoParser implements ISvgSpriteParser, GrayLevelRange {
 	public TextBlock asTextBlock(final HColor fontColor, final HColor forcedColor, final double scale,
 			final HColor backColor) {
 
-		final UImageSvg data = new UImageSvg(svg.get(0), scale);
+		final UImageSvg data = new UImageSvg(svg, scale);
 		final double width = data.getWidth();
 		final double height = data.getHeight();
 

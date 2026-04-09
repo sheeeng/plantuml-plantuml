@@ -115,23 +115,23 @@ public class UBrexCommandIf extends UBrexSingleLineCommand2<ActivityDiagram> {
 		}
 		diagram.startIf(location, ifCode);
 
-		int lenght = 2;
+		int length = 2;
 
 		if (arg.get("ARROW_BODY1", 0) != null) {
 //			final String arrow = StringUtils.manageArrowForCuca(arg.get("ARROW", 0));
-//			lenght = arrow.length() - 1;
+//			length = arrow.length() - 1;
 			final String arrowBody1 = CommandLinkClass.notNull(arg.get("ARROW_BODY1", 0));
 			final String arrowBody2 = CommandLinkClass.notNull(arg.get("ARROW_BODY2", 0));
 			final String arrowDirection = CommandLinkClass.notNull(arg.get("ARROW_DIRECTION", 0));
 
 			final String arrow = StringUtils.manageArrowForCuca(arrowBody1 + arrowDirection + arrowBody2 + ">");
-			lenght = arrow.length() - 1;
+			length = arrow.length() - 1;
 		}
 
 		final Entity branch = diagram.getCurrentContext().getBranch();
 
 		final LinkArg linkArg = LinkArg.build(Display.getWithNewlines(diagram.getPragma(), arg.get("BRACKET", 0)),
-				lenght);
+				length);
 		Link link = new Link(location, diagram, diagram.getSkinParam().getCurrentStyleBuilder(), entity1, branch,
 				new LinkType(LinkDecor.ARROW, LinkDecor.NONE), linkArg.withQuantifier(null, ifLabel)
 						.withDistanceAngle(diagram.getLabeldistance(), diagram.getLabelangle()));

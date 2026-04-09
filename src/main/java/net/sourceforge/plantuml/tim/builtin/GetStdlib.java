@@ -94,7 +94,7 @@ public class GetStdlib extends SimpleReturnFunction {
 				final String key = values.get(1).toString().toLowerCase();
 				final Stdlib folder = Stdlib.retrieve(folderName);
 				String value = folder.getMetadata().get(key);
-				// Temporary, we check the upercase key if needed
+				// Temporary, we check the uppercase key if needed
 				if (value == null)
 					value = folder.getMetadata().get(key.toUpperCase());
 				if (value == null)

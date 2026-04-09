@@ -68,6 +68,7 @@ import net.sourceforge.plantuml.math.ScientificEquationSafe;
 import net.sourceforge.plantuml.openiconic.OpenIcon;
 import net.sourceforge.plantuml.style.ISkinSimple;
 import net.sourceforge.plantuml.teavm.TeaVM;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.utils.CharHidder;
 
@@ -210,7 +211,7 @@ public class StripeSimple implements Stripe {
 	}
 
 	public void addImage(String src, double scale) {
-		atoms.add(AtomImg.create(src, ImgValign.TOP, 0, scale, null));
+		atoms.add(AtomImg.create(skinParam, src, ImgValign.TOP, 0, scale, null));
 	}
 
 	public void addQrcode(String src, double scale) {
@@ -279,7 +280,7 @@ public class StripeSimple implements Stripe {
 				line = line.substring(1);
 			} else {
 				addPending(pending);
-				line = cmd.executeAndGetRemaining(line, this);
+				line = cmd.executeAndGetRemaining(skinParam, line, this);
 			}
 		}
 		addPending(pending);

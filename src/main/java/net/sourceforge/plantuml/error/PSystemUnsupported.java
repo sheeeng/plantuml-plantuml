@@ -42,11 +42,13 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.UgDiagram;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.UmlSource;
+import net.sourceforge.plantuml.klimt.geom.GraphicPosition;
 import net.sourceforge.plantuml.klimt.shape.GraphicStrings;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.version.License;
+import net.sourceforge.plantuml.version.PSystemVersion;
 import net.sourceforge.plantuml.version.Version;
 
 public class PSystemUnsupported extends UgDiagram {
@@ -55,17 +57,32 @@ public class PSystemUnsupported extends UgDiagram {
 
 	public PSystemUnsupported(UmlSource source, PreprocessingArtifact preprocessing) {
 		super(source, preprocessing);
-		strings.add("<b>Diagram not supported by this release of PlantUML");
+		final String directive = source.iterator2().next().getString();
 
+		strings.add("<b>Diagram not supported by this release of PlantUML");
+		strings.add(" ");
+		strings.add("Sorry, but the following directive \"\"" + directive + "\"\" is not recognized.");
+		strings.add(" ");
+		strings.add("Possible causes:");
+		strings.add("- Typo in the directive or incorrect syntax.");
+		strings.add("- The directive was added in a newer PlantUML release.");
+		strings.add(" ");
+		strings.add("Suggested actions:");
+		strings.add("- Check the directive spelling and syntax.");
+		strings.add("- Upgrade PlantUML to the latest version.");
+		strings.add("- Consult the documentation: https://plantuml.com");
+		strings.add(" ");
+		
 		if (!TeaVM.isTeaVM()) {
-			strings.add(Version.fullDescription());
-			strings.add("License " + new License().toString());
+			strings.add("Running on " + Version.fullDescription());
+			strings.add("(License " + new License().toString() + ")");
 		}
 	}
 
 	@Override
 	public TextBlock getTextBlock12026(int num, FileFormatOption fileFormatOption) throws Exception {
-		return GraphicStrings.createBlackOnWhite(strings);
+		return GraphicStrings.createBlackOnWhite(strings, PSystemVersion.getPlantumlImage(),
+				GraphicPosition.BACKGROUND_CORNER_TOP_RIGHT);
 	}
 
 	public DiagramDescription getDescription() {

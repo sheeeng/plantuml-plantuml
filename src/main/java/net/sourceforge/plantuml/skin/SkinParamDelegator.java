@@ -480,4 +480,9 @@ public class SkinParamDelegator implements ISkinParam {
 		return skinParam.getPathSystem();
 	}
 
+	@Override
+	public String getFromMd5(String md5) {
+		return skinParam.getFromMd5(md5);
+	}
+
 }

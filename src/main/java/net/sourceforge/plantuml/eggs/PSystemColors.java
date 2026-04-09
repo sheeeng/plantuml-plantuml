@@ -193,11 +193,11 @@ public class PSystemColors extends UgSimpleDiagram {
 			if (Character.isLowerCase(colorName.charAt(i)))
 				continue;
 
-			final String candidat = colorName.substring(0, i) + BackSlash.BS_BS_N + colorName.substring(i);
-			final TextBlock tt = getTextName(font, candidat, (HColorSimple) HColors.BLACK);
+			final String candidate = colorName.substring(0, i) + BackSlash.BS_BS_N + colorName.substring(i);
+			final TextBlock tt = getTextName(font, candidate, (HColorSimple) HColors.BLACK);
 			final double width = tt.calculateDimension(stringBounder).getWidth();
 			if (width < min) {
-				result = candidat;
+				result = candidate;
 				min = width;
 			}
 		}
@@ -225,9 +225,9 @@ public class PSystemColors extends UgSimpleDiagram {
 	private List<String> getColorsCloseTo(String other) {
 		final List<String> result = new ArrayList<>(colors.names());
 		for (Iterator<String> it = result.iterator(); it.hasNext();) {
-			final String candidat = it.next();
-			final String similar = candidat.replaceAll("Gray", "Grey");
-			if (candidat.equals(similar))
+			final String candidate = it.next();
+			final String similar = candidate.replaceAll("Gray", "Grey");
+			if (candidate.equals(similar))
 				continue;
 
 			if (result.contains(similar))

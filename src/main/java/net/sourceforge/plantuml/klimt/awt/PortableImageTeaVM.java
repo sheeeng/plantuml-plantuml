@@ -26,11 +26,18 @@ class PortableImageTeaVM implements PortableImage {
 	private final int imageType;
 	private final int[] pixels;
 
+	/**
+	 * Cached PNG data URL. When non-null, {@link #toPngDataUrl()} returns
+	 * this directly instead of re-encoding from pixels.
+	 */
+	private final String pngDataUrl;
+
 	PortableImageTeaVM(int width, int height, int imageType) {
 		this.width = width;
 		this.height = height;
 		this.imageType = imageType;
 		this.pixels = new int[width * height];
+		this.pngDataUrl = null;
 		// Initialize with default color based on type
 		if (imageType == TYPE_INT_RGB) {
 			// Default to white for RGB
@@ -50,7 +57,36 @@ class PortableImageTeaVM implements PortableImage {
 		this.height = height;
 		this.imageType = imageType;
 		this.pixels = new int[width * height];
+		this.pngDataUrl = null;
 		System.arraycopy(sourcePixels, 0, this.pixels, 0, Math.min(sourcePixels.length, this.pixels.length));
+	}
+
+	/**
+	 * Creates a PortableImage from raw PNG bytes. The width and height are
+	 * parsed from the PNG IHDR header (bytes 16-23). The original bytes are
+	 * stored as a data URL so that {@link #toPngDataUrl()} can return them
+	 * directly without re-encoding.
+	 * <p>
+	 * Pixel data is not decoded; {@link #getRGB(int, int)} returns 0.
+	 * This is acceptable because in TeaVM the image is rendered via the
+	 * SVG {@code <image>} element using the data URL.
+	 */
+	PortableImageTeaVM(byte[] pngBytes, String base64) {
+		if (pngBytes.length < 24)
+			throw new IllegalArgumentException("Invalid PNG: too short (" + pngBytes.length + " bytes)");
+
+		this.width = readInt32BE(pngBytes, 16);
+		this.height = readInt32BE(pngBytes, 20);
+		this.imageType = TYPE_INT_ARGB;
+		this.pixels = new int[0];
+		this.pngDataUrl = "data:image/png;base64," + base64;
+	}
+
+	private static int readInt32BE(byte[] data, int offset) {
+		return ((data[offset] & 0xFF) << 24)
+				| ((data[offset + 1] & 0xFF) << 16)
+				| ((data[offset + 2] & 0xFF) << 8)
+				| (data[offset + 3] & 0xFF);
 	}
 
 	public int getWidth() {
@@ -127,6 +163,9 @@ class PortableImageTeaVM implements PortableImage {
 	 * @return PNG data URL string (data:image/png;base64,...)
 	 */
 	public String toPngDataUrl() {
+		if (pngDataUrl != null)
+			return pngDataUrl;
+
 		HTMLDocument doc = HTMLDocument.current();
 		HTMLCanvasElement canvas = (HTMLCanvasElement) doc.createElement("canvas");
 		canvas.setWidth(width);

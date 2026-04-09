@@ -35,12 +35,10 @@
  */
 package net.sourceforge.plantuml.project;
 
-import net.sourceforge.plantuml.annotation.PerformanceIssue;
 import net.sourceforge.plantuml.crash.CrashImage;
 import net.sourceforge.plantuml.crash.ReportLog;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
-import net.sourceforge.plantuml.klimt.drawing.LimitFinder;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
@@ -104,7 +102,7 @@ public class GanttDiagramMainBlock extends TextBlockMemoized {
 			final HColor back = style.value(PName.BackGroundColor).asColor(timelineStyle.getColorSet());
 			if (back.isTransparent() == false) {
 
-				final double fullWidth = layout.getTitlesWidth() + layout.getBarsWidth();
+				final double fullWidth = layout.getTitlesWidth() + layout.getTimelineWidth();
 
 				final URectangle rect1 = URectangle.build(fullWidth, layout.getHeaderHeight());
 				ug.apply(back.bg()).draw(rect1);
@@ -130,7 +128,7 @@ public class GanttDiagramMainBlock extends TextBlockMemoized {
 			Logme.error(e);
 
 			final ReportLog report = new ReportLog();
-			report.anErrorHasOccured(e, diagram.getFlashData());
+			report.anErrorHasOccurred(e, diagram.getFlashData());
 
 			report.addProperties();
 			report.addEmptyLine();
@@ -143,13 +141,12 @@ public class GanttDiagramMainBlock extends TextBlockMemoized {
 
 	}
 
-	@PerformanceIssue
 	@Override
 	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
-		final LimitFinder limitFinder = LimitFinder.create(stringBounder, true);
-		this.drawU(limitFinder);
-		return limitFinder.getMinMax().getDimension();
-		// return layout.calculateDimension();
+		final double margin = 20;
+		final double width = layout.getTitlesWidth() + layout.getBarsWidth() + margin;
+		final double height = layout.getTotalHeight();
+		return new XDimension2D(width, height);
 	}
 
 	private void drawTasksRect(UGraphic ug) {

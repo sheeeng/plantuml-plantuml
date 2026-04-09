@@ -14,69 +14,69 @@ Test diagram MUST be put between triple quotes
 !pragma teoz true
 
 group #ffa Group 1
-    Particpant_A -> Particpant_B
-    activate Particpant_A
-    Particpant_A <- Particpant_B
-    deactivate Particpant_A
+    Participant_A -> Participant_B
+    activate Participant_A
+    Participant_A <- Participant_B
+    deactivate Participant_A
 end
 
 group #ffa Group 2
-    Particpant_A -> Particpant_B++
-    Particpant_A <- Particpant_B--
+    Participant_A -> Participant_B++
+    Participant_A <- Participant_B--
 end
 
 group #ffa Group 3
-    Particpant_A -> Particpant_B++
-    activate Particpant_A
-    Particpant_A <- Particpant_B--
-    deactivate Particpant_A
+    Participant_A -> Participant_B++
+    activate Participant_A
+    Participant_A <- Participant_B--
+    deactivate Participant_A
 end
 
 group #ffa Group 3b
-    Particpant_A -> Particpant_B++
-    activate Particpant_A
-        Particpant_A -> Particpant_B++
-                Particpant_A -> Particpant_B++
-                        Particpant_A -> Particpant_B++
-                        Particpant_A <- Particpant_B--
-                Particpant_A <- Particpant_B--
-        Particpant_A <- Particpant_B--
-    Particpant_A <- Particpant_B--
-    deactivate Particpant_A
+    Participant_A -> Participant_B++
+    activate Participant_A
+        Participant_A -> Participant_B++
+                Participant_A -> Participant_B++
+                        Participant_A -> Participant_B++
+                        Participant_A <- Participant_B--
+                Participant_A <- Participant_B--
+        Participant_A <- Participant_B--
+    Participant_A <- Participant_B--
+    deactivate Participant_A
 end
 
 group #ffa Group 3b2
-    Particpant_A -> Particpant_B++
-    activate Particpant_A
-    Particpant_A <- Particpant_B
-    Particpant_A -> Particpant_B !!
-    deactivate Particpant_A
+    Participant_A -> Participant_B++
+    activate Participant_A
+    Participant_A <- Participant_B
+    Participant_A -> Participant_B !!
+    deactivate Participant_A
 end
 
 group #ffa Group 3b3
-    Particpant_A -> Particpant_B++
-    activate Particpant_A
-    Particpant_A <- Particpant_B !!
-    deactivate Particpant_B
+    Participant_A -> Participant_B++
+    activate Participant_A
+    Participant_A <- Participant_B !!
+    deactivate Participant_B
 end
 
 group #ffa Group 3c
-    Particpant_A -> Particpant_B++
-    activate Particpant_A
-        Particpant_B -> Particpant_A++
-                Particpant_B -> Particpant_A++
-                                Particpant_B -> Particpant_A++
-                                Particpant_B <- Particpant_A--
-                Particpant_B <- Particpant_A--
-        Particpant_B <- Particpant_A--
-    Particpant_A <- Particpant_B--
-    deactivate Particpant_A
+    Participant_A -> Participant_B++
+    activate Participant_A
+        Participant_B -> Participant_A++
+                Participant_B -> Participant_A++
+                                Participant_B -> Participant_A++
+                                Participant_B <- Participant_A--
+                Participant_B <- Participant_A--
+        Participant_B <- Participant_A--
+    Participant_A <- Participant_B--
+    deactivate Participant_A
 end
 
 
 group #ffa Group 4
-    Particpant_A -> Particpant_B
-    Particpant_A <- Particpant_B
+    Participant_A -> Participant_B
+    Participant_A <- Participant_B
 end
 @enduml
 """

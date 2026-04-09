@@ -60,13 +60,13 @@ import java.time.LocalDateTime;
  *
  * <p>
  * These three quantities must remain conceptually independent. Confusing them
- * leads to incorrect scheduling behaviour. The goal of NGM is to provide a
+ * leads to incorrect scheduling behavior. The goal of NGM is to provide a
  * clean and unambiguous task model using {@code java.time} and explicit
  * resource-allocation logic.
  * </p>
  *
  *
- * <h3>Task behaviour</h3>
+ * <h3>Task behavior</h3>
  *
  * <p>
  * At the scheduling level, a task can behave in one of two ways:
@@ -112,7 +112,7 @@ import java.time.LocalDateTime;
  * The static factory methods
  * {@link #withFixedDuration} and
  * {@link #withFixedTotalEffort} create concrete
- * implementations representing these two behaviours.
+ * implementations representing these two behaviors.
  * </p>
  */
 public abstract class NGMTask {
@@ -287,7 +287,7 @@ public abstract class NGMTask {
 	 * <p>
 	 * This method returns the constant allocation associated with the task
 	 * instance. Task types that support variable or time-sliced allocations may
-	 * override or complement this behaviour with more advanced APIs as the model
+	 * override or complement this behavior with more advanced APIs as the model
 	 * evolves.
 	 * </p>
 	 *
@@ -356,7 +356,7 @@ public abstract class NGMTask {
 	 *
 	 * <p>
 	 * This method will eventually return a concrete {@code NGMTask} implementation
-	 * representing this behaviour. For now, it throws
+	 * representing this behavior. For now, it throws
 	 * {@link UnsupportedOperationException} because the model is still under
 	 * construction.
 	 * </p>

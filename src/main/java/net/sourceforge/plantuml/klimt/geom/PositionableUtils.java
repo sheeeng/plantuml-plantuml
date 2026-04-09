@@ -104,16 +104,16 @@ public class PositionableUtils {
 		for (int i = 0; i < 5; i++) {
 			if (TeaVM.a()) assert doesIntersectWithThisCoef(fixe, toMove, deltaX, deltaY, min);
 			if (TeaVM.a()) assert doesIntersectWithThisCoef(fixe, toMove, deltaX, deltaY, max) == false;
-			final double candidat = (min + max) / 2.0;
-			if (doesIntersectWithThisCoef(fixe, toMove, deltaX, deltaY, candidat))
-				min = candidat;
+			final double candidate = (min + max) / 2.0;
+			if (doesIntersectWithThisCoef(fixe, toMove, deltaX, deltaY, candidate))
+				min = candidate;
 			else
-				max = candidat;
+				max = candidate;
 
 			// Log.println("min=" + min + " max=" + max);
 		}
-		final double candidat = (min + max) / 2.0;
-		return move(toMove, deltaX * candidat, deltaY * candidat);
+		final double candidate = (min + max) / 2.0;
+		return move(toMove, deltaX * candidate, deltaY * candidate);
 
 	}
 

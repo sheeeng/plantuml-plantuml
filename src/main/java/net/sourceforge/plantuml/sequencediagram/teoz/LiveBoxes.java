@@ -134,7 +134,7 @@ public class LiveBoxes {
 							level++;
 						}
 
-						if (mode == EventsHistoryMode.CONSIDERE_FUTURE_DEACTIVATE && le.isDeactivateOrDestroy()
+						if (mode == EventsHistoryMode.CONSIDER_FUTURE_DEACTIVATE && le.isDeactivateOrDestroy()
 								&& msg.dealWith(p) && le.getParticipant() == p) {
 							seenDeactivate = true;
 							if (seenActivate)
@@ -262,7 +262,7 @@ public class LiveBoxes {
 
 			if (position != null) {
 				if (TeaVM.a()) assert position <= totalHeight : "position=" + position + " totalHeight=" + totalHeight;
-				indent = getLevelAt(event, EventsHistoryMode.CONSIDERE_FUTURE_DEACTIVATE);
+				indent = getLevelAt(event, EventsHistoryMode.CONSIDER_FUTURE_DEACTIVATE);
 				final Fashion activateColor = getActivateColor(event);
 				StyleBuilder styleBuilder = null;
 				if (event instanceof AbstractMessage)

@@ -39,17 +39,17 @@ import java.io.IOException;
 
 public class TranscoderSmart implements Transcoder {
 
-	private final Transcoder zlib = TranscoderImpl.utf8(new AsciiEncoder(), new ArobaseStringCompressor(),
+	private final Transcoder zlib = TranscoderImpl.utf8(new AsciiEncoder(), new DiagramSourceCompressor(),
 			new CompressionZlib());
-	private final Transcoder hexOnly = TranscoderImpl.utf8(new AsciiEncoderHex(), new ArobaseStringCompressor(),
+	private final Transcoder hexOnly = TranscoderImpl.utf8(new AsciiEncoderHex(), new DiagramSourceCompressor(),
 			new CompressionNone());
 	// ::comment when __TEAVM__
 	// Legacy encoder
-	private final Transcoder oldOne = TranscoderImpl.utf8(new AsciiEncoder(), new ArobaseStringCompressor(),
+	private final Transcoder oldOne = TranscoderImpl.utf8(new AsciiEncoder(), new DiagramSourceCompressor(),
 			new CompressionHuffman());
-	private final Transcoder zip = TranscoderImpl.utf8(new AsciiEncoder(), new ArobaseStringCompressor(),
+	private final Transcoder zip = TranscoderImpl.utf8(new AsciiEncoder(), new DiagramSourceCompressor(),
 			new CompressionZip());
-	private final Transcoder gzip = TranscoderImpl.utf8(new AsciiEncoder(), new ArobaseStringCompressor(),
+	private final Transcoder gzip = TranscoderImpl.utf8(new AsciiEncoder(), new DiagramSourceCompressor(),
 			new CompressionGZip());
 	// ::done
 

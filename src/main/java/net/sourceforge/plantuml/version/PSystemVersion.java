@@ -178,7 +178,7 @@ public class PSystemVersion extends PlainStringsDiagram {
 		if (!TeaVM.isTeaVM()) {
 			strings.add("<b>License</b> \"\"" + License.getCurrent() + "\"\"");
 			strings.checkOldVersionWarning();
-			if (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE) {
+			if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE) {
 				strings.add("Loaded from " + Version.getJarPath());
 
 				if (GlobalConfig.getInstance().boolValue(GlobalConfigKey.WORD)) {

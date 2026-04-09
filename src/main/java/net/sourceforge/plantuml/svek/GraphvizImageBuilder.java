@@ -267,7 +267,7 @@ public final class GraphvizImageBuilder {
 				return error(dotStringFactory.getDotExe());
 		}
 		if (basefile == null && (fileFormatOptionIsDebugSvek || isSvekTrace())
-				&& (SecurityUtils.getSecurityProfile() == SecurityProfile.UNSECURE
+				&& (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE
 						|| SecurityUtils.getSecurityProfile() == SecurityProfile.LEGACY
 						|| SecurityUtils.getSecurityProfile() == SecurityProfile.SANDBOX))
 			basefile = new BaseFile(null);

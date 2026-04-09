@@ -137,7 +137,7 @@ public abstract class Eater {
 			return eatAndGetQuotedString();
 
 		final StringBuilder value = new StringBuilder();
-		// DEPLICATE eatUntilCloseParenthesisOrComma
+		// DUPLICATE eatUntilCloseParenthesisOrComma
 
 		int level = 0;
 		while (true) {

@@ -94,6 +94,20 @@ public class UPath extends AbstractShadowable implements Iterable<USegment>, USh
 		}
 	}
 
+	private double[] getLastCoord() {
+		if (segments.size() == 0)
+			return null;
+		return segments.get(segments.size() - 1).getCoord();
+	}
+
+	public boolean isInvisible() {
+		for (USegment segment : segments)
+			if (segment.getSegmentType() != USegmentType.SEG_MOVETO)
+				return false;
+
+		return true;
+	}
+
 	public UPath translate(double dx, double dy) {
 		if (dx == 0 && dy == 0)
 			return this;
@@ -131,6 +145,9 @@ public class UPath extends AbstractShadowable implements Iterable<USegment>, USh
 	}
 
 	public void moveTo(double x, double y) {
+		final double last[] = getLastCoord();
+		if (last != null && last[0] == x && last[1] == y)
+			return;
 		add(new double[] { x, y }, USegmentType.SEG_MOVETO);
 	}
 

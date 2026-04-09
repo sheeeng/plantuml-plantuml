@@ -74,6 +74,10 @@ public final class CommonCommands {
 
 		cmds.add(factorySpriteCommand.createMultiLine(false));
 		cmds.add(factorySpriteCommand.createSingleLine());
+
+		cmds.add(CommandSpriteBase64.ME);
+		cmds.add(CommandSpriteMd5.ME);
+
 		cmds.add(CommandSpriteSvg.ME);
 		cmds.add(CommandSpriteStdlib.ME);
 		cmds.add(CommandSpriteStdlibSvg.ME);

@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.plantuml.klimt.LineBreakStrategy;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
+import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ISkinParam;
@@ -55,9 +56,6 @@ public class BodierMap extends BodierAbstract {
 	@Override
 	public void muteClassToObject() {
 		throw new UnsupportedOperationException();
-	}
-
-	public BodierMap() {
 	}
 
 	private static final Pattern p = Pattern.compile("(\\*-+_?\\>)");
@@ -104,7 +102,8 @@ public class BodierMap extends BodierAbstract {
 	public TextBlock getBody(ISkinParam skinParam, final boolean showMethods, final boolean showFields,
 			Stereotype stereotype, Style style, FontConfiguration fontConfiguration) {
 		final LineBreakStrategy wordWrap = style.wrapWidth();
-		return new TextBlockMap(fontConfiguration, skinParam, map, wordWrap);
+		final HorizontalAlignment horizontalAlignment = style.getHorizontalAlignment();
+		return new TextBlockMap(fontConfiguration, skinParam, map, wordWrap, horizontalAlignment);
 	}
 
 }

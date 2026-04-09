@@ -48,10 +48,12 @@ public class PSystemErrorUtils {
 
 	public static PSystemError buildV2(UmlSource source, ErrorUml singleError, List<String> debugLines,
 			List<StringLocated> list, PreprocessingArtifact preprocessing) {
-//		if (source.isEmpty()) {
-//			return new PSystemErrorEmpty(source, list, singleError);
-//		}
-		return new PSystemErrorV2(source, list, singleError, preprocessing);
+		return new PSystemErrorV2(source, list, singleError, preprocessing, null);
+	}
+
+	public static PSystemError buildV2(UmlSource source, ErrorUml singleError, List<String> debugLines,
+			List<StringLocated> list, PreprocessingArtifact preprocessing, Throwable rootCause) {
+		return new PSystemErrorV2(source, list, singleError, preprocessing, rootCause);
 	}
 
 	public static PSystemError merge(Collection<PSystemError> ps) {

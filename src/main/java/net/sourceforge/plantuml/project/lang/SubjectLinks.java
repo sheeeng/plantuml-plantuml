@@ -66,7 +66,7 @@ public class SubjectLinks implements Subject<GanttDiagram> {
 	public class InColor extends SentenceSimple<GanttDiagram> {
 
 		public InColor() {
-			super(SubjectLinks.this, Verbs.areColored, new ComplementInColors());
+			super(SubjectLinks.this, Verbs.areColored.getRegex(), new ComplementInColors());
 		}
 
 		@Override

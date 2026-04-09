@@ -169,7 +169,7 @@ public class Emoji {
 				data.add(singleLine);
 			}
 		}
-		this.parser = SvgSpriteParserFactory.create(data);
+		this.parser = SvgSpriteParserFactory.create(data, null, null);
 	}
 
 	public void drawU(UGraphic ug, double scale, HColor colorForMonochrome) {

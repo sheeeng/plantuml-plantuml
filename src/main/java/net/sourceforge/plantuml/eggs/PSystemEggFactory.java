@@ -54,8 +54,8 @@ public class PSystemEggFactory extends PSystemSingleLineFactory {
 	@Override
 	protected Diagram executeLine(UmlSource source, String line, PreprocessingArtifact preprocessing) {
 		try {
-			for (byte[] crypted : all) {
-				final SentenceDecoder decoder = new SentenceDecoder(line, crypted);
+			for (byte[] encrypted : all) {
+				final SentenceDecoder decoder = new SentenceDecoder(line, encrypted);
 				if (decoder.isOk()) {
 					return new PSystemEgg(source, decoder.getSecret(), preprocessing);
 				}

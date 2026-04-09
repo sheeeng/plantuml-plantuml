@@ -44,8 +44,8 @@ public final class UFontImpl implements UFont {
 
 	private final FontStack fontStack;
 	/**
-	 * The full font face (italic axis + CSS weight 100-900).  This is the
-	 * canonical weight/style store.
+	 * The full font face (italic axis + CSS weight 100-900). This is the canonical
+	 * weight/style store.
 	 */
 	private final UFontFace face;
 	private final int size;
@@ -55,7 +55,7 @@ public final class UFontImpl implements UFont {
 	}
 
 	/**
-	 * Face-aware constructor.  Stores the full {@link UFontFace} so that
+	 * Face-aware constructor. Stores the full {@link UFontFace} so that
 	 * intermediate CSS weights (100-900) are preserved and applied via
 	 * {@link TextAttribute#WEIGHT} during Java2D rendering.
 	 */
@@ -69,10 +69,11 @@ public final class UFontImpl implements UFont {
 	 * Returns the underlying {@link java.awt.Font} for the given text, with all
 	 * font properties applied via {@link java.awt.font.TextAttribute}s.
 	 *
-	 * <p>Weight (CSS 100-900) and italic axis are both applied through
+	 * <p>
+	 * Weight (CSS 100-900) and italic axis are both applied through
 	 * {@link UFontFace#deriveFont(Font)} so that fonts with intermediate weight
-	 * faces (e.g. Helvetica Neue Medium) render at the requested weight.
-	 * Fonts that only provide binary bold/normal fall back gracefully.
+	 * faces (e.g. Helvetica Neue Medium) render at the requested weight. Fonts that
+	 * only provide binary bold/normal fall back gracefully.
 	 */
 	public Font getUnderlayingFont(String text) {
 		return fontStack.getFont(text, face, size);
@@ -102,13 +103,7 @@ public final class UFontImpl implements UFont {
 
 	public String getFamily(String text, UFontContext context) {
 		if (TeaVM.isTeaVM()) {
-			final String fullDefinition = fontStack.getFullDefinition();
-			// Map Java font name to web-safe equivalent
-			// http://plantuml.sourceforge.net/qa/?qa=5432/svg-monospace-output-has-wrong-font-family
-			if ("monospaced".equalsIgnoreCase(fullDefinition))
-				return "monospace";
-
-			return fullDefinition.replace('"', '\'').replaceAll("(?i)sansserif", "sans-serif");
+			return getTeaVMDefinition();
 		} else {
 			if (context == UFontContext.EPS) {
 //			if (fontStack.getFamily() == null)
@@ -123,6 +118,21 @@ public final class UFontImpl implements UFont {
 			}
 		}
 		throw new IllegalArgumentException();
+	}
+
+	private String teaVMDefinition;
+
+	public String getTeaVMDefinition() {
+		if (teaVMDefinition == null) {
+			teaVMDefinition = fontStack.getFullDefinition();
+			// Map Java font name to web-safe equivalent
+			// http://plantuml.sourceforge.net/qa/?qa=5432/svg-monospace-output-has-wrong-font-family
+			if ("monospaced".equalsIgnoreCase(teaVMDefinition))
+				teaVMDefinition = "monospace";
+			else
+				teaVMDefinition = teaVMDefinition.replace('"', '\'').replaceAll("(?i)sansserif", "sans-serif");
+		}
+		return teaVMDefinition;
 	}
 
 	// Kludge for testing because font names on some machines (only macOS?) do not
@@ -144,7 +154,10 @@ public final class UFontImpl implements UFont {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(getPortableFontName());
+		if (TeaVM.isTeaVM())
+			sb.append(getTeaVMDefinition());
+		else
+			sb.append(getPortableFontName());
 		sb.append("/");
 		sb.append(getSize());
 		return sb.toString();
@@ -152,7 +165,10 @@ public final class UFontImpl implements UFont {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(fontStack, face, size);
+		if (TeaVM.isTeaVM())
+			return Objects.hash(getTeaVMDefinition(), face, size);
+		else
+			return Objects.hash(fontStack, face, size);
 	}
 
 	@Override
@@ -162,7 +178,11 @@ public final class UFontImpl implements UFont {
 		if (!(obj instanceof UFontImpl))
 			return false;
 		UFontImpl other = (UFontImpl) obj;
-		return Objects.equals(fontStack, other.fontStack) && Objects.equals(face, other.face) && size == other.size;
+		if (TeaVM.isTeaVM())
+			return Objects.equals(getTeaVMDefinition(), other.getTeaVMDefinition()) && Objects.equals(face, other.face)
+					&& size == other.size;
+		else
+			return Objects.equals(fontStack, other.fontStack) && Objects.equals(face, other.face) && size == other.size;
 	}
 
 }

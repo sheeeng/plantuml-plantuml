@@ -53,6 +53,7 @@ import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexResult;
+import net.sourceforge.plantuml.skin.VisibilityModifier;
 import net.sourceforge.plantuml.stereo.Stereotag;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.stereo.StereotypePattern;
@@ -69,6 +70,8 @@ public class CommandPackage extends SingleLineCommand2<AbstractEntityDiagram> {
 
 	private static IRegex getRegexConcat() {
 		return RegexConcat.build(CommandPackage.class.getName(), RegexLeaf.start(), //
+				new RegexLeaf(1, "VISIBILITY", "(" + VisibilityModifier.regexForVisibilityCharacter() + ")?" ), //
+				RegexLeaf.spaceZeroOrMore(), //
 				new RegexLeaf(1, "TYPE", "(package)"), //
 				RegexLeaf.spaceOneOrMore(), //
 				new RegexLeaf(1, "NAME", "([%g][^%g]+[%g]|[^#%s{}]*)"), //
@@ -140,6 +143,12 @@ public class CommandPackage extends SingleLineCommand2<AbstractEntityDiagram> {
 			return status;
 
 		final Entity p = diagram.getCurrentGroup();
+
+		final String visibilityString = arg.get("VISIBILITY", 0);
+		if (visibilityString != null) {
+			final VisibilityModifier visibilityModifier = VisibilityModifier.getVisibilityModifier(visibilityString + "FOO", false);
+			p.setVisibilityModifier(visibilityModifier);
+		}
 
 		if (stereotype != null && usymbol == null)
 			p.setStereotype(Stereotype.build(stereotype));

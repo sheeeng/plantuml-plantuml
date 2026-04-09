@@ -37,17 +37,22 @@ package net.sourceforge.plantuml.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.klimt.creole.Display;
+import net.sourceforge.plantuml.klimt.creole.atom.AtomImg;
 import net.sourceforge.plantuml.nio.PathSystem;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
+import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
-import net.sourceforge.plantuml.utils.LineLocation;
+import net.sourceforge.plantuml.utils.BoyerMoore;
+import net.sourceforge.plantuml.utils.SignatureUtils;
 import net.sourceforge.plantuml.utils.StartUtils;
 import net.sourceforge.plantuml.version.IteratorCounter2;
 import net.sourceforge.plantuml.version.IteratorCounter2Impl;
@@ -66,6 +71,7 @@ final public class UmlSource {
 	final private List<StringLocated> source;
 	final private List<StringLocated> rawSource;
 	final private PathSystem pathSystem = PathSystem.fetch();
+	final private Map<String, String> md5map = new HashMap<>();
 
 	public UmlSource removeInitialSkinparam() {
 		if (hasInitialSkinparam(source) == false)
@@ -97,7 +103,7 @@ final public class UmlSource {
 	}
 
 	public static UmlSource create(List<StringLocated> source, boolean checkEndingBackslash) {
-		return createWithRaw(source, checkEndingBackslash, emptyArrayList());
+		return createWithRaw(source, checkEndingBackslash, new ArrayList<>());
 	}
 
 	/**
@@ -110,13 +116,9 @@ final public class UmlSource {
 	 */
 	public static UmlSource createWithRaw(List<StringLocated> source, boolean checkEndingBackslash,
 			List<StringLocated> rawSource) {
-		final UmlSource result = new UmlSource(emptyArrayList(), rawSource);
+		final UmlSource result = new UmlSource(new ArrayList<>(), rawSource);
 		result.loadInternal(source, checkEndingBackslash);
 		return result;
-	}
-
-	private static ArrayList<StringLocated> emptyArrayList() {
-		return new ArrayList<>();
 	}
 
 	private void loadInternal(List<StringLocated> source, boolean checkEndingBackslash) {
@@ -144,7 +146,7 @@ final public class UmlSource {
 	 * @return the type of the diagram.
 	 */
 	public Collection<DiagramType> getDiagramTypes() {
-		return DiagramType.getTypesFromArobaseStart(source.get(0).getString());
+		return DiagramType.findStartTypes(source.get(0).getString());
 	}
 
 	/**
@@ -196,14 +198,6 @@ final public class UmlSource {
 		return StringUtils.seed(getPlainString("\n"));
 	}
 
-	private String getLine(LineLocation n) {
-		for (StringLocated s : source)
-			if (s.getLocation().compareTo(n) == 0)
-				return s.getString();
-
-		return null;
-	}
-
 	/**
 	 * Return the number of line in the diagram.
 	 */
@@ -227,9 +221,9 @@ final public class UmlSource {
 		for (StringLocated sl : source) {
 			final String line = sl.getString();
 
-			if (StartUtils.isArobaseStartDiagram(line))
+			if (StartUtils.isStartDirective(line))
 				continue;
-			if (StartUtils.isArobaseEndDiagram(line))
+			if (StartUtils.isEndDirective(line))
 				continue;
 			if (COMMENT_LINE.matcher(line).matches())
 				continue;
@@ -272,6 +266,74 @@ final public class UmlSource {
 
 	public PathSystem getPathSystem() {
 		return pathSystem;
+	}
+
+	public static final String BASE64_TAG_START = AtomImg.DATA_IMAGE_PNG_BASE64;
+	public static final String BASE64_TAG_REPLACEMENT = "data:image/png;md5,";
+	private static final BoyerMoore BASE64_BM = new BoyerMoore(BASE64_TAG_START);
+
+	public void patchBase64() {
+		for (int i = 0; i < source.size(); i++) {
+			final StringLocated original = source.get(i);
+			final String line = original.getString();
+			final String patched = patchBase64Line(BASE64_BM, line);
+			if (patched != line)
+				source.set(i, new StringLocated(patched, original.getLocation(), original.getPreprocessorError()));
+
+		}
+	}
+
+	/**
+	 * Replaces inline base64 PNG images with a compact MD5 digest form.
+	 * <p>
+	 * Transforms {@code <img data:image/png;base64,XXXX{scale=1}>} into
+	 * {@code <img data:image/png;md5,YYYY{scale=1}>} where YYYY is the MD5 hex
+	 * digest of the base64 data (XXXX).
+	 * <p>
+	 * This keeps lines short enough for the regex-based command parser, which is
+	 * critical in TeaVM where the JS regex engine has a limited call stack.
+	 */
+	public String patchBase64Line(BoyerMoore bm, String line) {
+		int from = 0;
+		StringBuilder sb = null;
+		while (true) {
+			final int start = bm.searchIn(line, from);
+			if (start == -1)
+				break;
+
+			final int dataStart = start + BASE64_TAG_START.length();
+
+			if (sb == null)
+				sb = new StringBuilder();
+
+			// Scan forward to find the end of legitimate base64 characters
+			int base64End = dataStart;
+			while (base64End < line.length() && isBase64Char(line.charAt(base64End)))
+				base64End++;
+
+			final String base64Data = line.substring(dataStart, base64End);
+			final String md5 = SignatureUtils.getMD5Hex(base64Data);
+			md5map.put(md5, base64Data);
+
+			sb.append(line, from, start);
+			sb.append(BASE64_TAG_REPLACEMENT);
+			sb.append(md5);
+			from = base64End;
+		}
+		if (sb == null)
+			return line;
+
+		sb.append(line, from, line.length());
+		return sb.toString();
+	}
+
+	private static boolean isBase64Char(char c) {
+		return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '+' || c == '/'
+				|| c == '=';
+	}
+
+	public Map<String, String> getMd5map() {
+		return md5map;
 	}
 
 }

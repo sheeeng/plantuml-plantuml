@@ -51,14 +51,20 @@ public abstract class ColorMapper {
 		}
 	};
 	
-	public final static ColorMapper TEAVM = new ColorMapper() {
+	public final static ColorMapper TEAVM_LIGHT = new ColorMapper() {
 		@Override
 		public XColor fromColorSimple(HColorSimple simple) {
 			return simple.getAwtColor();
 		}
 	};
 
-	// ::comment when __HAXE__
+	public final static ColorMapper TEAVM_DARK = new ColorMapper() {
+		@Override
+		public XColor fromColorSimple(HColorSimple simple) {
+			return ((HColorSimple) simple.darkSchemeTheme()).getAwtColor();
+		}
+	};
+
 	public final static ColorMapper DARK_MODE = new ColorMapper() {
 		@Override
 		public XColor fromColorSimple(HColorSimple simple) {
@@ -92,7 +98,5 @@ public abstract class ColorMapper {
 			}
 		};
 	}
-
-	// ::done
 
 }

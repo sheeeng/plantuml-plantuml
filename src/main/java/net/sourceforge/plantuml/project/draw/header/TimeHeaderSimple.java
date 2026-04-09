@@ -152,6 +152,10 @@ class TimeHeaderSimple extends TimeHeader {
 	}
 
 	private void drawSimpleDayCounter(UGraphic ug) {
+
+		final UFont font = timelineStyle.getFont(SName.day);
+		final FontConfiguration fontConfiguration = getFontConfiguration(font, false, openFontColor());
+
 		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay().plusDays(1)) <= 0; day = increment(day)) {
 			final TimePoint wink = TimePoint.ofStartOfDay(day);
 			final int value;
@@ -159,8 +163,6 @@ class TimeHeaderSimple extends TimeHeader {
 				value = wink.getAbsoluteDayNum() / 7 + 1;
 			else
 				value = wink.getAbsoluteDayNum() + 1;
-			final UFont font = timelineStyle.getFont(SName.day);
-			final FontConfiguration fontConfiguration = getFontConfiguration(font, false, openFontColor());
 			final TextBlock num = Display.getWithNewlines(getPragma(), "" + value).create(fontConfiguration,
 					HorizontalAlignment.LEFT, new SpriteContainerEmpty());
 			final double x1 = getTimeScale().getPosition(wink);

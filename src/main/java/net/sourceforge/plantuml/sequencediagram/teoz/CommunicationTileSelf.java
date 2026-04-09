@@ -121,7 +121,7 @@ public class CommunicationTileSelf extends AbstractCommunicationTile {
 		final XDimension2D dim = comp.getPreferredDimension(stringBounder);
 		double x1 = getMinX().getCurrentValue();
 		final int levelIgnore = livingSpace1.getLevelAt(this, EventsHistoryMode.IGNORE_FUTURE_ACTIVATE);
-		final int levelConsidere = livingSpace1.getLevelAt(this, EventsHistoryMode.CONSIDERE_FUTURE_DEACTIVATE);
+		final int levelConsidere = livingSpace1.getLevelAt(this, EventsHistoryMode.CONSIDER_FUTURE_DEACTIVATE);
 		Log.info(() -> "CommunicationTileSelf::drawU levelIgnore=" + levelIgnore + " levelConsidere=" + levelConsidere);
 		if (!isReverseDefine()) {
 			x1 += CommunicationTile.LIVE_DELTA_SIZE * levelIgnore;

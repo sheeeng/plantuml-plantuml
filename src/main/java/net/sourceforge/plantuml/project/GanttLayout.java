@@ -36,7 +36,6 @@
 package net.sourceforge.plantuml.project;
 
 import net.sourceforge.plantuml.klimt.font.StringBounder;
-import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.project.core.Task;
 import net.sourceforge.plantuml.project.data.DisplayConfigData;
 import net.sourceforge.plantuml.project.data.GanttModelData;
@@ -50,6 +49,7 @@ public final class GanttLayout {
 
 	private final double titlesWidth;
 	private final double barsWidth;
+	private final double timelineWidth;
 	private double totalHeight;
 	private double headerHeight;
 	private double footerHeight;
@@ -80,7 +80,24 @@ public final class GanttLayout {
 		}
 
 		this.titlesWidth = computedTitlesWidth;
-		this.barsWidth = timeBounds.getBarsColumnWidth(timeHeader);
+
+		this.timelineWidth = timeBounds.getBarsColumnWidth(timeHeader);
+		if (displayConfig.getLabelStrategy().titleInside()) {
+			double maxLabelOverflow = 0;
+			for (Task task : modelData.getTasks()) {
+				if (timeBounds.isHidden(task))
+					continue;
+
+				final TaskDraw draw = drawRegistry.getTaskDraw(task);
+				if (draw == null)
+					continue;
+
+				maxLabelOverflow = Math.max(maxLabelOverflow, draw.getLabelOverflow(stringBounder, timelineWidth));
+			}
+			this.barsWidth = timelineWidth + maxLabelOverflow;
+		} else {
+			this.barsWidth = timelineWidth;
+		}
 		this.headerHeight = timeHeader.getTimeHeaderHeight(stringBounder);
 		this.footerHeight = displayConfig.isShowFootbox() ? timeHeader.getTimeFooterHeight(stringBounder) : 0;
 		this.totalHeight = drawRegistry.getTotalHeightWithoutFooter() + this.footerHeight;
@@ -92,6 +109,10 @@ public final class GanttLayout {
 
 	public double getBarsWidth() {
 		return barsWidth;
+	}
+
+	public double getTimelineWidth() {
+		return timelineWidth;
 	}
 
 	public double getTotalHeight() {

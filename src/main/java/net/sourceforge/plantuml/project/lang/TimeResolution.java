@@ -35,6 +35,12 @@
  */
 package net.sourceforge.plantuml.project.lang;
 
+import com.plantuml.ubrex.builder.UBrexConcat;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexNamed;
+import com.plantuml.ubrex.builder.UBrexPart;
+import com.plantuml.ubrex.builder.UBrexUpto;
+
 import net.sourceforge.plantuml.project.time.MonthUtils;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
@@ -67,6 +73,45 @@ public abstract class TimeResolution {
 				new RegexLeaf(1, day, "([\\d]{1,2})"), //
 				new RegexLeaf("[\\w, ]*?"), //
 				new RegexLeaf(1, year, "([\\d]{1,4})"));
+	}
+
+	public static UBrexPart toUbrexA_DD_MONTH_YYYY(String year, String month, String day) {
+		final UBrexPart digits1to2 = new UBrexLeaf("〇{1-2}〴d");
+		final UBrexPart digits1to4 = new UBrexLeaf("〇{1-4}〴d");
+		final UBrexPart monthUbrex = (UBrexPart) MonthUtils.getUbrex();
+		return UBrexConcat.build( //
+				new UBrexNamed(day, digits1to2), //
+				new UBrexUpto(new UBrexLeaf("〴D"), new UBrexNamed(month, monthUbrex)), //
+				new UBrexLeaf("〇+〴D"), //
+				new UBrexNamed(year, digits1to4) //
+		);
+	}
+
+	public static UBrexPart toUbrexB_YYYY_MM_DD(String year, String month, String day) {
+		final UBrexPart digits1to2 = new UBrexLeaf("〇{1-2}〴d");
+		final UBrexPart digits1to4 = new UBrexLeaf("〇{1-4}〴d");
+		final UBrexPart nonDigit = new UBrexLeaf("〇+〴D");
+		return UBrexConcat.build( //
+				new UBrexNamed(year, digits1to4), //
+				nonDigit, //
+				new UBrexNamed(month, digits1to2), //
+				nonDigit, //
+				new UBrexNamed(day, digits1to2) //
+		);
+	}
+
+	public static UBrexPart toUbrexC_MONTH_DD_YYYY(String year, String month, String day) {
+		final UBrexPart digits1to2 = new UBrexLeaf("〇{1-2}〴d");
+		final UBrexPart digits1to4 = new UBrexLeaf("〇{1-4}〴d");
+		final UBrexPart monthUbrex = (UBrexPart) MonthUtils.getUbrex();
+		final UBrexPart nonDigit = new UBrexLeaf("〇+〴D");
+		return UBrexConcat.build( //
+				new UBrexNamed(month, monthUbrex), //
+				nonDigit, //
+				new UBrexNamed(day, digits1to2), //
+				nonDigit, //
+				new UBrexNamed(year, digits1to4) //
+		);
 	}
 
 }

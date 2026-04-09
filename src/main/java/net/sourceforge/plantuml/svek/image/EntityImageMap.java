@@ -56,7 +56,7 @@ import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.FontParam;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
-import net.sourceforge.plantuml.klimt.geom.PlacementStrategyY1Y2;
+import net.sourceforge.plantuml.klimt.geom.PlacementStrategy;
 import net.sourceforge.plantuml.klimt.geom.ULayoutGroup;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
@@ -168,6 +168,10 @@ public class EntityImageMap extends AbstractEntityImage implements Stencil, With
 		if (backcolor == null)
 			backcolor = style.value(PName.BackGroundColor).asColor(getSkinParam().getIHtmlColorSet());
 
+		// final HorizontalAlignment horizontalAlignment =
+		// style.value(PName.HorizontalAlignment).asHorizontalAlignment();
+		final HorizontalAlignment horizontalAlignment = HorizontalAlignment.CENTER;
+
 		rect.setDeltaShadow(style.getShadowing());
 		final UStroke stroke = style.getStroke();
 
@@ -191,7 +195,8 @@ public class EntityImageMap extends AbstractEntityImage implements Stencil, With
 			ugHeader.apply(stroke).draw(rect2);
 		}
 
-		final ULayoutGroup header = new ULayoutGroup(new PlacementStrategyY1Y2(ug.getStringBounder()));
+		final PlacementStrategy placementStrategy = horizontalAlignment.asPlacementStrategy(ug.getStringBounder());
+		final ULayoutGroup header = new ULayoutGroup(placementStrategy);
 		if (stereo != null)
 			header.add(stereo);
 

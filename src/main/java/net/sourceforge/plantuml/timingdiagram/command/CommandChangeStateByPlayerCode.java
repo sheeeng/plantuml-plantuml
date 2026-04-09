@@ -81,7 +81,7 @@ public class CommandChangeStateByPlayerCode extends CommandChangeState {
 		final String code = arg.get("CODE", 0);
 		final Player player = diagram.getPlayer(code);
 		if (player == null)
-			return CommandExecutionResult.error("Unkown \"" + code + "\"");
+			return CommandExecutionResult.error("Unknown \"" + code + "\"");
 
 		final TimeTick now = diagram.getNow();
 		return addState(diagram, arg, player, now);

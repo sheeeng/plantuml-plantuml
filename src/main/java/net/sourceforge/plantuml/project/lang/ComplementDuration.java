@@ -35,6 +35,15 @@
  */
 package net.sourceforge.plantuml.project.lang;
 
+import java.util.List;
+
+import com.plantuml.ubrex.UMatcher;
+import com.plantuml.ubrex.builder.UBrexConcat;
+import com.plantuml.ubrex.builder.UBrexLeaf;
+import com.plantuml.ubrex.builder.UBrexNamed;
+import com.plantuml.ubrex.builder.UBrexOptional;
+import com.plantuml.ubrex.builder.UBrexPart;
+
 import net.sourceforge.plantuml.project.Failable;
 import net.sourceforge.plantuml.project.GanttDiagram;
 import net.sourceforge.plantuml.project.Load;
@@ -53,6 +62,45 @@ public class ComplementDuration implements Something<GanttDiagram> {
 	}
 
 	@Override
+	public UBrexPart toUnicodeBracketedExpressionComplement() {
+		return UBrexConcat.build( //
+				UBrexConcat.build( //
+						new UBrexNamed("CNUM1", new UBrexLeaf("〇+〴d")), //
+						UBrexLeaf.spaceOneOrMore(), //
+						new UBrexNamed("CUNIT1", new UBrexLeaf("【hour┇day┇week┇month】")), //
+						new UBrexLeaf("〇?s")), //
+				new UBrexOptional(UBrexConcat.build( //
+						UBrexLeaf.spaceOneOrMore(), //
+						new UBrexLeaf("and"), //
+						UBrexLeaf.spaceOneOrMore(), //
+						new UBrexNamed("CNUM2", new UBrexLeaf("〇+〴d")), //
+						UBrexLeaf.spaceOneOrMore(), //
+						new UBrexNamed("CUNIT2", new UBrexLeaf("【hour┇day┇week┇month】")), //
+						new UBrexLeaf("〇?s"))));
+	}
+
+	@Override
+	public Failable<? extends Object> ugetMe(GanttDiagram system, UMatcher arg) {
+
+		final int firstValue = Integer.parseInt(arg.getCapture("CNUM1").get(0));
+		final String firstUnit = arg.getCapture("CUNIT1").get(0);
+		final int[] firstDaysAndHours = toDaysAndHours(system, firstValue, firstUnit);
+
+		int[] secondDaysAndHours = { 0, 0 };
+		final List<String> secondValue = arg.getCapture("CNUM2");
+		if (secondValue.size() > 0) {
+			final int value = Integer.parseInt(secondValue.get(0));
+			final String unit = arg.getCapture("CUNIT2").get(0);
+			secondDaysAndHours = toDaysAndHours(system, value, unit);
+		}
+
+		final int totalDays = firstDaysAndHours[0] + secondDaysAndHours[0];
+		final int totalHours = firstDaysAndHours[1] + secondDaysAndHours[1];
+
+		return Failable.ok(Load.ofDaysAndHours(totalDays, totalHours));
+	}
+
+	@Override
 	public Failable<Load> getMe(GanttDiagram system, RegexResult arg, String suffix) {
 
 		final String prefix = "COMPLEMENT" + suffix;
@@ -61,7 +109,7 @@ public class ComplementDuration implements Something<GanttDiagram> {
 		final String firstUnit = arg.get(prefix, 1);
 		final int[] firstDaysAndHours = toDaysAndHours(system, firstValue, firstUnit);
 
-		int[] secondDaysAndHours = {0, 0};
+		int[] secondDaysAndHours = { 0, 0 };
 		final String secondValue = arg.get(prefix, 2);
 		if (secondValue != null) {
 			final int value = Integer.parseInt(secondValue);
@@ -79,16 +127,16 @@ public class ComplementDuration implements Something<GanttDiagram> {
 		switch (unit.charAt(0)) {
 		case 'H':
 		case 'h':
-			return new int[] {0, value};
+			return new int[] { 0, value };
 		case 'D':
 		case 'd':
-			return new int[] {value, 0};
+			return new int[] { value, 0 };
 		case 'W':
 		case 'w':
-			return new int[] {value * system.daysInWeek(), 0};
+			return new int[] { value * system.daysInWeek(), 0 };
 		case 'M':
 		case 'm':
-			return new int[] {value * system.daysInMonth(), 0};
+			return new int[] { value * system.daysInMonth(), 0 };
 		default:
 			throw new IllegalArgumentException("unknown time unit: " + unit);
 		}

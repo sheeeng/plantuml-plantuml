@@ -102,6 +102,11 @@ public interface UnicodeBracketedExpression {
 						return shallWePass.getKeysToBeRefactored();
 					}
 
+					@Override
+					public List<String> getRootKeys() {
+						return shallWePass.getRootKeys();
+					}
+
 				};
 			}
 		};

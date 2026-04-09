@@ -65,8 +65,12 @@ public class ProtectedCommand<S extends Diagram> implements Command<S> {
 		} catch (Throwable t) {
 			Log.error("Error " + t);
 			Logme.error(t);
-			String msg = "You should send a mail to plantuml@gmail.com or post to https://plantuml.com/qa with this log (V"
-					+ Version.versionString() + ")";
+			String msg;
+			if (Logme.MODE_VEGA)
+				msg = "You should send a mail to plantuml@gmail.com with this log";
+			else
+				msg = "You should send a mail to plantuml@gmail.com with this log (V" + Version.versionString() + ")";
+
 			Log.error(msg);
 			msg += " " + t.toString();
 			return CommandExecutionResult.error(msg, t);
@@ -80,6 +84,11 @@ public class ProtectedCommand<S extends Diagram> implements Command<S> {
 	@Override
 	public boolean isEligibleFor(ParserPass pass) {
 		return cmd.isEligibleFor(pass);
+	}
+
+	@Override
+	public final boolean isCommandForbidden(BlocLines lines) {
+		return cmd.isCommandForbidden(lines);
 	}
 
 }

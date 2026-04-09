@@ -39,6 +39,7 @@ import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
 import net.sourceforge.plantuml.math.ScientificEquationSafe;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
+import net.sourceforge.plantuml.style.ISkinSimple;
 
 public class CommandCreoleMath implements Command {
 	
@@ -65,11 +66,12 @@ public class CommandCreoleMath implements Command {
 		return m.group(1).length();
 	}
 
-	public String executeAndGetRemaining(String line, StripeSimple stripe) {
+	@Override
+	public String executeAndGetRemaining(ISkinSimple skinSimple, String line, StripeSimple stripe) {
 		final Matcher2 m = pattern.matcher(line);
-		if (m.find() == false) {
+		if (m.find() == false)
 			throw new IllegalStateException();
-		}
+		
 		final String math = m.group(2);
 		stripe.addMath(ScientificEquationSafe.fromAsciiMath(math));
 		return line.substring(m.group(1).length());

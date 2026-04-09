@@ -81,7 +81,7 @@ public class SecurityUtils {
 
 	// ::uncomment when __TEAVM__
 //	public static SecurityProfile getSecurityProfile() {
-//		return SecurityProfile.UNSECURE;
+//		return SecurityProfile.INSECURE;
 //	}
 	// ::done
 

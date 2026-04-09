@@ -41,12 +41,11 @@ import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.klimt.font.StringBounderRaw;
 import net.sourceforge.plantuml.klimt.font.UFont;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.teavm.TeaVM;
 
 public class StringBounderDebug extends StringBounderRaw {
 
-	public StringBounderDebug() {
-		super(TeaVM.isTeaVM() ? null : FileFormat.gg.getFontRenderContext());
+	public StringBounderDebug(FileFormat fileFormat) {
+		super(null, fileFormat);
 	}
 
 	@Override

@@ -53,38 +53,36 @@ public class LanguageDescriptor {
 
 	public LanguageDescriptor() {
 
-		addArobase("board");
-		addArobase("bpm");
-		addArobase("chart");
-		addArobase("chen");
-		addArobase("chronology");
-		addArobase("creole");
-		addArobase("cute");
-		addArobase("def");
-		addArobase("ditaa");
-		addArobase("dot");
-		addArobase("ebnf");
-		addArobase("files");
-		addArobase("flow");
-		addArobase("gantt");
-		addArobase("git");
-		addArobase("hcl");
-		addArobase("jcckit");
-		addArobase("json");
-		addArobase("latex");
-		addArobase("math");
-		addArobase("mindmap");
-		addArobase("nwdiag");
-		addArobase("project");
-		addArobase("regex");
-		addArobase("salt");
-		addArobase("sprites");
-		addArobase("tree");
-		addArobase("uml");
-		addArobase("wbs");
-		addArobase("wire");
-		addArobase("yaml");
-		addArobase("packetdiag");
+		addDirectivePair("board");
+		addDirectivePair("bpm");
+		addDirectivePair("chart");
+		addDirectivePair("chen");
+		addDirectivePair("chronology");
+		addDirectivePair("creole");
+		addDirectivePair("def");
+		addDirectivePair("ditaa");
+		addDirectivePair("dot");
+		addDirectivePair("ebnf");
+		addDirectivePair("files");
+		addDirectivePair("flow");
+		addDirectivePair("gantt");
+		addDirectivePair("git");
+		addDirectivePair("hcl");
+		addDirectivePair("jcckit");
+		addDirectivePair("json");
+		addDirectivePair("latex");
+		addDirectivePair("math");
+		addDirectivePair("mindmap");
+		addDirectivePair("nwdiag");
+		addDirectivePair("project");
+		addDirectivePair("regex");
+		addDirectivePair("salt");
+		addDirectivePair("sprites");
+		addDirectivePair("uml");
+		addDirectivePair("wbs");
+		addDirectivePair("wire");
+		addDirectivePair("yaml");
+		addDirectivePair("packetdiag");
 
 		type.add("abstract");
 		type.add("action");
@@ -315,7 +313,7 @@ public class LanguageDescriptor {
 		preproc.add("!while");
 	}
 
-	private void addArobase(String type) {
+	private void addDirectivePair(String type) {
 		keyword.add("@start" + type);
 		keyword.add("@end" + type);
 	}
