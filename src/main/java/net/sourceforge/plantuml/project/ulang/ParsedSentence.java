@@ -36,42 +36,40 @@
 package net.sourceforge.plantuml.project.ulang;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.plantuml.ubrex.TextNavigator;
+import com.plantuml.ubrex.UMatcher;
 
-import net.sourceforge.plantuml.project.GanttDiagram;
-import net.sourceforge.plantuml.project.lang.SubjectDayAsDate;
-import net.sourceforge.plantuml.project.lang.SubjectDayOfWeek;
-import net.sourceforge.plantuml.project.lang.SubjectProject;
-import net.sourceforge.plantuml.project.lang.SubjectTask;
+public class ParsedSentence {
 
-public class UbrexGantt {
+	private final UMatcher matcherSubject;
+	private final List<VerbPhraseMatcher> verbPhrases;
 
-	public static void sentence(String sentenceString, String debug) {
-		System.out.println("------------------------------");
-		System.out.println("BL=" + sentenceString + " " + debug);
-
-		final TextNavigator tn = TextNavigator.build(sentenceString);
-
-		for (UbrexSentence<GanttDiagram> sentence : getSentences()) {
-			final boolean match = sentence.check(tn);
-			if (match) {
-				System.out.println("[+] OK FOR " + sentence);
-				break;
-			}
-
-		}
-
+	public ParsedSentence(UMatcher matcherSubject, List<VerbPhraseMatcher> verbPhrases) {
+		this.matcherSubject = matcherSubject;
+		this.verbPhrases = Collections.unmodifiableList(new ArrayList<>(verbPhrases));
 	}
 
-	public static List<UbrexSentence<GanttDiagram>> getSentences() {
-		final List<UbrexSentence<GanttDiagram>> subjectsList = new ArrayList<>();
-		subjectsList.addAll(SubjectTask.ME.getUSentences());
-		subjectsList.addAll(SubjectProject.ME.getUSentences());
-		subjectsList.addAll(SubjectDayOfWeek.ME.getUSentences());
-		subjectsList.addAll(SubjectDayAsDate.ME.getUSentences());
-		return subjectsList;
+	@Override
+	public String toString() {
+		return "\n {" + matcherSubject.toString() + "} /\n       " + verbPhrases;
+	}
+
+	public UMatcher getMatcherSubject() {
+		return matcherSubject;
+	}
+
+	public List<VerbPhraseMatcher> getVerbPhrases() {
+		return verbPhrases;
+	}
+
+	public UMatcher getVerbMatch() {
+		return verbPhrases.get(0).getVerbMatch();
+	}
+
+	public UMatcher getComplementMatcher() {
+		return verbPhrases.get(0).getComplementMatcher();
 	}
 
 }

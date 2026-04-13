@@ -108,7 +108,7 @@ class VegaTest {
 		sb.append("===========================================");
 		if (failed > 0) {
 			sb.append("\n Failed tests:");
-			for (final String file : skippedFiles)
+			for (final String file : failedFiles)
 				sb.append("\n   - " + file);
 			sb.append("\n===========================================");
 		}

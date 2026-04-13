@@ -8,19 +8,19 @@ public class LookAheadTest3 {
 
 	@Test
 	public void test1() {
-		UnicodeBracketedExpression cut = UnicodeBracketedExpression.build("a【 ; ┇ 〒(!)「〴w;:.」 】");
+		UnicodeBracketedExpression cut = UnicodeBracketedExpression.build("a【 ; ┇ 〒!「〴w;:.」 】");
 		assertEquals("a;", cut.match("a;").getAcceptedMatch());
 	}
 
 	@Test
 	public void test2() {
-		UnicodeBracketedExpression cut = UnicodeBracketedExpression.build("a【 ; ┇ 〒(!)「〴w;:.」 】");
+		UnicodeBracketedExpression cut = UnicodeBracketedExpression.build("a【 ; ┇ 〒!「〴w;:.」 】");
 		assertEquals("a", cut.match("a,").getAcceptedMatch());
 	}
 
 	@Test
 	public void test3() {
-		UnicodeBracketedExpression cut = UnicodeBracketedExpression.build("a【 ; ┇ 〒(!)「〴w;:.」 】");
+		UnicodeBracketedExpression cut = UnicodeBracketedExpression.build("a【 ; ┇ 〒!「〴w;:.」 】");
 		assertEquals("", cut.match("a.").getAcceptedMatch());
 	}
 

@@ -33,7 +33,7 @@ class ColorParserTest {
 				new UBrexOneOrMore(UBrexConcat.build( //
 						new UBrexLeaf("【text┇back┇header┇line.dashed┇line.dotted┇line.bold┇line┇shadowing】"), //
 						new UBrexLeaf("# 〇?〘 〇+〴w 〇?〘 「-\\|/」 〇+〴w 〙  〙"), //
-						new UBrexLeaf("【 ; ┇ 〒(!)「〴w;:.」 】"))) //
+						new UBrexLeaf("【 ; ┇ 〒!「〴w;:.」 】"))) //
 		);
 		return cut;
 	}
