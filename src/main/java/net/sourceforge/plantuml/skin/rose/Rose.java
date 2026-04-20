@@ -53,6 +53,7 @@ import net.sourceforge.plantuml.skin.ComponentType;
 import net.sourceforge.plantuml.skin.LineParam;
 import net.sourceforge.plantuml.skin.PaddingParam;
 import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
@@ -130,7 +131,7 @@ public class Rose {
 
 		// final Stereotype stereotype = stringsToDisplay == null ? null : stringsToDisplay.getStereotypeIfAny();
 
-		final double padding = param.getPadding(PaddingParam.PARTICIPANT);
+		final ClockwiseTopRightBottomLeft padding = param.getPadding(PaddingParam.PARTICIPANT);
 
 		if (type == ComponentType.PARTICIPANT_HEAD)
 			return new ComponentRoseParticipant(styles[0], styles[1], stringsToDisplay, param,

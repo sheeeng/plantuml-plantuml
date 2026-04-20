@@ -71,6 +71,7 @@ import net.sourceforge.plantuml.skin.Pragma;
 import net.sourceforge.plantuml.skin.PragmaKey;
 import net.sourceforge.plantuml.skin.VisibilityModifier;
 import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.ISkinSimple;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.Style;
@@ -690,7 +691,8 @@ public class Display implements Iterable<CharSequence> {
 			FontConfiguration stereotypeConfiguration, double marginX1, double marginX2) {
 		final Sheet sheet = spriteContainer
 				.sheet(fontConfiguration, horizontalAlignment, creoleMode, stereotypeConfiguration).createSheet(this);
-		final double padding = spriteContainer == null ? 0 : spriteContainer.getPadding();
+		final ClockwiseTopRightBottomLeft padding = spriteContainer == null ? ClockwiseTopRightBottomLeft.none()
+				: spriteContainer.getPadding();
 		final SheetBlock1 sheetBlock1 = new SheetBlock1(sheet, maxMessageSize, padding, marginX1, marginX2);
 		return new SheetBlock2(sheetBlock1, sheetBlock1, UStroke.withThickness(1.5));
 	}

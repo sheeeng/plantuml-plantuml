@@ -48,6 +48,7 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
 import net.sourceforge.plantuml.skin.AbstractTextualComponent;
 import net.sourceforge.plantuml.skin.Area;
+import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.Style;
 
@@ -61,10 +62,10 @@ public class ComponentRoseParticipant extends AbstractTextualComponent {
 	private final UStroke stroke;
 	private final double minWidth;
 	private final boolean collections;
-	private final double padding;
+	private final ClockwiseTopRightBottomLeft padding;
 
-	public ComponentRoseParticipant(Style style, Style stereo, Display stringsToDisplay,
-			ISkinParam skinParam, double minWidth, boolean collections, double padding) {
+	public ComponentRoseParticipant(Style style, Style stereo, Display stringsToDisplay, ISkinParam skinParam,
+			double minWidth, boolean collections, ClockwiseTopRightBottomLeft padding) {
 		super(style, stereo, LineBreakStrategy.NONE, 7, 7, 7, skinParam, stringsToDisplay, false);
 
 		this.roundCorner = getRoundCorner();
@@ -83,7 +84,7 @@ public class ComponentRoseParticipant extends AbstractTextualComponent {
 	@Override
 	protected void drawInternalU(UGraphic ug, Area area) {
 		final StringBounder stringBounder = ug.getStringBounder();
-		ug = ug.apply(UTranslate.dx(padding));
+		ug = ug.apply(UTranslate.dx(padding.getLeft()));
 		if (foregroundColor != null)
 			ug = ug.apply(foregroundColor);
 		if (back != null)
@@ -116,7 +117,8 @@ public class ComponentRoseParticipant extends AbstractTextualComponent {
 
 	@Override
 	public double getPreferredWidth(StringBounder stringBounder) {
-		return getTextWidth(stringBounder) + deltaShadow + getDeltaCollection() + 2 * padding;
+		return getTextWidth(stringBounder) + deltaShadow + getDeltaCollection() + padding.getLeft()
+				+ padding.getRight();
 	}
 
 	@Override

@@ -45,22 +45,23 @@ import net.sourceforge.plantuml.sequencediagram.NotePosition;
 import net.sourceforge.plantuml.sequencediagram.Participant;
 import net.sourceforge.plantuml.skin.Context2D;
 import net.sourceforge.plantuml.skin.Pragma;
+import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.utils.LineLocation;
 
 class ArrowAndParticipant extends Arrow implements InGroupable {
 
 	private final Arrow arrow;
 	private final ParticipantBox participantBox;
-	private final double paddingParticipant;
+	private final ClockwiseTopRightBottomLeft paddingParticipant;
 
 	public ArrowAndParticipant(AtomicInteger counter, Pragma pragma, StringBounder stringBounder, Arrow arrow,
-			ParticipantBox participantBox, double paddingParticipant, LineLocation location) {
+			ParticipantBox participantBox, ClockwiseTopRightBottomLeft paddingParticipant, LineLocation location) {
 		super(counter, pragma, arrow.getStartingY(), arrow.getSkin(), arrow.getArrowComponent(), arrow.getUrl(),
 				location);
 		this.arrow = arrow;
 		this.participantBox = participantBox;
 		this.paddingParticipant = paddingParticipant;
-		arrow.setPaddingArrowHead(participantBox.getPreferredWidth(stringBounder) / 2 - paddingParticipant);
+		arrow.setPaddingArrowHead(participantBox.getPreferredWidth(stringBounder) / 2 - paddingParticipant.getLeft());
 	}
 
 	@Override
@@ -113,7 +114,7 @@ class ArrowAndParticipant extends Arrow implements InGroupable {
 			arrow.drawInternalU(ug, maxX, context);
 		} else {
 			final double boxWidth = participantBox.getPreferredWidth(ug.getStringBounder());
-			arrow.drawInternalU(ug.apply(UTranslate.dx(boxWidth / 2 - paddingParticipant)), maxX, context);
+			arrow.drawInternalU(ug.apply(UTranslate.dx(boxWidth / 2 - paddingParticipant.getLeft())), maxX, context);
 		}
 
 		final double arrowHeight = arrow.getPreferredHeight(ug.getStringBounder());

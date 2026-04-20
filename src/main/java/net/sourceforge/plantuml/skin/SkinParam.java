@@ -88,6 +88,7 @@ import net.sourceforge.plantuml.preproc.OptionKey;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
 import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.FromSkinparamToStyle;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.LengthAdjust;
@@ -1102,23 +1103,23 @@ public class SkinParam implements ISkinParam {
 	}
 
 	@Override
-	public double getPadding() {
+	public ClockwiseTopRightBottomLeft getPadding() {
 		final String name = "padding";
 		return getAsDouble(name);
 	}
 
 	@Override
-	public double getPadding(PaddingParam param) {
+	public ClockwiseTopRightBottomLeft getPadding(PaddingParam param) {
 		final String name = param.getSkinName();
 		return getAsDouble(name);
 	}
 
-	private double getAsDouble(final String name) {
+	private ClockwiseTopRightBottomLeft getAsDouble(final String name) {
 		final String value = getValue(name);
 		if (isIntOrDecimal(value))
-			return Double.parseDouble(value);
+			return ClockwiseTopRightBottomLeft.same(Double.parseDouble(value))	;
 
-		return 0;
+		return ClockwiseTopRightBottomLeft.same(0);
 	}
 
 	private int getAsInt(String key, int defaultValue) {
@@ -1172,11 +1173,11 @@ public class SkinParam implements ISkinParam {
 
 	@Override
 	public Padder sequenceDiagramPadder() {
-		final double padding = getAsDouble("SequenceMessagePadding");
-		final double margin = getAsDouble("SequenceMessageMargin");
+		final ClockwiseTopRightBottomLeft padding = getAsDouble("SequenceMessagePadding");
+		final ClockwiseTopRightBottomLeft margin = getAsDouble("SequenceMessageMargin");
 		final String borderColor = getValue("SequenceMessageBorderColor");
 		final String backgroundColor = getValue("SequenceMessageBackGroundColor");
-		if (padding == 0 && margin == 0 && borderColor == null && backgroundColor == null)
+		if (padding.isZero() && margin.isZero() && borderColor == null && backgroundColor == null)
 			return Padder.NONE;
 
 		final HColor border = borderColor == null ? null : getIHtmlColorSet().getColorOrWhite(borderColor);
