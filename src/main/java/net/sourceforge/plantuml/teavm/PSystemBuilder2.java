@@ -143,8 +143,7 @@ public class PSystemBuilder2 {
 		timLoader.load(rawSource);
 		BrowserLog.consoleLog(PSystemBuilder2.class, "createDiagram ok");
 		List<StringLocated> tmp = timLoader.getResultList();
-		tmp = Jaws.expands0(tmp);
-		tmp = Jaws.expandsJawsForPreprocessor(tmp);
+		Jaws.mutateExpands1(tmp);
 
 		final PreprocessingArtifact preprocessing = timLoader.getPreprocessingArtifact();
 
