@@ -6,11 +6,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 /**
- * Generates {@code EmbeddedResources.java} by reading {@code skin/plantuml.skin}
- * from the main resources directory and encoding it as a Base64 string literal.
+ * Generates {@code EmbeddedResources.java} by reading
+ * {@code skin/plantuml.skin} from the main resources directory and encoding it
+ * as a Base64 string literal.
  * <p>
  * Run this class on a standard JVM (NOT under TeaVM) from the project root:
  *
@@ -20,8 +23,8 @@ import java.util.Base64;
  *
  * The generated class exposes {@code openPlantumlSkin()} which returns an
  * {@code InputStream} over the embedded skin bytes, so it works inside a
- * TeaVM-compiled context where {@code ClassLoader.getResourceAsStream()} is
- * not available.
+ * TeaVM-compiled context where {@code ClassLoader.getResourceAsStream()} is not
+ * available.
  */
 public final class EmbeddedResourcesGenerator {
 
@@ -30,11 +33,39 @@ public final class EmbeddedResourcesGenerator {
 		if (!skinFile.isFile())
 			throw new IOException("File not found: " + skinFile.getAbsolutePath());
 
-		final byte[] skinBytes = Files.readAllBytes(skinFile.toPath());
-		final String b64 = Base64.getEncoder().encodeToString(skinBytes);
+		final List<String> cleaned = new ArrayList<>();
+
+		boolean inBlockComment = false;
+
+		for (String ligne : Files.readAllLines(skinFile.toPath(), StandardCharsets.UTF_8)) {
+			final String trimmed = ligne.trim();
+
+			if (inBlockComment) {
+				if (trimmed.contains("*/"))
+					inBlockComment = false;
+			} else {
+				if (trimmed.startsWith("/*")) {
+					inBlockComment = true;
+					if (trimmed.endsWith("*/"))
+						inBlockComment = false;
+					continue;
+				}
+				if (trimmed.startsWith("//") || trimmed.isEmpty())
+					continue;
+				cleaned.add(trimmed);
+			}
+		}
+
+		for (String s : cleaned)
+			System.out.println(s);
+
+		final String b64 = Base64.getEncoder().encodeToString(String.join("\n", cleaned).getBytes());
+
+//		final byte[] skinBytes = Files.readAllBytes(skinFile.toPath());
+//		final String b64 = Base64.getEncoder().encodeToString(skinBytes);
 
 		// Split into 80-char chunks for readability (same style as the existing file)
-		final int CHUNK = 80;
+		final int CHUNK = 100;
 		final StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < b64.length(); i += CHUNK) {
 			if (i > 0)
@@ -42,13 +73,11 @@ public final class EmbeddedResourcesGenerator {
 			sb.append('"').append(b64, i, Math.min(i + CHUNK, b64.length())).append('"');
 		}
 
-		final File output = new File(
-				"src/main/java/net/sourceforge/plantuml/teavm/EmbeddedResources.java");
+		final File output = new File("src/main/java/net/sourceforge/plantuml/teavm/EmbeddedResources.java");
 		if (!output.getParentFile().isDirectory())
 			throw new IOException("Target directory does not exist: " + output.getParentFile());
 
-		try (PrintStream out = new PrintStream(new FileOutputStream(output), false,
-				StandardCharsets.UTF_8.name())) {
+		try (PrintStream out = new PrintStream(new FileOutputStream(output), false, StandardCharsets.UTF_8.name())) {
 			out.println("package net.sourceforge.plantuml.teavm;");
 			out.println();
 			out.println("import java.io.ByteArrayInputStream;");

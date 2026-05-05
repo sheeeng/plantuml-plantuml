@@ -192,6 +192,9 @@ sequenceDiagram {
 }
 
 classDiagram,componentDiagram,objectDiagram {
+  object {
+   Padding 2 2 
+  }
   element {
     RoundCorner 5
   }

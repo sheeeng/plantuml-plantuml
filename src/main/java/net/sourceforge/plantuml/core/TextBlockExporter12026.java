@@ -157,6 +157,9 @@ public class TextBlockExporter12026 {
 	public ImageData exportTo(OutputStream os) throws IOException {
 		final XDimension2D dim = calculateFinalDimension();
 
+		if (fileFormatOption.getFileFormat() == FileFormat.NULL)
+			return new ImageDataSimple(0, 0);
+
 		final double scaleFactor = computeScaleFactor(dim);
 		if (scaleFactor <= 0)
 			throw new IllegalStateException("Bad scaleFactor");
@@ -241,6 +244,7 @@ public class TextBlockExporter12026 {
 					fileFormatOption.getFileFormat());
 		case SVG:
 		case SVG_FIXED:
+		case NULL:
 			return createUGraphicSVG(scaleFactor, dim, p);
 		case EPS:
 			return new UGraphicEps(backcolor, colorMapper, stringBounder, EpsStrategy.getDefault2());
