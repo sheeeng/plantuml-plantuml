@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" data-diagram-type="GANTT" height="89px" preserveAspectRatio="none" style="width:650px;height:89px;background:#FFFFFF;" version="1.1" viewBox="0 0 650 89" width="650px" zoomAndPan="magnify">
   <defs>
-    <linearGradient id="g22rqvnxoab4f0" x1="50%" x2="50%" y1="0%" y2="100%">
+    <linearGradient id="g6a4wbdo5s4hl0" x1="50%" x2="50%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#33B2E2"/>
       <stop offset="100%" stop-color="#009FDB"/>
     </linearGradient>
@@ -67,9 +67,9 @@
     <line style="stroke:#C0C0C0;stroke-width:1;" x1="0" x2="604" y1="27" y2="27"/>
     <path d="M76,40 L76,49.5 L81,49.5" fill="none" style="stroke:#000000;stroke-width:1.5;"/>
     <polygon fill="#000000" points="80,45.5,84,49.5,80,53.5,80,45.5" style="stroke:#000000;stroke-width:1;"/>
-    <rect fill="url(#g22rqvnxoab4f0)" height="11" style="stroke:none;stroke-width:1;" width="24" x="58" y="29"/>
+    <rect fill="url(#g6a4wbdo5s4hl0)" height="11" style="stroke:none;stroke-width:1;" width="24" x="58" y="29"/>
     <rect fill="none" height="11" style="stroke:#C2C2C2;stroke-width:1;" width="24" x="58" y="29"/>
-    <rect fill="url(#g22rqvnxoab4f0)" height="11" style="stroke:none;stroke-width:1;" width="24" x="86" y="44"/>
+    <rect fill="url(#g6a4wbdo5s4hl0)" height="11" style="stroke:none;stroke-width:1;" width="24" x="86" y="44"/>
     <rect fill="none" height="11" style="stroke:#C2C2C2;stroke-width:1;" width="24" x="86" y="44"/>
     <polygon fill="#000000" points="602,59,607,64,602,69,597,64" style="stroke:#000000;stroke-width:1;"/>
     <text fill="#5A5A5A" font-family="Cascadia Code PL" font-size="11" font-weight="700" lengthAdjust="spacing" textLength="158.5833" x="86" y="37.5556">Automatic branch tag on release</text>

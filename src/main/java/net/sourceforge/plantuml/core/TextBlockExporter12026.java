@@ -281,7 +281,6 @@ public class TextBlockExporter12026 {
 		option = option.withColorMapper(fileFormatOption.getColorMapper());
 		option = option.withLinkTarget(getSvgLinkTarget());
 		option = option.withFont(p.getValue(PragmaKey.SVG_FONT));
-		option = option.withPragma(p);
 		if (skinParam != null)
 			option = option.withConfigurationStore(skinParam.options());
 		if (diagramType != null) {

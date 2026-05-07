@@ -111,7 +111,7 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 
 		while (it.hasNext()) {
 			final CharSequence cs = it.next();
-			final String type = EmbeddedDiagram.getEmbeddedType(StringUtils.trinNoTrace(cs));
+			final String type = EmbeddedDiagram.getEmbeddedType(cs);
 			if (type != null)
 				embeddeds.add(EmbeddedDiagram.createAndSkip(type, it, skinParam));
 			else
@@ -386,8 +386,8 @@ public class MethodsOrFieldsArea extends TextBlockMemoized implements WithPorts 
 		if (result != null && hasSmallIcon()) {
 			// Extend the inner position to include the visibility modifier on its left
 			final double smallIcon = skinParam.getCircledCharacterRadius() + 3;
-			return new XRectangle2D(result.getMinX() - smallIcon, result.getMinY(),
-					result.getWidth() + smallIcon, result.getHeight());
+			return new XRectangle2D(result.getMinX() - smallIcon, result.getMinY(), result.getWidth() + smallIcon,
+					result.getHeight());
 		}
 		return result;
 	}

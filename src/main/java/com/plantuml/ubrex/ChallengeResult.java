@@ -67,12 +67,8 @@ public class ChallengeResult {
 		return capture.findValuesByKey(path);
 	}
 
-	public List<String> getKeysToBeRefactored() {
-		return capture.getKeysToBeRefactored();
-	}
-
-	public List<String> getRootKeys() {
-		return capture.getRootKeys();
+	public List<String> findFirstValuesByKeyPrefix(String keyPrefix) {
+		return capture.findFirstValuesByKeyPrefix(keyPrefix);
 	}
 
 	public Capture getCapture() {

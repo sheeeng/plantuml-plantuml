@@ -46,9 +46,7 @@ public interface UMatcher {
 
 	public List<String> getCapture(String path);
 
-	public List<String> getKeysToBeRefactored();
-
-	public List<String> getRootKeys();
+	public List<String> findFirstValuesByKeyPrefix(String keyPrefix);
 
 	public default String get(String key, int num) {
 		final List<String> tmp = getCapture(key);

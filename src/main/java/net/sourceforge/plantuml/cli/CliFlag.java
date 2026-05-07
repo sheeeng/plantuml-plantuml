@@ -156,6 +156,10 @@ public enum CliFlag {
 	@CliFlagDoc(value = "Use <n> threads for processing  (auto = available processors)", usage = "--threads <n|auto>", level = 1)
 	NB_THREAD("--threads", aliases(DEPRECATED("-nbthread")), Arity.BINARY_NEXT_ARGUMENT_VALUE),
 
+	@CliFlagDoc(value = "Runs the generation process <n> times, useful for performance testing", usage = "--loop <n>", level = 1)
+	@CliDefaultValue("1")
+	LOOP("--loop", Arity.BINARY_NEXT_ARGUMENT_VALUE),
+
 	// Metadata & assets:
 	@CliFlagDoc(value = "Extract embedded PlantUML source from PNG or SVG metadata", level = 0, newGroup = "Metadata & assets")
 	RETRIEVE_METADATA("--extract-source", aliases(DEPRECATED("-metadata")), Arity.UNARY_BOOLEAN),

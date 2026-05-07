@@ -273,7 +273,7 @@ public class SkinParam implements ISkinParam {
 		key = patternCleanArrow.matcher(key).replaceAll("arrow");
 		key = patternCleanAlign.matcher(key).replaceAll("alignment");
 
-		final Matcher2 mm = stereoPattern.matcher(key);
+		final Matcher2 mm = stereoPattern.matcher(key, 0);
 		final List<String> result = new ArrayList<>();
 		while (mm.find()) {
 			final String s = mm.group(1);

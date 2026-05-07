@@ -162,7 +162,7 @@ public class BlockUml {
 		if (GlobalConfig.getInstance().boolValue(GlobalConfigKey.WORD))
 			return null;
 
-		final Matcher2 m = StartUtils.patternFilename.matcher(StringUtils.trin(data.get(0).getString()));
+		final Matcher2 m = StartUtils.patternFilename.matcher(StringUtils.trin(data.get(0).getString()), 0);
 		final boolean ok = m.find();
 		if (ok == false)
 			return null;

@@ -436,7 +436,7 @@ public class Display implements Iterable<CharSequence> {
 	}
 
 	public Display removeEndingStereotype() {
-		final Matcher2 m = patternStereotype.matcher(displayData.get(displayData.size() - 1));
+		final Matcher2 m = patternStereotype.matcher(displayData.get(displayData.size() - 1), 0);
 		if (m.matches()) {
 			final List<CharSequence> result = new ArrayList<>(this.displayData);
 			result.set(result.size() - 1, m.group(1));
@@ -449,7 +449,7 @@ public class Display implements Iterable<CharSequence> {
 	public final static Pattern2 patternStereotype = Pattern2.cmpile("^(.*?)(\\<\\<\\s*(.*)\\s*\\>\\>)\\s*$");
 
 	public Stereotype getEndingStereotype() {
-		final Matcher2 m = patternStereotype.matcher(displayData.get(displayData.size() - 1));
+		final Matcher2 m = patternStereotype.matcher(displayData.get(displayData.size() - 1), 0);
 		if (m.matches())
 			return Stereotype.build(m.group(2));
 
@@ -579,7 +579,7 @@ public class Display implements Iterable<CharSequence> {
 				this.defaultCreoleMode);
 		result.add(pending);
 		for (CharSequence line : displayData) {
-			final Matcher2 m = separator.matcher(line);
+			final Matcher2 m = separator.matcher(line, 0);
 			if (m.find()) {
 				final CharSequence s1 = line.subSequence(0, m.start());
 				pending.displayData.add(s1);

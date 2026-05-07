@@ -5,12 +5,12 @@
  * (C) Copyright 2009-2024, Arnaud Roques
  *
  * Project Info:  https://plantuml.com
- * 
+ *
  * If you like this project or if you find it useful, you can support us at:
- * 
+ *
  * https://plantuml.com/patreon (only 1$ per month!)
  * https://plantuml.com/paypal
- * 
+ *
  * This file is part of PlantUML.
  *
  * PlantUML is free software; you can redistribute it and/or modify it
@@ -30,21 +30,35 @@
  *
  *
  * Original Author:  Arnaud Roques
- * 
  *
  */
-package net.sourceforge.plantuml.klimt.creole.command;
+package com.plantuml.ubrex;
 
-import java.util.Collection;
+class CaptureEntry {
 
-import net.sourceforge.plantuml.klimt.creole.legacy.StripeSimple;
-import net.sourceforge.plantuml.style.ISkinSimple;
+	private final String key;
+	private final String value;
 
-public interface Command {
+	public CaptureEntry(String key, String value) {
+		this.key = key;
+		this.value = value;
+	}
 
-	public Collection<String> starters();
+	public String getKey() {
+		return key;
+	}
 
-	public int matchingSize(String line, int pos);
+	public String getValue() {
+		return value;
+	}
 
-	public int executeAndAdvance(ISkinSimple skinSimple, String line, int pos, StripeSimple stripe);
+	public CaptureEntry withPrefixedKey(String prefix) {
+		return new CaptureEntry(prefix + "/" + key, value);
+	}
+
+	@Override
+	public String toString() {
+		return key + "=" + value;
+	}
+
 }

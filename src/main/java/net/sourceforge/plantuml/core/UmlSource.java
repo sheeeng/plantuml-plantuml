@@ -73,6 +73,9 @@ final public class UmlSource {
 	final private PathSystem pathSystem = PathSystem.fetch();
 	final private Map<String, String> md5map = new HashMap<>();
 
+	private long seedCache;
+	private boolean seedCacheValid;
+
 	public UmlSource removeInitialNoise() {
 		final int size = source.size();
 		int cut = 1;
@@ -208,7 +211,17 @@ final public class UmlSource {
 	}
 
 	public long seed() {
-		return StringUtils.seed(getPlainString("\n"));
+		if (seedCacheValid)
+			return seedCache;
+
+		long h = 1125899906842597L; // prime
+		for (StringLocated sl : source) {
+		    h = 31 * h + sl.getString().hashCode();
+		    h = 31 * h + '\n';
+		}
+		seedCache = h;
+		seedCacheValid = true;
+		return h;
 	}
 
 	/**
@@ -255,7 +268,7 @@ final public class UmlSource {
 	 */
 	public Display getTitle() {
 		for (StringLocated s : source) {
-			final Matcher2 m = TITLE.matcher(s.getString());
+			final Matcher2 m = TITLE.matcher(s.getString(), 0);
 			final boolean ok = m.matches();
 			if (ok)
 				return Display.create(m.group(1));
@@ -286,6 +299,7 @@ final public class UmlSource {
 	private static final BoyerMoore BASE64_BM = new BoyerMoore(BASE64_TAG_START);
 
 	public void patchBase64() {
+		seedCacheValid = false;
 		for (int i = 0; i < source.size(); i++) {
 			final StringLocated original = source.get(i);
 			final String line = original.getString();
