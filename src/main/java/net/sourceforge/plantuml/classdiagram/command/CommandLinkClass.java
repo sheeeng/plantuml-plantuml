@@ -71,8 +71,31 @@ import net.sourceforge.plantuml.utils.LineLocation;
 
 final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrObjectDiagram> {
 
-	private static final String SINGLE = "[.\\\\]{0,2}[%pLN_]+(?:[.\\\\]{1,2}[%pLN_]+)*";
-	private static final String SINGLE_GUILLEMENT = "[%g][.\\\\]{0,2}[%pLN_]+(?:[.\\\\]{1,2}[%pLN_]+)*[%g]";
+	// Issue #2685: a separator is any single character that is not part of an
+	// identifier (letter, digit, _, $) and not a PlantUML syntactic
+	// character (space, #, :, {},<>,").
+
+	// This lets 'set separator' accept !, -, ~, @, |, /, etc. anything an author
+	// might want while keeping the parsing of class names and relations
+	// unambiguous.
+
+	// Note:
+	// - '#' is excluded because it introduces colors (#red, #FF0000).
+	// - ':' is excluded because it introduces relation labels (A --> B : label) and
+	// is already handled as a separator only in its doubled form '::' below.
+	private static final String SEPARATOR_CHAR_SINGLE = "[^%pLN%s_$#\\:{}<>%g]";
+
+	// Two-character separators must be listed explicitly
+	// Only '::' (legacy UML namespace) and '\\'
+	private static final String SEPARATOR_CHAR_DOUBLE = "[\\\\]{2}|::";
+
+	public static String getSeparator() {
+		return "(?:" + SEPARATOR_CHAR_SINGLE + "|" + SEPARATOR_CHAR_DOUBLE + ")";
+	}
+
+	private static final String SINGLE = getSeparator() + "?[%pLN_]+(?:" + getSeparator() + "[%pLN_]+)*";
+	private static final String SINGLE_GUILLEMENT = "[%g]" + getSeparator() + "?[%pLN_]+(?:" + getSeparator()
+			+ "[%pLN_]+)*[%g]";
 	private static final String SINGLE2 = "(?:" + SINGLE + "|" + SINGLE_GUILLEMENT + ")";
 	private static final String COUPLE = "\\([%s]*(" + SINGLE2 + ")[%s]*,[%s]*(" + SINGLE2 + ")[%s]*\\)";
 
@@ -149,12 +172,8 @@ final public class CommandLinkClass extends SingleLineCommand2<AbstractClassOrOb
 		return ColorParser.simpleColor(ColorType.LINE);
 	}
 
-	private static String getClassIdentifier() {
+	public static String getClassIdentifier() {
 		return "(" + getSeparator() + "?[%pLN_$]+(?:" + getSeparator() + "[%pLN_$]+)*|[%g][^%g]+[%g])";
-	}
-
-	public static String getSeparator() {
-		return "(?:\\.|::|\\\\|\\\\\\\\)";
 	}
 
 	@Override

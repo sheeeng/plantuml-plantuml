@@ -63,13 +63,15 @@ public class CommandNamespaceSeparator extends SingleLineCommand2<TitledDiagram>
 						new RegexLeaf("separator"), //
 						new RegexLeaf("namespaceseparator")), //
 				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf(1, "SEPARATOR", "(\\S+)"), RegexLeaf.end()); //
+				new RegexLeaf(1, "SEPARATOR", "((?:none|null)|" + CommandLinkClass.getSeparator() + ")"),
+				RegexLeaf.end()); //
 	}
 
 	@Override
-	protected CommandExecutionResult executeArg(TitledDiagram diagram, LineLocation location, RegexResult arg, ParserPass currentPass) {
+	protected CommandExecutionResult executeArg(TitledDiagram diagram, LineLocation location, RegexResult arg,
+			ParserPass currentPass) {
 		final String s = arg.get("SEPARATOR", 0);
-		if ("none".equalsIgnoreCase(s))
+		if ("none".equalsIgnoreCase(s) || "null".equalsIgnoreCase(s))
 			diagram.setNamespaceSeparator(null);
 		else
 			diagram.setNamespaceSeparator(s);

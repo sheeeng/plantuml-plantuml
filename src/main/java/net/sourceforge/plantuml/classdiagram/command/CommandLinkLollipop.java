@@ -71,9 +71,8 @@ final public class CommandLinkLollipop extends SingleLineCommand2<AbstractClassO
 								new RegexLeaf(1, "HEADER", "@([\\d.]+)"), //
 								RegexLeaf.spaceOneOrMore() //
 						)), //
-				new RegexLeaf(3, "ENT1",
-						"(?:" + optionalKeywords(diagramType) + "[%s]+)?"
-								+ "(\\.?[%pLN_]+(?:\\.[%pLN_]+)*|[%g][^%g]+[%g])[%s]*(\\<\\<.*\\>\\>)?"), //
+				new RegexLeaf(3, "ENT1", "(?:" + optionalKeywords(diagramType) + "[%s]+)?"
+						+ CommandLinkClass.getClassIdentifier() + "[%s]*(\\<\\<.*\\>\\>)?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional(new RegexLeaf(1, "FIRST_LABEL", "[%g]([^%g]+)[%g]")), //
 				RegexLeaf.spaceZeroOrMore(), //
@@ -82,9 +81,8 @@ final public class CommandLinkLollipop extends SingleLineCommand2<AbstractClassO
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional(new RegexLeaf(1, "SECOND_LABEL", "[%g]([^%g]+)[%g]")), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new RegexLeaf(3, "ENT2",
-						"(?:" + optionalKeywords(diagramType) + "[%s]+)?"
-								+ "(\\.?[%pLN_]+(?:\\.[%pLN_]+)*|[%g][^%g]+[%g])[%s]*(\\<\\<.*\\>\\>)?"), //
+				new RegexLeaf(3, "ENT2", "(?:" + optionalKeywords(diagramType) + "[%s]+)?"
+						+ CommandLinkClass.getClassIdentifier() + "[%s]*(\\<\\<.*\\>\\>)?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional( //
 						new RegexConcat( //

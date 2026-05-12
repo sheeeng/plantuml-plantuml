@@ -128,6 +128,13 @@
       "diagram_class": "SequenceDiagram"
     },
     {
+      "file": "packet/R01.01-simple.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "diagram_class": "PacketDiagram"
+    },
+    {
       "file": "packet/R02.01-colwidth_0.puml",
       "folder": "packet",
       "status": "pass",
@@ -587,6 +594,105 @@
       "diagram_class": "PacketDiagram"
     },
     {
+      "file": "packet/R12.01-rotate_270.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R12.02-rotate_0_360.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R13.01-height.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R13.02-colheight.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R14.01-description.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R14.02-description_quoted.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R15.01-label.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R16.01-numbered.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R17.01-color.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R18.01-skin.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R18.02-skin.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
       "file": "packet/R22.01-same_height_default.puml",
       "folder": "packet",
       "status": "pass",
@@ -614,6 +720,40 @@
       "diagram_class": "PacketDiagram"
     },
     {
+      "file": "packet/R22.04-same_height_default_colheight.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R22.05-same_height_true_colheight.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R22.06-same_height_false_colheight.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "Packet Diagram",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "PacketDiagram"
+    },
+    {
+      "file": "packet/R23.01-error.puml",
+      "folder": "packet",
+      "status": "pass",
+      "description": "(Error)",
+      "diagram_class": "PSystemErrorV2"
+    },
+    {
       "file": "packet/error-with-exception.puml",
       "folder": "packet",
       "status": "pass",
@@ -633,20 +773,6 @@
         "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
         "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
       ]
-    },
-    {
-      "file": "packet/error1.puml",
-      "folder": "packet",
-      "status": "pass",
-      "description": "(Error)",
-      "diagram_class": "PSystemErrorV2"
-    },
-    {
-      "file": "packet/simple.puml",
-      "folder": "packet",
-      "status": "pass",
-      "description": "Packet Diagram",
-      "diagram_class": "PacketDiagram"
     },
     {
       "file": "preproc/eval.puml",
@@ -1199,23 +1325,10 @@
     {
       "file": "xgantt/gantt2.puml",
       "folder": "xgantt",
-      "status": "skipped",
+      "status": "pass",
       "description": "(Error)",
       "allow-failure": "true",
-      "diagram_class": "PSystemErrorV2",
-      "message": "Error message mismatch for src\\test\\resources\\vega\\xgantt\\gantt2.puml ==> expected: <No matching verb phrase (Assumed diagram type: gantt)> but was: <Syntax Error? (Assumed diagram type: gantt)>",
-      "stacktrace": [
-        "org.opentest4j.AssertionFailedError: Error message mismatch for src\\test\\resources\\vega\\xgantt\\gantt2.puml ==> expected: <No matching verb phrase (Assumed diagram type: gantt)> but was: <Syntax Error? (Assumed diagram type: gantt)>",
-        "org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:158)",
-        "org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:139)",
-        "org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:201)",
-        "org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:184)",
-        "org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1199)",
-        "test.vega.VegaInputFile.checkErrorExpectations(VegaInputFile.java:450)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:360)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
-      ]
+      "diagram_class": "PSystemErrorV2"
     },
     {
       "file": "xgantt/gantt3.puml",
@@ -1310,9 +1423,9 @@
     }
   ],
   "summary": {
-    "total": 92,
-    "passed": 81,
+    "total": 106,
+    "passed": 96,
     "failed": 0,
-    "skipped": 11
+    "skipped": 10
   }
 }
