@@ -1,9 +1,5 @@
 
-import java.io.ByteArrayOutputStream
-import java.time.LocalDateTime
 import java.util.jar.JarFile
-import java.util.Base64
-import java.util.Properties
 
 println("Running build.gradle.kts")
 println(project.version)

@@ -185,6 +185,7 @@ jobs:
         run: |
           echo "print gradle.properties"
           cat gradle.properties
+          gradle patchCompilationInfo
           gradle clean build \
             pdfJar \
             teavmZip \

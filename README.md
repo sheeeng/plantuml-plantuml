@@ -91,7 +91,12 @@ Whether you're looking to use PlantUML as a standalone application or as a compo
 
 ## ⚙️ Building from Source
 
-To build PlantUML from source, you'll need to have certain prerequisites installed and follow a series of steps outlined in our build guide. Find detailed instructions in our [BUILDING.md](https://github.com/plantuml/plantuml/blob/master/docs/BUILDING.md) file.
+To build PlantUML from source, you have two options:
+
+1. Using Gradle: `./gradlew jar`
+2. Using Ant: `ant`
+
+For prerequisites and detailed build instructions, see our [BUILDING.md](https://github.com/plantuml/plantuml/blob/master/docs/BUILDING.md) guide.
 
 ## 🧱 Contributing
 
@@ -115,4 +120,3 @@ PlantUML is licensed under several licenses; you can choose the one that suits y
 - [MIT license](https://opensource.org/licenses/MIT)
 
 For more information, please refer to the [PlantUML license FAQ](https://plantuml.com/en/faq#ddbc9d04378ee462) to help determine which license is appropriate for your use case.
-

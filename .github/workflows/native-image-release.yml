@@ -43,7 +43,9 @@ jobs:
 
       - name: Build GPLv2 native image
         shell: bash
-        run: ./gradlew :plantuml-gplv2:nativeFullCompile :plantuml-gplv2:nativeHeadlessCompile -x test
+        run: |
+          ./gradlew patchCompilationInfo
+          ./gradlew :plantuml-gplv2:nativeFullCompile :plantuml-gplv2:nativeHeadlessCompile -x test
 
       - name: Archive Full Release
         uses: thedoctor0/zip-release@0.7.6

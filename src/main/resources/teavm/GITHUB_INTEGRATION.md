@@ -12,20 +12,24 @@ diagrams in section 4 are rendered live by the real TeaVM-compiled engine.
 
 ## PlantUML JS API
 
-The entire public surface is three calls:
+The entire public surface is two exported functions:
 
 | Call | Purpose |
 |------|---------|
-| `plantumlLoad()` | One-time engine initialization. |
-| `window.plantuml.render(lines, targetId)` | Render a diagram into the DOM element with the given `id`. `lines` is an `Array<string>`. |
-| `window.plantuml.render(lines, targetId, { dark: true })` | Same, but produces a dark-mode SVG. |
+| `import { render, renderToString } from './plantuml.js'` | Import the API from the ES2015 module. |
+| `render(lines, targetId)` | Render a diagram into the DOM element with the given `id`. `lines` is an `Array<string>`. |
+| `render(lines, targetId, { dark: true })` | Same, but produces a dark-mode SVG. |
+| `renderToString(lines, onSuccess, onError)` | Render and deliver the SVG as a string via the `onSuccess(svg)` callback. Errors go to `onError(message)`. |
 
-Both `plantuml.js` and `viz-global.js` must be loaded via `<script>` tags
-before calling `plantumlLoad()`.
+`plantuml.js` is an ES2015 module loaded via `<script type="module">`.
+`viz-global.js` is a classic script loaded via a plain `<script>` tag and
+must be present in the page before any rendering happens.
+The engine starts its internal worker lazily on the first `render` /
+`renderToString` call — no explicit initialization is required.
 
 ### Important: asynchronous rendering
 
-`plantuml.render()` returns immediately, but writes the SVG into the target
+`render()` returns immediately, but writes the SVG into the target
 DOM element **asynchronously**.  This has two consequences:
 
 1. You cannot read `targetElement.innerHTML` right after calling `render()`
@@ -35,8 +39,12 @@ DOM element **asynchronously**.  This has two consequences:
    DOM before starting the next render.  The engine uses shared internal
    state and will silently overwrite the previous result otherwise.
 
-In the iframe-per-diagram architecture described below, this is not an issue
-because each iframe has its own isolated engine instance.
+If you need the SVG as a string instead of a DOM element, use
+`renderToString(lines, onSuccess, onError)` — the callback receives the
+fully-formed SVG once rendering completes.
+
+In the iframe-per-diagram architecture described below, the serialization
+issue does not apply because each iframe has its own isolated engine instance.
 
 ## Proposed GitHub Architecture
 
@@ -47,11 +55,11 @@ pattern. The same approach works for PlantUML:
 github.com                    render.githubusercontent.com
 ┌──────────────────┐          ┌──────────────────────────┐
 │                  │          │                          │
-│ Markdown parser  │          │  plantuml.js             │
+│ Markdown parser  │          │  plantuml.js (module)    │
 │ finds ```plantuml│ ──────►  │  viz-global.js           │
 │ blocks           │ postMsg  │                          │
-│                  │          │  plantumlLoad()          │
-│ Creates <iframe> │ ◄──────  │  plantuml.render(...)    │
+│                  │          │  import { render }       │
+│ Creates <iframe> │ ◄──────  │  render(lines, id, ...)  │
 │ per diagram      │ postMsg  │                          │
 │                  │  (SVG)   │  Runs in sandbox:        │
 │ Inserts SVG      │          │  allow-scripts only      │
@@ -60,17 +68,19 @@ github.com                    render.githubusercontent.com
 
 ### 1. Sandbox side (iframe renderer)
 
-Each iframe loads `plantuml.js` + `viz-global.js`, calls `plantumlLoad()`
-once, then listens for an incoming render request via `postMessage`.
+Each iframe loads `viz-global.js` as a classic script and imports
+`plantuml.js` as an ES2015 module, then listens for an incoming render
+request via `postMessage`. The engine starts its worker lazily on the
+first `render()` call.
 
 Because each iframe is its own isolated context, the asynchronous nature
 of `render()` is handled naturally: we use a `MutationObserver` to detect
 when the SVG has been inserted, then send the result back.
 
 ```js
-const ALLOWED_ORIGIN = 'https://github.com';
+import { render } from './plantuml.js';
 
-plantumlLoad();
+const ALLOWED_ORIGIN = 'https://github.com';
 
 const renderTarget = document.createElement('div');
 renderTarget.id = 'plantuml-output';
@@ -100,7 +110,7 @@ window.addEventListener('message', (event) => {
     observer.observe(renderTarget, { childList: true, subtree: true });
 
     try {
-        window.plantuml.render(lines, 'plantuml-output', { dark });
+        render(lines, 'plantuml-output', { dark });
     } catch (err) {
         observer.disconnect();
         window.parent.postMessage({
@@ -187,7 +197,7 @@ Sent from the iframe back to `github.com`.
   Everything runs in the browser.
 - **Same sandbox pattern as Mermaid.** The iframe isolation model is already
   deployed and battle-tested by GitHub.
-- **Tiny API surface.** Three function calls. ~40 lines of glue code total.
+- **Tiny API surface.** Two exported functions (`render`, `renderToString`). ~40 lines of glue code total.
 - **Dark mode built-in.** A single boolean option switches the rendering theme,
   which aligns with GitHub's light/dark mode toggle.
 - **Self-contained.** Two JS files (`plantuml.js` + `viz-global.js`) with no

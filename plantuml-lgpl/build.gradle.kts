@@ -60,6 +60,7 @@ tasks.withType<Jar>().configureEach {
 	}
 
 	// source sets for java and resources are on "src", only put once into the jar
+	exclude("teavm/**")
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -78,8 +79,7 @@ tasks.withType<Javadoc>().configureEach {
 }
 
 val syncSources by tasks.registering(Sync::class) {
-	dependsOn(rootProject.tasks.named("filterSourcesWithBuildInfo"))
-	from(rootProject.layout.buildDirectory.dir("generated/sources/git-filtered"))
+	from(rootProject.layout.projectDirectory.dir("src/main/java"))
 	into(project.layout.buildDirectory.dir("sources/sjpp/java"))
 }
 

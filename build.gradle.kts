@@ -82,7 +82,7 @@ repositories {
 teavm {
 	js {
 		mainClass.set("net.sourceforge.plantuml.teavm.browser.PlantUMLBrowser")
-		entryPointName.set("plantumlLoad")
+		moduleType.set(org.teavm.gradle.api.JSModuleType.ES2015)
 		obfuscated.set(true)
 		optimization.set(org.teavm.gradle.api.OptimizationLevel.BALANCED)
 		// obfuscated.set(false)
@@ -675,34 +675,29 @@ tasks.named("generateGitProperties") {
 	}
 }
 
-val filteredSrcDir = layout.buildDirectory.dir("generated/sources/git-filtered")
+// `patchCompilationInfo` injects build metadata (version, git commit id, compile timestamp)
+// directly into src/main/java/.../CompilationInfo.java.
+//
+// IMPORTANT: this task is intentionally NOT wired as a dependency of `compileJava`,
+// `jar` or any other build task. It must be invoked EXPLICITLY (typically from CI,
+// before `gradle build` / `gradle teavm`).
+//
+// Rationale: keeping the main source set pointing to plain `src/main/java` (no
+// generated/filtered copy) avoids a lot of IDE-side problems for contributors.
+// As a side effect, local builds produce a jar in which `CompilationInfo` keeps
+// its placeholder values ("$version$", "$git.commit.id$", 0L). This is fine for
+// dev builds; official artifacts are built by GitHub Actions, which calls
+// `patchCompilationInfo` first.
+//
+// The task modifies a tracked source file in place. After running it, the working
+// tree contains uncommitted changes -- this is expected in CI (ephemeral runner),
+// but if you ever need to run it locally, remember to `git restore` the file
+// afterwards, or use `-PpatchCompilationInfo` workflows carefully.
+val patchCompilationInfo by tasks.registering {
+	group = "build"
+	description = "Patches src/main/java/.../CompilationInfo.java in place with version, git commit id and compile timestamp. NOT wired automatically -- call explicitly (typically from CI)."
 
-// Cleanup of generated filtered sources (avoid leaving copied sources on disk)
-val cleanupGitFilteredSources by tasks.registering(Delete::class) {
-    group = "build"
-    description = "Deletes build/generated/sources/git-filtered after the build."
-    delete(filteredSrcDir)
-}
-
-val keepFilteredSrc = project.hasProperty("keepFilteredSrc")
-
-tasks.named("build") {
-    if (!keepFilteredSrc) finalizedBy(cleanupGitFilteredSources)
-}
-tasks.named("jar") {
-    if (!keepFilteredSrc) finalizedBy(cleanupGitFilteredSources)
-}
-
-tasks.named("site") {
-    if (!keepFilteredSrc) finalizedBy(cleanupGitFilteredSources)
-}
-
-val filterSourcesWithBuildInfo by tasks.registering {
 	dependsOn("generateGitProperties")
-	mustRunAfter("processResources")
-
-	inputs.dir("src/main/java")
-	outputs.dir(filteredSrcDir)
 
 	doLast {
 		// 1) Read git.properties
@@ -714,16 +709,8 @@ val filterSourcesWithBuildInfo by tasks.registering {
 		// 2) Compute compile timestamp (epoch millis)
 		val compileTs = System.currentTimeMillis().toString()
 
-		// 3) Copy sources
-		val outDir = filteredSrcDir.get().asFile
-		outDir.deleteRecursively()
-		project.copy {
-			from("src/main/java")
-			into(outDir)
-		}
-
-		// 4) Ant replace in the copy
-		val targetFile = outDir.resolve("net/sourceforge/plantuml/version/CompilationInfo.java")
+		// 3) Locate the target file directly in src/main/java
+		val targetFile = file("src/main/java/net/sourceforge/plantuml/version/CompilationInfo.java")
 		if (!targetFile.exists()) {
 			error("Target file not found: ${targetFile.absolutePath}")
 		}
@@ -731,6 +718,7 @@ val filterSourcesWithBuildInfo by tasks.registering {
 		// 4) Get project version
 		val projectVersion = project.version.toString()
 
+		// 5) Ant replace in place
 		ant.withGroovyBuilder {
 			// version replacement
 			"replace"(
@@ -754,97 +742,10 @@ val filterSourcesWithBuildInfo by tasks.registering {
 			)
 		}
 
-		println("Injected version into ${targetFile.name}: $projectVersion")
-		println("Injected git.commit.id into ${targetFile.name}: $commitId")
-		println("Injected compile timestamp into ${targetFile.name}: $compileTs")
-
-		// 5) Transform non-ASCII chars in string literals so TeaVM emits correct JS.
-		// TeaVM misreads CONSTANT_Utf8 class file entries for non-ASCII chars, treating
-		// each UTF-8 byte as a separate Latin-1 char. Replacing "〶" with
-		// "" + (char)0x3016 + "" avoids CONSTANT_Utf8 entirely -- the value is computed
-		// at runtime via char arithmetic. Char literals (e.g. '〶') use integer constants
-		// in bytecode and are NOT affected, so they are left as-is.
-		fun transformNonAsciiInStringLiterals(source: String): String {
-			val sb = StringBuilder(source.length)
-			var i = 0
-			var inString = false
-			var inChar = false
-			var inLineComment = false
-			var inBlockComment = false
-			while (i < source.length) {
-				val c = source[i]
-				when {
-					inLineComment -> {
-						sb.append(c)
-						if (c == '\n') inLineComment = false
-					}
-					inBlockComment -> {
-						sb.append(c)
-						if (c == '*' && i + 1 < source.length && source[i + 1] == '/') {
-							sb.append('/')
-							i++
-							inBlockComment = false
-						}
-					}
-					inChar -> {
-						sb.append(c)
-						if (c == '\\' && i + 1 < source.length) {
-							i++
-							sb.append(source[i])
-						} else if (c == '\'') {
-							inChar = false
-						}
-					}
-					inString -> when {
-						c == '\\' && i + 1 < source.length -> {
-							sb.append(c); i++; sb.append(source[i])
-						}
-						c == '"' -> { sb.append(c); inString = false }
-						c.code > 127 -> sb.append("\" + String.valueOf((char)0x${c.code.toString(16).uppercase()}) + \"")
-						else -> sb.append(c)
-					}
-					else -> when {
-						c == '"' -> { sb.append(c); inString = true }
-						c == '\'' -> { sb.append(c); inChar = true }
-						c == '/' && i + 1 < source.length && source[i + 1] == '/' -> {
-							sb.append(c); inLineComment = true
-						}
-						c == '/' && i + 1 < source.length && source[i + 1] == '*' -> {
-							sb.append(c); inBlockComment = true
-						}
-						else -> sb.append(c)
-					}
-				}
-				i++
-			}
-			return sb.toString()
-		}
-
-		var transformedCount = 0
-		outDir.walkTopDown().filter { it.isFile && it.name.endsWith(".java") }.forEach { file ->
-			val original = file.readText(Charsets.UTF_8)
-			val transformed = transformNonAsciiInStringLiterals(original)
-			if (transformed != original) {
-				file.writeText(transformed, Charsets.UTF_8)
-				transformedCount++
-			}
-		}
-		println("Transformed non-ASCII string literals in $transformedCount file(s)")
+		println("Patched version into ${targetFile.name}: $projectVersion")
+		println("Patched git.commit.id into ${targetFile.name}: $commitId")
+		println("Patched compile timestamp into ${targetFile.name}: $compileTs")
 	}
-}
-
-sourceSets.named("main") {
-	java.setSrcDirs(listOf(filteredSrcDir))
-}
-
-tasks.compileJava {
-	dependsOn(filterSourcesWithBuildInfo)
-}
-
-tasks.configureEach {
-    if (name == "sourcesJar") {
-        dependsOn(filterSourcesWithBuildInfo)
-    }
 }
 
 // ============================================
