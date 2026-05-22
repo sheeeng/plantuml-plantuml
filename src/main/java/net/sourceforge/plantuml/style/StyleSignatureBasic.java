@@ -48,7 +48,6 @@ import net.sourceforge.plantuml.text.Guillemet;
 import net.sourceforge.plantuml.url.Url;
 
 public class StyleSignatureBasic implements StyleSignature {
-	// ::remove file when __HAXE__
 
 	private final Set<String> stereotypes;
 	private final StyleKey key;

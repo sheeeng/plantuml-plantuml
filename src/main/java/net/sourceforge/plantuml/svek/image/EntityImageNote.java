@@ -99,7 +99,7 @@ public class EntityImageNote extends AbstractEntityImage implements Stencil {
 
 		final Display strings = entity.getDisplay();
 
-		this.style = getDefaultStyleDefinition(getStyleName()).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		this.style = getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 		if (entity.getColors().getColor(ColorType.BACK) == null)
 			this.noteBackgroundColor = style.value(PName.BackGroundColor).asColor(getSkinParam().getIHtmlColorSet());
 		else
@@ -184,8 +184,10 @@ public class EntityImageNote extends AbstractEntityImage implements Stencil {
 		return new XDimension2D(width, height);
 	}
 
-	private StyleSignature getDefaultStyleDefinition(SName sname) {
-		return StyleSignatureBasic.of(SName.root, SName.element, sname, SName.note).withTOBECHANGED(getStereo());
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.note)
+				.withTOBECHANGED(getStereo());
 	}
 
 	final public void drawU(UGraphic ug) {

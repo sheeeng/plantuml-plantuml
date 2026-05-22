@@ -361,9 +361,8 @@ public class Cluster implements Moveable {
 			final UStroke stroke = getStrokeInternal(group, style);
 
 			HColor backColor = getBackColor(style);
-			backColor = getBackColor(backColor, group.getStereotype(), diagramType.getStyleName(),
-					group.getUSymbol(), skinParam.getCurrentStyleBuilder(), skinParam.getIHtmlColorSet(),
-					group.getGroupType());
+			backColor = getBackColor(backColor, group.getStereotype(), diagramType.getStyleName(), group.getUSymbol(),
+					skinParam.getCurrentStyleBuilder(), skinParam.getIHtmlColorSet(), group.getGroupType());
 
 			final ClusterDecoration decoration = new ClusterDecoration(packageStyle, group.getUSymbol(),
 					clusterHeader.getTitle(), clusterHeader.getStereo(), rectangleArea, stroke);
@@ -449,23 +448,29 @@ public class Cluster implements Moveable {
 	// GroupPngMakerState
 
 	private void drawUState(UGraphic ug, DiagramType diagramType, double rounded, double shadowing) {
-		final double suppY = clusterHeader.getTitle().calculateDimension(ug.getStringBounder()).getHeight()
-				+ IEntityImage.MARGIN;
 
 		HColor borderColor = group.getColors().getColor(ColorType.LINE);
-		if (borderColor == null)
-			borderColor = EntityImageStateCommon.getStyleState(group, skinParam).value(PName.LineColor)
-					.asColor(skinParam.getIHtmlColorSet());
+		final StyleBuilder styleBuilder = skinParam.getCurrentStyleBuilder();
+		final HColorSet colorSet = skinParam.getIHtmlColorSet();
+		if (borderColor == null) {
+			borderColor = EntityImageStateCommon.getStyleState(group.getStereotype(), styleBuilder)
+					.value(PName.LineColor).asColor(colorSet);
+		}
 
-		HColor backColor = group.getColors().getColor(ColorType.BACK);
-		if (backColor == null)
-			backColor = EntityImageStateCommon.getStyleState(group, skinParam).value(PName.BackGroundColor)
-					.asColor(skinParam.getIHtmlColorSet());
+		HColor northBackcolor = group.getColors().getColor(ColorType.BACK);
+		HColor centerBackColor = northBackcolor;
+		HColor southBackcolor = northBackcolor;
+		if (northBackcolor == null) {
+			northBackcolor = EntityImageStateCommon.STYLE.addSName(SName.name).withTOBECHANGED(group.getStereotype())
+					.getMergedStyle(styleBuilder).value(PName.BackGroundColor).asColor(colorSet);
+			centerBackColor = EntityImageStateCommon.STYLE.addSName(SName.description)
+					.withTOBECHANGED(group.getStereotype()).getMergedStyle(styleBuilder).value(PName.BackGroundColor)
+					.asColor(colorSet);
+			southBackcolor = EntityImageStateCommon.STYLE.addSName(SName.body).withTOBECHANGED(group.getStereotype())
+					.getMergedStyle(styleBuilder).value(PName.BackGroundColor).asColor(colorSet);
+		}
 
-		final HColor imgBackcolor = EntityImageStateCommon.getStyleStateBody(group, skinParam)
-				.value(PName.BackGroundColor).asColor(skinParam.getIHtmlColorSet());
-
-		final TextBlock attribute = ((Entity) group).getStateHeader(skinParam);
+		final TextBlock attribute = ((Entity) group).getStateDescription(skinParam);
 		final double attributeHeight = attribute.calculateDimension(ug.getStringBounder()).getHeight();
 		if (rectangleArea.getDimension().getWidth() == 0) {
 			System.err.println("Cluster::drawUState issue");
@@ -473,12 +478,19 @@ public class Cluster implements Moveable {
 		}
 
 		UStroke stroke = group.getColors().getSpecificLineStroke();
-		if (stroke == null)
-			stroke = EntityImageStateCommon.getStyleState(group, skinParam).getStroke();
+		if (stroke == null) {
+			final StyleBuilder styleBuilder4 = skinParam.getCurrentStyleBuilder();
+			stroke = EntityImageStateCommon.getStyleState(group.getStereotype(), styleBuilder4).getStroke();
+		}
 
-		final RoundedContainer r = new RoundedContainer(rectangleArea.getDimension(), suppY,
-				attributeHeight + (attributeHeight > 0 ? IEntityImage.MARGIN : 0), borderColor, backColor, imgBackcolor,
-				stroke, rounded, shadowing);
+		final double descriptionHeight = attributeHeight + (attributeHeight > 0 ? IEntityImage.MARGIN : 0);
+
+		final double nameHeight = clusterHeader.getTitle().calculateDimension(ug.getStringBounder()).getHeight()
+				+ IEntityImage.MARGIN;
+
+		final RoundedContainer r = new RoundedContainer(borderColor, rectangleArea.getDimension(), nameHeight,
+				descriptionHeight, northBackcolor, centerBackColor, southBackcolor, stroke, rounded, shadowing);
+
 		r.drawU(ug.apply(rectangleArea.getPosition()));
 
 		clusterHeader.getTitleHorizontalAlignment().draw(
@@ -487,7 +499,7 @@ public class Cluster implements Moveable {
 
 		if (attributeHeight > 0)
 			attribute.drawU(ug.apply(new UTranslate(rectangleArea.getMinX() + IEntityImage.MARGIN,
-					rectangleArea.getMinY() + suppY + IEntityImage.MARGIN / 2.0)));
+					rectangleArea.getMinY() + nameHeight + IEntityImage.MARGIN / 2.0)));
 
 		final Stereotype stereotype = group.getStereotype();
 		final boolean withSymbol = stereotype != null && stereotype.isWithOOSymbol();

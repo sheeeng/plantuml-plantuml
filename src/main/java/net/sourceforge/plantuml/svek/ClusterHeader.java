@@ -80,7 +80,7 @@ public final class ClusterHeader {
 		final TextBlock stereoAndTitle = TextBlockUtils.mergeTB(stereo, title, getTitleHorizontalAlignment());
 		final XDimension2D dimLabel = stereoAndTitle.calculateDimension(stringBounder);
 		if (dimLabel.getWidth() > 0) {
-			final XDimension2D dimAttribute = g.getStateHeader(skinParam).calculateDimension(stringBounder);
+			final XDimension2D dimAttribute = g.getStateDescription(skinParam).calculateDimension(stringBounder);
 			final double attributeHeight = dimAttribute.getHeight();
 			final double attributeWidth = dimAttribute.getWidth();
 			final double marginForFields = attributeHeight > 0 ? IEntityImage.MARGIN : 0;
@@ -140,7 +140,7 @@ public final class ClusterHeader {
 		return result;
 	}
 
-	public Style getStyle() {
+	private Style getStyle() {
 		final StyleSignatureBasic signature = getSignature();
 		return signature //
 				.withTOBECHANGED(g.getStereotype()) //
@@ -153,8 +153,7 @@ public final class ClusterHeader {
 		final StyleSignatureBasic signature;
 		final USymbol uSymbol = g.getUSymbol();
 		if (g.getGroupType() == GroupType.STATE)
-			signature = StyleSignatureBasic.of(SName.root, SName.element, SName.stateDiagram, SName.state,
-					SName.composite, SName.title);
+			signature = StyleSignatureBasic.of(SName.root, SName.element, SName.stateDiagram, SName.state, SName.name);
 		else if (uSymbol != null)
 			signature = StyleSignatureBasic.of(SName.root, SName.element, sname, uSymbol.getSNames(), SName.composite,
 					SName.title);

@@ -51,6 +51,7 @@ public enum SName {
 	arrow, //
 	artifact, //
 	binary, //
+	body, //
 	boundary, //
 	box, //
 	boxless, //
@@ -81,6 +82,7 @@ public enum SName {
 	database, //
 	day, //
 	delay, //
+	description, //
 	destroy, //
 	diamond, //
 	document, //
@@ -117,6 +119,7 @@ public enum SName {
 	milestone, //
 	mindmapDiagram, //
 	month, //
+	name, //
 	network, //
 	newpage, //
 	node, //

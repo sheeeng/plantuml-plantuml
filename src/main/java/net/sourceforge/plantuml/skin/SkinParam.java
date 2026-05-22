@@ -92,9 +92,12 @@ import net.sourceforge.plantuml.style.ClockwiseTopRightBottomLeft;
 import net.sourceforge.plantuml.style.FromSkinparamToStyle;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.LengthAdjust;
+import net.sourceforge.plantuml.style.PName;
+import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.style.StyleBuilder;
 import net.sourceforge.plantuml.style.StyleLoader;
+import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.style.parser.StyleParser;
 import net.sourceforge.plantuml.style.parser.StyleParsingException;
 import net.sourceforge.plantuml.svek.ConditionEndStyle;
@@ -225,7 +228,7 @@ public class SkinParam implements ISkinParam {
 			final StyleBuilder styleBuilder = this.getCurrentStyleBuilder();
 			try {
 				final BlocLines lines = BlocLines.load(internalIs, null);
-				this.muteStyle(StyleParser.parse(lines, styleBuilder));
+				this.muteStyle(new StyleParser(styleBuilder).parse(lines));
 
 			} catch (StyleParsingException e) {
 				Logme.error(e);
@@ -297,7 +300,11 @@ public class SkinParam implements ISkinParam {
 	@Override
 	public HColor getBackgroundColor() {
 		final HColor result = getHtmlColor(ColorParam.background, null, false);
-		return result != null ? result : HColors.WHITE;
+		if (result != null)
+			return result;
+
+		final Style style = getCurrentStyleBuilder().getMergedStyle(StyleSignatureBasic.of(SName.root, SName.document));
+		return style.value(PName.BackGroundColor).asColor(getIHtmlColorSet());
 	}
 
 	@Override
@@ -1117,7 +1124,7 @@ public class SkinParam implements ISkinParam {
 	private ClockwiseTopRightBottomLeft getAsDouble(final String name) {
 		final String value = getValue(name);
 		if (isIntOrDecimal(value))
-			return ClockwiseTopRightBottomLeft.same(Double.parseDouble(value))	;
+			return ClockwiseTopRightBottomLeft.same(Double.parseDouble(value));
 
 		return ClockwiseTopRightBottomLeft.same(0);
 	}

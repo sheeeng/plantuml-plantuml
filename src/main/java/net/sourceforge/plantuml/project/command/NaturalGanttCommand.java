@@ -125,7 +125,6 @@ public class NaturalGanttCommand implements Command<GanttDiagram> {
 	public CommandControl isValid(BlocLines lines) {
 		final TextNavigator tn = TextNavigator.build(lines.getFirst().getString());
 		VerbPhraseAction.skipSpaces(tn);
-		System.out.println("1 TN = " + tn);
 
 		final UMatcher matcherSubject = subject.toUnicodeBracketedExpressionSubject().match(tn);
 		final String v1 = matcherSubject.getAcceptedMatch();
@@ -134,19 +133,13 @@ public class NaturalGanttCommand implements Command<GanttDiagram> {
 
 		tn.jump(v1.length());
 		VerbPhraseAction.skipSpaces(tn);
-		System.out.println("2 TN = " + tn);
 
 		for (VerbPhraseAction verbPhrase : getVerbPhrases()) {
-			System.out.println("3 VP = " + verbPhrase);
 			if (verbPhrase.check(tn)) {
-				System.out.println("4 OK! " + subject.getClass() + " " + verbPhrase.getClass());
 				return CommandControl.OK;
 			}
 		}
 
-		// TODO: manage "AND"
-
-		System.out.println("4 NOT_OK!");
 		return CommandControl.NOT_OK;
 	}
 

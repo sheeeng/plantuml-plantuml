@@ -5,31 +5,31 @@
     <XMI.content>
         <UML:Model name="PlantUML" xmi.id="model1">
             <UML:Namespace.ownedElement>
-                <UML:Component name="test" namespace="model1" xmi.id="ent0002">
+                <UML:Component name="test" namespace="model1" xmi.id="ent0001">
                     <UML:Classifier.feature/>
                 </UML:Component>
-                <UML:Component name="first line1" namespace="model1" xmi.id="ent0004">
+                <UML:Component name="first line1" namespace="model1" xmi.id="ent0003">
                     <UML:Classifier.feature/>
                 </UML:Component>
-                <UML:Component name="first line3" namespace="model1" xmi.id="ent0007">
+                <UML:Component name="first line3" namespace="model1" xmi.id="ent0006">
                     <UML:Classifier.feature/>
                 </UML:Component>
-                <UML:Association namespace="model1" xmi.id="ass9">
+                <UML:Association namespace="model1" xmi.id="ass8">
                     <UML:Association.connection>
-                        <UML:AssociationEnd association="ass9" type="ent0004" xmi.id="end10">
+                        <UML:AssociationEnd association="ass8" type="ent0003" xmi.id="end9">
                             <UML:AssociationEnd.participant/>
                         </UML:AssociationEnd>
-                        <UML:AssociationEnd association="ass9" type="ent0002" xmi.id="end11">
+                        <UML:AssociationEnd association="ass8" type="ent0001" xmi.id="end10">
                             <UML:AssociationEnd.participant/>
                         </UML:AssociationEnd>
                     </UML:Association.connection>
                 </UML:Association>
-                <UML:Association namespace="model1" xmi.id="ass12">
+                <UML:Association namespace="model1" xmi.id="ass11">
                     <UML:Association.connection>
-                        <UML:AssociationEnd association="ass12" type="ent0002" xmi.id="end13">
+                        <UML:AssociationEnd association="ass11" type="ent0001" xmi.id="end12">
                             <UML:AssociationEnd.participant/>
                         </UML:AssociationEnd>
-                        <UML:AssociationEnd association="ass12" type="ent0007" xmi.id="end14">
+                        <UML:AssociationEnd association="ass11" type="ent0006" xmi.id="end13">
                             <UML:AssociationEnd.participant/>
                         </UML:AssociationEnd>
                     </UML:Association.connection>

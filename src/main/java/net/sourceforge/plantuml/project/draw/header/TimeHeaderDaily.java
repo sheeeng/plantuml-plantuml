@@ -183,7 +183,7 @@ class TimeHeaderDaily extends TimeHeaderCalendar {
 	private FontConfiguration fc2;
 
 	private FontConfiguration getFc(TimePoint wink) {
-		if (getLoadAt(wink) <= 0) {
+		if (isZeroOnDay(wink)) {
 			if (fc1 == null)
 				fc1 = getFontConfigurationSLOW(SName.day, false, closedFontColor());
 			return fc1;

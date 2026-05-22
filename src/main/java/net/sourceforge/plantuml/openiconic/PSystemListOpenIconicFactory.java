@@ -42,7 +42,6 @@ import net.sourceforge.plantuml.core.UmlSource;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 
 public class PSystemListOpenIconicFactory extends PSystemSingleLineFactory {
-	// ::remove folder when __HAXE__
 	
 
 	@Override

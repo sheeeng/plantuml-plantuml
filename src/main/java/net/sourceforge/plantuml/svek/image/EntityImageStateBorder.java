@@ -50,6 +50,7 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.Bibliotekon;
 import net.sourceforge.plantuml.svek.Cluster;
@@ -62,7 +63,7 @@ public class EntityImageStateBorder extends AbstractEntityImageBorder {
 	}
 
 	@Override
-	protected StyleSignatureBasic getSignature() {
+	public StyleSignature getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, SName.stateDiagram, SName.state);
 	}
 

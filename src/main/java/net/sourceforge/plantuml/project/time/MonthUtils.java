@@ -36,7 +36,6 @@
 package net.sourceforge.plantuml.project.time;
 
 import java.time.Month;
-import java.time.format.TextStyle;
 import java.util.Locale;
 
 import com.plantuml.ubrex.UnicodeBracketedExpression;

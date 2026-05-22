@@ -66,6 +66,7 @@ import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.Ports;
@@ -134,9 +135,14 @@ public class EntityImageJson extends AbstractEntityImage implements Stencil, Wit
 		return new XDimension2D(width, height);
 	}
 
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.objectDiagram, SName.json);
+	}
+
 	private Style getStyle() {
-		return StyleSignatureBasic.of(SName.root, SName.element, SName.objectDiagram, SName.json)
-				.withTOBECHANGED(getEntity().getStereotype()).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		return getStyleSignature().withTOBECHANGED(getEntity().getStereotype())
+				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
 	private Style getStyleHeader() {
@@ -172,10 +178,9 @@ public class EntityImageJson extends AbstractEntityImage implements Stencil, Wit
 
 		ug = ug.apply(borderColor).apply(backcolor.bg());
 
-		
 		if (url != null)
 			ug.startUrl(url);
-		
+
 		final UGroup group = new UGroup(getEntity().getLocation());
 		group.put(UGroupType.CLASS, "entity");
 		group.put(UGroupType.ID, "entity_" + getEntity().getName());
@@ -183,7 +188,6 @@ public class EntityImageJson extends AbstractEntityImage implements Stencil, Wit
 		group.put(UGroupType.DATA_UID, getEntity().getUid());
 		group.put(UGroupType.DATA_QUALIFIED_NAME, getEntity().getQuark().getQualifiedName());
 		ug.startGroup(group);
-
 
 		ug.apply(stroke).draw(rect);
 		if (headerBackcolor != null && backcolor.equals(headerBackcolor) == false) {

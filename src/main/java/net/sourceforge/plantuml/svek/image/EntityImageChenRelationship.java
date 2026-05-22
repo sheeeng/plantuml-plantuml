@@ -59,6 +59,7 @@ import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ShapeType;
@@ -79,8 +80,8 @@ public class EntityImageChenRelationship extends AbstractEntityImage {
 		final FontConfiguration titleFontConfiguration = getStyleTitle(entity, getSkinParam())
 				.getFontConfiguration(getSkinParam().getIHtmlColorSet(), entity.getColors());
 
-		title = entity.getDisplay().create8(titleFontConfiguration, HorizontalAlignment.CENTER, getSkinParam(), CreoleMode.FULL,
-				getStyle().wrapWidth());
+		title = entity.getDisplay().create8(titleFontConfiguration, HorizontalAlignment.CENTER, getSkinParam(),
+				CreoleMode.FULL, getStyle().wrapWidth());
 
 		url = entity.getUrl99();
 	}
@@ -93,13 +94,19 @@ public class EntityImageChenRelationship extends AbstractEntityImage {
 		return getStyle(getEntity(), getSkinParam());
 	}
 
-	private static Style getStyle(Entity group, ISkinParam skinParam) {
-		return StyleSignatureBasic.of(SName.root, SName.element, SName.chenEerDiagram, SName.chenRelationship)
-				.withTOBECHANGED(group.getStereotype()).getMergedStyle(skinParam.getCurrentStyleBuilder());
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.chenEerDiagram, SName.chenRelationship);
+	}
+
+	private Style getStyle(Entity group, ISkinParam skinParam) {
+		return getStyleSignature().withTOBECHANGED(group.getStereotype())
+				.getMergedStyle(skinParam.getCurrentStyleBuilder());
 	}
 
 	private static Style getStyleTitle(Entity group, ISkinParam skinParam) {
-		return StyleSignatureBasic.of(SName.root, SName.element, SName.chenEerDiagram, SName.chenRelationship, SName.title)
+		return StyleSignatureBasic
+				.of(SName.root, SName.element, SName.chenEerDiagram, SName.chenRelationship, SName.title)
 				.withTOBECHANGED(group.getStereotype()).getMergedStyle(skinParam.getCurrentStyleBuilder());
 	}
 

@@ -266,20 +266,16 @@ spot {
 stateDiagram {
   state {
     RoundCorner 25
-  }
-  stateBody {
-    BackGroundColor transparent
-  }
-  element {
-	title {
+    body {
+      BackGroundColor transparent
+    }
+	name {
 	  FontStyle plain
-	}
+      HorizontalAlignment center
+    }
   }
   group {
     LineThickness 0.5
-  }
-  header {
-    FontSize 12
   }
   circle {
    start, stop, end {

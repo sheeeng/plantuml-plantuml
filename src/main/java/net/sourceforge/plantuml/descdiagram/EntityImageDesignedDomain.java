@@ -72,23 +72,23 @@ public class EntityImageDesignedDomain extends AbstractEntityImage {
 		this.name = TextBlockUtils.withMargin(entity.getDisplay().create(
 				FontConfiguration.create(getSkinParam(), FontParam.DESIGNED_DOMAIN, stereotype),
 				HorizontalAlignment.CENTER, getSkinParam()), 2, 2);
-		if (stereotype == null || stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR) == null) {
+
+		if (stereotype == null || stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR) == null)
 			this.stereo = null;
-		} else {
+		else
 			this.stereo = Display.create(stereotype.getLabels(getSkinParam().guillemet())).create(
 					FontConfiguration.create(getSkinParam(), FontParam.DESIGNED_DOMAIN_STEREOTYPE, stereotype),
 					HorizontalAlignment.CENTER, getSkinParam());
-		}
+
 		this.url = entity.getUrl99();
-		// System.out.println(entity.getStereotype());
 	}
 
 	private UStroke getStroke() {
 		UStroke stroke = getSkinParam().getThickness(LineParam.designedDomainBorder, getStereo());
 
-		if (stroke == null) {
+		if (stroke == null)
 			stroke = UStroke.withThickness(1.5);
-		}
+
 		return stroke;
 	}
 

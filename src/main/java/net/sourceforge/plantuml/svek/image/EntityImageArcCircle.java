@@ -85,9 +85,9 @@ public class EntityImageArcCircle extends AbstractEntityImage {
 	}
 
 	private XDimension2D getStereoDimension(StringBounder stringBounder) {
-		if (stereo == null) {
+		if (stereo == null) 
 			return new XDimension2D(0, 0);
-		}
+		
 		return stereo.calculateDimension(stringBounder);
 	}
 

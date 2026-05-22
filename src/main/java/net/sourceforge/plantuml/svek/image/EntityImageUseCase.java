@@ -195,10 +195,11 @@ public class EntityImageUseCase extends AbstractEntityImage {
 	}
 
 	private Style getStyle() {
-		return getDefaultStyleDefinition().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		return getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
-	private StyleSignature getDefaultStyleDefinition() {
+	@Override
+	public StyleSignature getStyleSignature() {
 		final LeafType type = getEntity().getLeafType();
 		if (type == LeafType.USECASE_BUSINESS)
 			return StyleSignatureBasic

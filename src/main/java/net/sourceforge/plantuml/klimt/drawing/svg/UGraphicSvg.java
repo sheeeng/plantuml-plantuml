@@ -40,6 +40,7 @@ import java.io.OutputStream;
 import javax.xml.transform.TransformerException;
 
 import net.atmp.SvgOption;
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.klimt.ClipContainer;
 import net.sourceforge.plantuml.klimt.UGroup;
 import net.sourceforge.plantuml.klimt.UPath;
@@ -63,6 +64,7 @@ import net.sourceforge.plantuml.url.Url;
 public class UGraphicSvg extends AbstractUGraphic<SvgGraphics> implements ClipContainer {
 
 	private final boolean textAsPath;
+	private final FileFormat fileFormat;
 	private /* final */ SvgOption option;
 
 	public double dpiFactor() {
@@ -71,20 +73,22 @@ public class UGraphicSvg extends AbstractUGraphic<SvgGraphics> implements ClipCo
 
 	@Override
 	protected AbstractCommonUGraphic copyUGraphic() {
-		final UGraphicSvg result = new UGraphicSvg(getStringBounder(), textAsPath);
+		final UGraphicSvg result = new UGraphicSvg(getStringBounder(), textAsPath, fileFormat);
 		result.copy(this);
 		result.option = this.option;
 		return result;
 	}
 
-	private UGraphicSvg(StringBounder stringBounder, boolean textAsPath) {
+	private UGraphicSvg(StringBounder stringBounder, boolean textAsPath, FileFormat fileFormat) {
 		super(stringBounder);
+		this.fileFormat = fileFormat;
 		this.textAsPath = textAsPath;
 		register();
 	}
 
-	public static UGraphicSvg build(SvgOption option, boolean textAsPath, long seed, StringBounder stringBounder) {
-		final UGraphicSvg result = new UGraphicSvg(stringBounder, textAsPath);
+	public static UGraphicSvg build(SvgOption option, boolean textAsPath, long seed, StringBounder stringBounder,
+			FileFormat fileFormat) {
+		final UGraphicSvg result = new UGraphicSvg(stringBounder, textAsPath, fileFormat);
 		result.copy(option.getBackcolor(), option.getColorMapper(), new SvgGraphics(seed, option));
 		result.option = option;
 		return result;
@@ -121,7 +125,7 @@ public class UGraphicSvg extends AbstractUGraphic<SvgGraphics> implements ClipCo
 		ignoreShape(UImageTikz.class);
 		registerDriver(UPath.class, new DriverPathSvg(this));
 		registerDriver(DotPath.class, new DriverDotPathSvg());
-		registerDriver(UCenteredCharacter.class, new DriverCenteredCharacterSvg());
+		registerDriver(UCenteredCharacter.class, new DriverCenteredCharacterSvg(fileFormat));
 	}
 
 	public SvgGraphics getSvgGraphics() {

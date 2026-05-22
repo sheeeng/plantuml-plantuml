@@ -43,6 +43,7 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ShapeType;
@@ -51,14 +52,15 @@ public class EntityImageCircleStart extends AbstractEntityImage {
 
 	private final CircleStart circle;
 
-	public StyleSignatureBasic getDefaultStyleDefinitionCircle() {
+	@Override
+	public StyleSignature getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, getSkinParam().getDiagramType().getStyleName(),
 				SName.circle, SName.start);
 	}
 
 	public EntityImageCircleStart(Entity entity) {
 		super(entity);
-		final Style style = getDefaultStyleDefinitionCircle().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		final Style style = getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 		this.circle = new CircleStart(getSkinParam(), style, entity.getColors());
 	}
 

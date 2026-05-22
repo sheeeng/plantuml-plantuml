@@ -9,18 +9,18 @@
     <XMI.content>
         <UML:Model name="PlantUML" xmi.id="model1">
             <UML:Namespace.ownedElement>
-                <UML:Class name="A" xmi.id="ent0002">
+                <UML:Class name="A" xmi.id="ent0001">
                     <UML:Classifier.feature/>
                 </UML:Class>
-                <UML:Class name="B" xmi.id="ent0003">
+                <UML:Class name="B" xmi.id="ent0002">
                     <UML:Classifier.feature/>
                 </UML:Class>
-                <UML:Association namespace="model1" xmi.id="ass5">
+                <UML:Association namespace="model1" xmi.id="ass4">
                     <UML:Association.connection>
-                        <UML:AssociationEnd association="ass5" type="ent0002" xmi.id="end6">
+                        <UML:AssociationEnd association="ass4" type="ent0001" xmi.id="end5">
                             <UML:AssociationEnd.participant/>
                         </UML:AssociationEnd>
-                        <UML:AssociationEnd association="ass5" type="ent0003" xmi.id="end7">
+                        <UML:AssociationEnd association="ass4" type="ent0002" xmi.id="end6">
                             <UML:AssociationEnd.participant/>
                         </UML:AssociationEnd>
                     </UML:Association.connection>

@@ -49,7 +49,6 @@ import net.sourceforge.plantuml.donors.PSystemDonors;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockHorizontal;
-import net.sourceforge.plantuml.openiconic.data.DummyIcon;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 
 public class PSystemListOpenIconic extends UgDiagram {
@@ -77,7 +76,7 @@ public class PSystemListOpenIconic extends UgDiagram {
 	}
 
 	private InputStream getResourceAllTxt() {
-		return DummyIcon.class.getResourceAsStream("all.txt");
+		return getClass().getResourceAsStream("/openiconic/all.txt");
 	}
 
 	public DiagramDescription getDescription() {

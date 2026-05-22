@@ -35,7 +35,9 @@
 package net.sourceforge.plantuml.klimt.drawing.svg;
 
 import java.awt.font.TextLayout;
+import java.util.HashMap;
 
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.klimt.UParam;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -47,9 +49,27 @@ import net.sourceforge.plantuml.klimt.shape.UCenteredCharacter;
 
 public class DriverCenteredCharacterSvg implements UDriver<UCenteredCharacter, SvgGraphics> {
 
+	private final FileFormat fileFormat;
+
+	public DriverCenteredCharacterSvg(FileFormat fileFormat) {
+		this.fileFormat = fileFormat;
+	}
+
 	public void draw(UCenteredCharacter characterCircled, double x, double y, ColorMapper mapper, UParam param,
 			SvgGraphics svg) {
 		final char c = characterCircled.getChar();
+		final HColor textColor = param.getColor();
+
+		// For deterministic SVG output (used by tests), avoid rendering the glyph as a
+		// vector path derived from the system font (which differs across OS/JVM).
+		// Instead, emit a simple <text> element with a fixed font-family.
+		if (fileFormat == FileFormat.SVG_DETERMINISTIC) {
+			svg.setFillColor(textColor.toSvg(mapper));
+			svg.text(String.valueOf(c), x - 5, y + 5, "monospace", 14, null, null, null, 0,
+					new HashMap<String, String>(), null);
+			return;
+		}
+
 		final UFont font = characterCircled.getFont();
 		final UnusedSpace unusedSpace = UnusedSpace.getUnusedSpace(font, c);
 
@@ -57,7 +77,6 @@ public class DriverCenteredCharacterSvg implements UDriver<UCenteredCharacter, S
 		final double ypos = y - unusedSpace.getCenterY() - 0.5;
 
 		final TextLayout t = UFontContext.SVG.createTextLayout(font, "" + c);
-		final HColor textColor = param.getColor();
 		svg.setFillColor(textColor.toSvg(mapper));
 
 		svg.drawPathIterator(xpos, ypos, t.getOutline(null).getPathIterator(null));

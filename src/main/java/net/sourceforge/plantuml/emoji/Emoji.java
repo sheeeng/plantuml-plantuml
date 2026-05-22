@@ -226,11 +226,11 @@ public class Emoji {
 //						continue;
 //					}
 //
-//					pw.println("  window.PLANTUML_EMOJI[\"" + unicode + "\"]=\""
+//					pw.println("window.PLANTUML_EMOJI[\"" + unicode + "\"]=\""
 //							+ escapeForJs(svgContent) + "\";");
 //
 //					if (shortcut != null)
-//						pw.println("  window.PLANTUML_EMOJI_SHORTCUT[\"" + shortcut + "\"]=\""
+//						pw.println("window.PLANTUML_EMOJI_SHORTCUT[\"" + shortcut + "\"]=\""
 //								+ unicode + "\";");
 //
 //					count++;

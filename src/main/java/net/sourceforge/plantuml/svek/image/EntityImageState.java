@@ -40,22 +40,28 @@ import net.sourceforge.plantuml.klimt.UGroup;
 import net.sourceforge.plantuml.klimt.UGroupType;
 import net.sourceforge.plantuml.klimt.UStroke;
 import net.sourceforge.plantuml.klimt.UTranslate;
+import net.sourceforge.plantuml.klimt.color.HColor;
+import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.creole.CreoleMode;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
-import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.UEllipse;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.style.PName;
+import net.sourceforge.plantuml.style.SName;
+import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleBuilder;
+import net.sourceforge.plantuml.svek.RoundedContainer;
 
 public class EntityImageState extends EntityImageStateCommon {
 
 	final private TextBlock fields;
-	final private HorizontalAlignment horizontalAlignmentFields;
+//	final private HorizontalAlignment horizontalAlignmentFields;
 
 	final private static int MIN_WIDTH = 50;
 	final private static int MIN_HEIGHT = 50;
@@ -67,6 +73,10 @@ public class EntityImageState extends EntityImageStateCommon {
 	final static private double smallMarginX = 7;
 	final static private double smallMarginY = 4;
 
+	final private Style styleName;
+	final private Style styleDescription;
+	final private Style style;
+
 	public EntityImageState(Entity entity) {
 		super(entity);
 
@@ -75,18 +85,24 @@ public class EntityImageState extends EntityImageStateCommon {
 		this.withSymbol = stereotype != null && stereotype.isWithOOSymbol();
 		final Display list = Display.create(entity.getBodier().getRawBody());
 
-		final FontConfiguration fieldsFontConfiguration = getStyleStateHeader()
+		final StyleBuilder styleBuilder = getSkinParam().getCurrentStyleBuilder();
+		this.style = STYLE.withTOBECHANGED(getEntity().getStereotype()).getMergedStyle(styleBuilder);
+		this.styleName = STYLE.addSName(SName.name).withTOBECHANGED(getEntity().getStereotype())
+				.getMergedStyle(styleBuilder);
+		this.styleDescription = STYLE.addSName(SName.description).withTOBECHANGED(getEntity().getStereotype())
+				.getMergedStyle(styleBuilder);
+
+		final FontConfiguration fieldsFontConfiguration = styleDescription
 				.getFontConfiguration(getSkinParam().getIHtmlColorSet());
 
-		this.horizontalAlignmentFields = getStyleStateHeader().getHorizontalAlignment();
-		this.fields = list.create8(fieldsFontConfiguration, horizontalAlignmentFields, getSkinParam(), CreoleMode.FULL,
-				getStyleState().wrapWidth());
+		this.fields = list.create8(fieldsFontConfiguration, styleDescription.getHorizontalAlignment(), getSkinParam(),
+				CreoleMode.FULL, getStyleState().wrapWidth());
 
 	}
 
 	@Override
 	public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
-		final XDimension2D dim = title.calculateDimension(stringBounder)
+		final XDimension2D dim = name.calculateDimension(stringBounder)
 				.mergeTB(fields.calculateDimension(stringBounder));
 		double heightSymbol = 0;
 		if (withSymbol)
@@ -97,7 +113,7 @@ public class EntityImageState extends EntityImageStateCommon {
 	}
 
 	final public void drawU(UGraphic ug) {
-		final UGroup group = UGroup.singletonMap(UGroupType.ID, getEntity().getQuark().toStringPoint());
+		final UGroup group = new UGroup(getEntity().getLocation());
 		group.put(UGroupType.CLASS, "entity");
 		group.put(UGroupType.ID, "entity_" + getEntity().getName());
 		group.put(UGroupType.DATA_ENTITY, getEntity().getName());
@@ -109,15 +125,30 @@ public class EntityImageState extends EntityImageStateCommon {
 
 		final StringBounder stringBounder = ug.getStringBounder();
 		final XDimension2D dimTotal = calculateDimension(stringBounder);
-		final XDimension2D dimDesc = title.calculateDimension(stringBounder);
+		final XDimension2D dimName = name.calculateDimension(stringBounder);
 
-		final UStroke stroke = getStyleState().getStroke(lineConfig.getColors());
+		final UStroke stroke = style.getStroke(lineConfig.getColors());
 
-		ug = applyColor(ug);
+		ug = applyColor(ug, getStyleState());
 		ug = ug.apply(stroke);
-		ug.draw(getShape(dimTotal));
 
-		final double yLine = MARGIN + dimDesc.getHeight() + MARGIN_LINE;
+		final HColorSet colorSet = getSkinParam().getIHtmlColorSet();
+		final double yLine = MARGIN + dimName.getHeight() + MARGIN_LINE;
+
+		HColor northBackcolor = styleName.value(PName.BackGroundColor).asColor(colorSet);
+		HColor southBackcolor = styleDescription.value(PName.BackGroundColor).asColor(colorSet);
+
+		if (northBackcolor.equals(southBackcolor)) {
+			ug.draw(getShape(dimTotal));
+		} else {
+			final double corner = getStyleState().value(PName.RoundCorner).asDouble();
+			final double shadowing = getStyleState().getShadowing();
+
+			final RoundedContainer r = new RoundedContainer(getBorderColor(), dimTotal, yLine, 0, northBackcolor,
+					southBackcolor, southBackcolor, stroke, corner, shadowing);
+			r.drawU(ug);
+		}
+
 		ug.apply(UTranslate.dy(yLine)).draw(ULine.hline(dimTotal.getWidth()));
 
 		if (withSymbol) {
@@ -126,13 +157,13 @@ public class EntityImageState extends EntityImageStateCommon {
 			drawSymbol(ug, xSymbol, ySymbol);
 		}
 
-		final double xDesc = (dimTotal.getWidth() - dimDesc.getWidth()) / 2;
+		final double xDesc = (dimTotal.getWidth() - dimName.getWidth()) / 2;
 		final double yDesc = MARGIN;
-		title.drawU(ug.apply(new UTranslate(xDesc, yDesc)));
+		this.name.drawU(ug.apply(new UTranslate(xDesc, yDesc)));
 
 		final double xFields = MARGIN;
 		final double yFields = yLine + MARGIN_LINE;
-		this.horizontalAlignmentFields.draw(ug, fields, xFields, yFields, dimTotal.getWidth());
+		this.styleDescription.getHorizontalAlignment().draw(ug, fields, xFields, yFields, dimTotal.getWidth());
 
 		if (url != null)
 			ug.closeUrl();

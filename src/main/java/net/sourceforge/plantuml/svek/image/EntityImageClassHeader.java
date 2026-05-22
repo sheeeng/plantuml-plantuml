@@ -64,6 +64,7 @@ import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.HeaderLayout;
@@ -73,6 +74,11 @@ import net.sourceforge.plantuml.text.Guillemet;
 public class EntityImageClassHeader extends AbstractEntityImage {
 
 	final private HeaderLayout headerLayout;
+
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.classDiagram, SName.class_, SName.header);
+	}
 
 	public EntityImageClassHeader(Entity entity, PortionShower portionShower) {
 		super(entity);
@@ -84,8 +90,7 @@ public class EntityImageClassHeader extends AbstractEntityImage {
 		final boolean displayGenericWithOldFashion = getSkinParam().displayGenericWithOldFashion();
 		final String generic = displayGenericWithOldFashion ? null : entity.getGeneric();
 
-		final Style styleHeader = StyleSignatureBasic
-				.of(SName.root, SName.element, SName.classDiagram, SName.class_, SName.header) //
+		final Style styleHeader = getStyleSignature() //
 				.withTOBECHANGED(stereotype) //
 				.with(entity.getStereostyles()) //
 				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());

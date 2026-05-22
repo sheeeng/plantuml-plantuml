@@ -169,6 +169,7 @@ final public class Entity implements SpecificBackcolorable, Hideable, Removeable
 			this.uid = "entroot";
 		else
 			this.uid = StringUtils.getUid("ent", diagram.getUniqueSequenceValue());
+
 		this.bodier = bodier;
 		this.rawLayout = rawLayout;
 		this.quark.setData(this);
@@ -210,12 +211,14 @@ final public class Entity implements SpecificBackcolorable, Hideable, Removeable
 				return true;
 
 			if (leafType != LeafType.ANNOTATION && leafType != LeafType.ABSTRACT_CLASS && leafType != LeafType.CLASS
-					&& leafType != LeafType.ENUM && leafType != LeafType.INTERFACE && leafType != LeafType.RECORD && leafType != LeafType.DATACLASS) {
+					&& leafType != LeafType.ENUM && leafType != LeafType.INTERFACE && leafType != LeafType.RECORD
+					&& leafType != LeafType.DATACLASS) {
 				return false;
 				// throw new IllegalArgumentException("type=" + leafType);
 			}
 			if (newType != LeafType.ANNOTATION && newType != LeafType.ABSTRACT_CLASS && newType != LeafType.CLASS
-					&& newType != LeafType.ENUM && newType != LeafType.INTERFACE && newType != LeafType.RECORD && newType != LeafType.DATACLASS && newType != LeafType.OBJECT) {
+					&& newType != LeafType.ENUM && newType != LeafType.INTERFACE && newType != LeafType.RECORD
+					&& newType != LeafType.DATACLASS && newType != LeafType.OBJECT) {
 				return false;
 				// throw new IllegalArgumentException("newtype=" + newType);
 			}
@@ -604,9 +607,10 @@ final public class Entity implements SpecificBackcolorable, Hideable, Removeable
 
 	// For group
 
-	public TextBlock getStateHeader(ISkinParam skinParam) {
+	public TextBlock getStateDescription(ISkinParam skinParam) {
 		checkGroup();
-		final Style style = EntityImageStateCommon.getStyleStateHeader(this, skinParam);
+		final Style style = EntityImageStateCommon.getStyleStateDescription(this.getStereotype(),
+				skinParam.getCurrentStyleBuilder());
 		final List<CharSequence> details = getBodier().getRawBody();
 
 		if (details.size() == 0)

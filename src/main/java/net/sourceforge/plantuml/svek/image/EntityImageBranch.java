@@ -59,7 +59,7 @@ public class EntityImageBranch extends AbstractEntityImage {
 		super(entity);
 	}
 
-	public StyleSignatureBasic getDefaultStyleDefinition() {
+	public StyleSignatureBasic getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, SName.activityDiagram, SName.activity, SName.diamond);
 	}
 
@@ -76,7 +76,7 @@ public class EntityImageBranch extends AbstractEntityImage {
 		diams.addPoint(0, SIZE);
 		diams.addPoint(SIZE, 0);
 
-		final Style style = getDefaultStyleDefinition().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		final Style style = getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 		final HColor border = style.value(PName.LineColor).asColor(getSkinParam().getIHtmlColorSet());
 		final HColor back = style.value(PName.BackGroundColor).asColor(getSkinParam().getIHtmlColorSet());
 		final UStroke stroke = style.getStroke();

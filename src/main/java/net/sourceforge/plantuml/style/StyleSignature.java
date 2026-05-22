@@ -39,7 +39,6 @@ import net.sourceforge.plantuml.stereo.Stereostyles;
 import net.sourceforge.plantuml.stereo.Stereotype;
 
 public interface StyleSignature {
-    // ::remove file when __HAXE__
 
 	public static final String STAR = "*";
 

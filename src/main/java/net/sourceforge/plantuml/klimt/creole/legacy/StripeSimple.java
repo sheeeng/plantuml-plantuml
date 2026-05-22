@@ -55,7 +55,7 @@ import net.sourceforge.plantuml.klimt.creole.atom.Atom;
 import net.sourceforge.plantuml.klimt.creole.atom.AtomEmoji;
 import net.sourceforge.plantuml.klimt.creole.atom.AtomImg;
 import net.sourceforge.plantuml.klimt.creole.atom.AtomMath;
-import net.sourceforge.plantuml.klimt.creole.atom.AtomOpenIcon;
+import net.sourceforge.plantuml.klimt.creole.atom.AtomOpenIconic;
 import net.sourceforge.plantuml.klimt.creole.atom.AtomSpace;
 import net.sourceforge.plantuml.klimt.creole.atom.AtomSprite;
 import net.sourceforge.plantuml.klimt.creole.command.Command;
@@ -65,7 +65,7 @@ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.ImgValign;
 import net.sourceforge.plantuml.klimt.sprite.Sprite;
 import net.sourceforge.plantuml.math.ScientificEquationSafe;
-import net.sourceforge.plantuml.openiconic.OpenIcon;
+import net.sourceforge.plantuml.openiconic.OpenIconic;
 import net.sourceforge.plantuml.style.ISkinSimple;
 import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.url.Url;
@@ -237,9 +237,9 @@ public class StripeSimple implements Stripe {
 	}
 
 	public void addOpenIcon(String src, double scale, HColor color) {
-		final OpenIcon openIcon = OpenIcon.retrieve(src);
-		if (openIcon != null)
-			atoms.add(new AtomOpenIcon(color, scale, openIcon, fontConfiguration, null));
+		final OpenIconic openIconic = OpenIconic.retrieve(src);
+		if (openIconic != null)
+			atoms.add(new AtomOpenIconic(color, scale, openIconic, fontConfiguration, null));
 	}
 
 	public void addEmoji(String emojiName, double scale, String forcedColor) {

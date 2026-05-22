@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.klimt.color.ColorParser;
 import net.sourceforge.plantuml.klimt.color.ColorType;
 import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.HColor;
+import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.plasma.Quark;
@@ -55,6 +56,7 @@ import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexOr;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.statediagram.StateDiagram;
+import net.sourceforge.plantuml.stereo.Stereogroup;
 import net.sourceforge.plantuml.stereo.Stereotag;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.stereo.StereotypePattern;
@@ -95,7 +97,7 @@ public class CommandCreatePackageState extends SingleLineCommand2<StateDiagram> 
 								new RegexLeaf(1, "CODE2", "([%pLN_.]+)"))), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexLeaf(4, "TAGS1", Stereotag.pattern() + "?"), //
-				StereotypePattern.optional("STEREOTYPE"), //
+				Stereogroup.optionalStereogroup(), //
 				new RegexLeaf(4, "TAGS2", Stereotag.pattern() + "?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				UrlBuilder.OPTIONAL, //
@@ -132,9 +134,8 @@ public class CommandCreatePackageState extends SingleLineCommand2<StateDiagram> 
 		if (display != null)
 			p.setDisplay(Display.getWithNewlines(diagram.getPragma(), display));
 
-		final String stereotype = arg.get("STEREOTYPE", 0);
-		if (stereotype != null)
-			p.setStereotype(Stereotype.build(stereotype));
+		final Stereogroup stereogroup = Stereogroup.build(arg);
+		p.setStereotype(stereogroup.buildStereotype());
 
 		final String urlString = arg.get(UrlBuilder.URL_KEY, 0);
 		if (urlString != null) {
@@ -143,15 +144,18 @@ public class CommandCreatePackageState extends SingleLineCommand2<StateDiagram> 
 			p.addUrl(url);
 		}
 
-		Colors colors = color().getColor(arg, diagram.getSkinParam().getIHtmlColorSet());
+		final HColorSet colorSet = diagram.getSkinParam().getIHtmlColorSet();
+		Colors colors = color().getColor(arg, colorSet);
 		final String s = arg.get("LINECOLOR", 1);
 
-		final HColor lineColor = s == null ? null : diagram.getSkinParam().getIHtmlColorSet().getColor(s);
+		final HColor lineColor = s == null ? null : colorSet.getColor(s);
 		if (lineColor != null)
 			colors = colors.add(ColorType.LINE, lineColor);
 
 		if (arg.get("LINECOLOR", 0) != null)
 			colors = colors.addLegacyStroke(arg.get("LINECOLOR", 0));
+
+		colors = colors.mergeWith(stereogroup.getColors2(colorSet));
 
 		p.setColors(colors);
 

@@ -59,15 +59,16 @@ import net.sourceforge.plantuml.svek.ShapeType;
 import net.sourceforge.plantuml.url.Url;
 
 public class EntityImageLollipopInterface extends AbstractEntityImage {
-    // ::remove folder when __HAXE__
 
 	private static final int SIZE = 10;
 
 	private final TextBlock desc;
 	private final Url url;
 
-	public StyleSignature getSignature() {
-		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.circle).withTOBECHANGED(getStereo());
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.circle)
+				.withTOBECHANGED(getStereo());
 	}
 
 	private UStroke getUStroke() {
@@ -78,7 +79,7 @@ public class EntityImageLollipopInterface extends AbstractEntityImage {
 		super(entity);
 
 		final FontConfiguration fc = FontConfiguration.create(getSkinParam(),
-				getSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder()));
+				getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder()));
 
 		this.desc = entity.getDisplay().create(fc, HorizontalAlignment.CENTER, getSkinParam());
 		this.url = entity.getUrl99();
@@ -92,7 +93,7 @@ public class EntityImageLollipopInterface extends AbstractEntityImage {
 
 	final public void drawU(UGraphic ug) {
 
-		final Style style = getSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		final Style style = getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 		final HColor backgroundColor = style.value(PName.BackGroundColor).asColor(getSkinParam().getIHtmlColorSet());
 		final HColor borderColor = style.value(PName.LineColor).asColor(getSkinParam().getIHtmlColorSet());
 		final double shadow = style.getShadowing();

@@ -39,7 +39,6 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public class GlobalConfig {
-	// ::remove file when __HAXE__
 
 	private static final GlobalConfig singleton = new GlobalConfig();
 	static public final boolean STRICT_SELFMESSAGE_POSITION = true;

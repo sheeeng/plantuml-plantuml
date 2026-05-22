@@ -47,13 +47,10 @@ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.Style;
-import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.Bibliotekon;
 import net.sourceforge.plantuml.svek.Cluster;
 import net.sourceforge.plantuml.svek.ShapeType;
-
-import net.sourceforge.plantuml.annotation.Fast;
 
 public abstract class AbstractEntityImageBorder extends AbstractEntityImage {
 	public final EntityPosition entityPosition;
@@ -61,15 +58,13 @@ public abstract class AbstractEntityImageBorder extends AbstractEntityImage {
 	protected final Bibliotekon bibliotekon;
 	protected final Rankdir rankdir;
 
-	protected abstract StyleSignatureBasic getSignature();
-
 	final protected Style getStyle() {
 		final Stereotype stereotype = getEntity().getStereotype();
-		return getSignature().withTOBECHANGED(stereotype).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		return getStyleSignature().withTOBECHANGED(stereotype)
+				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
-	AbstractEntityImageBorder(Entity leaf, Cluster parent, Bibliotekon bibliotekon,
-			FontParam fontParam) {
+	AbstractEntityImageBorder(Entity leaf, Cluster parent, Bibliotekon bibliotekon, FontParam fontParam) {
 		super(leaf);
 
 		this.parent = parent;

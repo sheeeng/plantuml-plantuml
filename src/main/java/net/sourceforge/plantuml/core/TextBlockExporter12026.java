@@ -35,9 +35,7 @@
  */
 package net.sourceforge.plantuml.core;
 
-// ::comment when __TEAVM__
 import java.awt.Graphics2D;
-// ::done
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
@@ -77,6 +75,10 @@ import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.URectangle;
+// ::comment when JAVA8
+import net.sourceforge.plantuml.openpdf.PdfOption;
+import net.sourceforge.plantuml.openpdf.UGraphicPdf;
+//::done
 import net.sourceforge.plantuml.skin.ColorParam;
 import net.sourceforge.plantuml.skin.CornerParam;
 import net.sourceforge.plantuml.skin.LineParam;
@@ -243,9 +245,13 @@ public class TextBlockExporter12026 {
 			return createUGraphicPNG(scaleFactor, dim, fileFormatOption.getWatermark(),
 					fileFormatOption.getFileFormat());
 		case SVG:
-		case SVG_FIXED:
+		case SVG_DETERMINISTIC:
 		case NULL:
 			return createUGraphicSVG(scaleFactor, dim, p);
+		// ::comment when JAVA8
+		case PDF:
+			return createUGraphicPDF(scaleFactor, dim, p);
+		// ::done
 		case EPS:
 			return new UGraphicEps(backcolor, colorMapper, stringBounder, EpsStrategy.getDefault2());
 		case EPS_TEXT:
@@ -255,7 +261,7 @@ public class TextBlockExporter12026 {
 		case VDX:
 			return new UGraphicVdx(backcolor, colorMapper, stringBounder);
 		case LATEX:
-		case LATEX_FIXED:
+		case LATEX_DETERMINISTIC:
 		case LATEX_NO_PREAMBLE:
 			return new UGraphicTikz(backcolor, colorMapper, stringBounder, scaleFactor,
 					fileFormatOption.getFileFormat(), p);
@@ -299,8 +305,29 @@ public class TextBlockExporter12026 {
 			option = option.withSvgDimensionStyle(skinParam.svgDimensionStyle());
 		}
 
-		return UGraphicSvg.build(option, false, seed, stringBounder);
+		return UGraphicSvg.build(option, false, seed, stringBounder, fileFormatOption.getFileFormat());
 	}
+
+	// ::comment when JAVA8
+	private UGraphic createUGraphicPDF(double scaleFactor, XDimension2D dim, Pragma p) {
+		PdfOption option = new PdfOption();
+//		SvgOption option = SvgOption.basic().withPreserveAspectRatio(getPreserveAspectRatio());
+//		option = option.withHoverPathColorRGB(getHoverPathColorRGB());
+//		option = option.withMinDim(dim);
+		option = option.withBackgroundColor(backcolor);
+//		option = option.withScale(scaleFactor);
+//		option = option.withColorMapper(fileFormatOption.getColorMapper());
+//		option = option.withLinkTarget(getSvgLinkTarget());
+//		option = option.withFont(p.getValue(PragmaKey.SVG_FONT));
+//		if (skinParam != null)
+//			option = option.withConfigurationStore(skinParam.options());
+//		if (diagramType != null) {
+//			option = option.withRootAttribute("data-diagram-type", diagramType.name());
+//		}
+
+		return UGraphicPdf.build(option, stringBounder);
+	}
+	// ::done
 
 	private UGraphic createUGraphicPNG(double scaleFactor, XDimension2D dim, String watermark, FileFormat format) {
 		XColor pngBackColor = new XColor(0, 0, 0, 0);

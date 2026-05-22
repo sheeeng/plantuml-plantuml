@@ -39,7 +39,6 @@ import java.time.LocalDate;
 import java.util.Locale;
 
 import net.sourceforge.plantuml.klimt.UTranslate;
-import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.FontConfiguration;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
@@ -64,11 +63,9 @@ abstract class TimeHeaderCalendar extends TimeHeader {
 		return weekConfigData.getLocale();
 	}
 
-	protected final int getLoadAt(TimePoint instant) {
-		if (PiecewiseConstantUtils.isZeroOnDay(dayCalendar.getOpenClose().asPiecewiseConstant(), instant.toDay()))
-			return 0;
-
-		return 100;
+	@Override
+	protected final boolean isZeroOnDay(TimePoint instant) {
+		return PiecewiseConstantUtils.isZeroOnDay(dayCalendar.getOpenClose().asPiecewiseConstant(), instant.toDay());
 	}
 
 	@Override
@@ -78,46 +75,6 @@ abstract class TimeHeaderCalendar extends TimeHeader {
 	}
 
 	public abstract void drawTimeHeaderInternal(final UGraphic ug, double totalHeightWithoutFooter);
-
-	private final void drawColorsBackground(UGraphic ug, double totalHeightWithoutFooter) {
-
-		final double height = totalHeightWithoutFooter - getFullHeaderHeight(ug.getStringBounder());
-		Pending pending = null;
-
-		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) <= 0; day = day.plusDays(1)) {
-			final TimePoint wink = TimePoint.ofStartOfDay(day);
-			final double x1 = getTimeScale().getPosition(wink);
-			final double x2 = getTimeScale().getPosition(wink) + getTimeScale().getWidth(wink);
-			HColor back = getColor(wink);
-			// Day of week should be stronger than period of time (back color).
-			final HColor backDoW = getColor(wink.toDayOfWeek());
-			if (backDoW != null)
-				back = backDoW;
-
-			if (back == null && getLoadAt(wink) == 0)
-				back = closedBackgroundColor();
-
-			if (back == null) {
-				if (pending != null)
-					pending.draw(ug, height);
-				pending = null;
-			} else {
-				if (pending != null && pending.color.equals(back) == false) {
-					pending.draw(ug, height);
-					pending = null;
-				}
-				if (pending == null)
-					pending = new Pending(back, x1, x2);
-				else
-					pending.x2 = x2;
-
-			}
-		}
-
-		if (pending != null)
-			pending.draw(ug, height);
-
-	}
 
 	protected final void printNamedDays(final UGraphic ug) {
 		if (dayCalendar.getNameDays().size() > 0) {

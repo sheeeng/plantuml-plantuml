@@ -72,15 +72,15 @@ public class EntityImageDomain extends AbstractEntityImage {
 		super(entity);
 		final Stereotype stereotype = entity.getStereotype();
 		FontConfiguration fc = FontConfiguration.create(getSkinParam(), FontParam.DESIGNED_DOMAIN, stereotype);
-		this.name = TextBlockUtils.withMargin(entity.getDisplay().create(fc, HorizontalAlignment.CENTER, getSkinParam()), 2,
-				2);
-		if (stereotype == null || stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR) == null) {
+		this.name = TextBlockUtils
+				.withMargin(entity.getDisplay().create(fc, HorizontalAlignment.CENTER, getSkinParam()), 2, 2);
+		if (stereotype == null || stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR) == null)
 			this.stereo = null;
-		} else {
+		else
 			this.stereo = Display.create(stereotype.getLabels(getSkinParam().guillemet())).create(
 					FontConfiguration.create(getSkinParam(), FontParam.DESIGNED_DOMAIN_STEREOTYPE, stereotype),
 					HorizontalAlignment.CENTER, getSkinParam());
-		}
+
 		this.tag = new BoxedCharacter(typeLetter, 8, UFontFactory.byDefault(8), stereotype.getHtmlColor(), null,
 				fc.getColor());
 
@@ -90,9 +90,9 @@ public class EntityImageDomain extends AbstractEntityImage {
 	private UStroke getStroke() {
 		UStroke stroke = getSkinParam().getThickness(LineParam.domainBorder, getStereo());
 
-		if (stroke == null) {
+		if (stroke == null)
 			stroke = UStroke.withThickness(1.5);
-		}
+
 		return stroke;
 	}
 
@@ -128,13 +128,12 @@ public class EntityImageDomain extends AbstractEntityImage {
 
 		ug = ug.apply(SkinParamUtils.getColor(getSkinParam(), getStereo(), ColorParam.domainBorder));
 		HColor backcolor = getEntity().getColors().getColor(ColorType.BACK);
-		if (backcolor == null) {
+		if (backcolor == null)
 			backcolor = SkinParamUtils.getColor(getSkinParam(), getStereo(), ColorParam.domainBackground);
-		}
+
 		ug = ug.apply(backcolor.bg());
-		if (url != null) {
+		if (url != null)
 			ug.startUrl(url);
-		}
 
 		final UStroke stroke = getStroke();
 		ug.apply(stroke).draw(rect);
@@ -146,14 +145,15 @@ public class EntityImageDomain extends AbstractEntityImage {
 		footer.add(tag);
 		footer.drawU(ug.apply(new UTranslate(dimTotal.getWidth() - dimTag.getWidth(), dimTitle.getHeight())),
 				dimTag.getWidth(), dimTag.getHeight());
-		if (url != null) {
+		if (url != null)
 			ug.closeUrl();
-		}
+
 	}
 
 	private XDimension2D getTagDimension(StringBounder stringBounder) {
-		final XDimension2D tagDim = tag == null ? new XDimension2D(0, 0) : tag.calculateDimension(stringBounder);
-		return tagDim;
+		if (tag == null)
+			return new XDimension2D(0, 0);
+		return tag.calculateDimension(stringBounder);
 	}
 
 	public ShapeType getShapeType() {

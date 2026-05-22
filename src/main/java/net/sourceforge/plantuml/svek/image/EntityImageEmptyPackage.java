@@ -59,6 +59,7 @@ import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ClusterDecoration;
@@ -82,9 +83,14 @@ public class EntityImageEmptyPackage extends AbstractEntityImage {
 	private final double diagonalCorner;
 	private final HColor back;
 
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.package_, SName.title);
+	}
+
 	private Style getStyle() {
-		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.package_, SName.title)
-				.withTOBECHANGED(stereotype).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		return getStyleSignature().withTOBECHANGED(stereotype)
+				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
 	public EntityImageEmptyPackage(Entity entity, PortionShower portionShower) {

@@ -45,6 +45,7 @@ import net.sourceforge.plantuml.klimt.color.ColorParser;
 import net.sourceforge.plantuml.klimt.color.ColorType;
 import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.HColor;
+import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.plasma.Quark;
@@ -55,9 +56,8 @@ import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexOr;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.statediagram.StateDiagram;
+import net.sourceforge.plantuml.stereo.Stereogroup;
 import net.sourceforge.plantuml.stereo.Stereotag;
-import net.sourceforge.plantuml.stereo.Stereotype;
-import net.sourceforge.plantuml.stereo.StereotypePattern;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.url.UrlBuilder;
 import net.sourceforge.plantuml.url.UrlMode;
@@ -82,19 +82,21 @@ public class CommandCreateState extends SingleLineCommand2<StateDiagram> {
 				new RegexOr(//
 						new RegexConcat(//
 								new RegexLeaf(1, "CODE1", "([%pLN_.]+)"), //
-								RegexLeaf.spaceOneOrMore(), new RegexLeaf("as"),
+								RegexLeaf.spaceOneOrMore(), //
+								new RegexLeaf("as"), //
 								RegexLeaf.spaceOneOrMore(), //
 								new RegexLeaf(1, "DISPLAY1", "[%g]([^%g]+)[%g]")), //
 						new RegexConcat(//
 								new RegexLeaf(1, "DISPLAY2", "[%g]([^%g]+)[%g]"), //
-								RegexLeaf.spaceOneOrMore(), new RegexLeaf("as"),
+								RegexLeaf.spaceOneOrMore(), //
+								new RegexLeaf("as"), //
 								RegexLeaf.spaceOneOrMore(), //
 								new RegexLeaf(1, "CODE2", "([%pLN_.]+)")), //
 						new RegexLeaf(1, "CODE3", "([%pLN_.]+)"), //
 						new RegexLeaf(1, "CODE4", "[%g]([^%g]+)[%g]")), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexLeaf(4, "TAGS1", Stereotag.pattern() + "?"), //
-				StereotypePattern.optional("STEREOTYPE"), //
+				Stereogroup.optionalStereogroup(), //
 				new RegexLeaf(4, "TAGS2", Stereotag.pattern() + "?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				UrlBuilder.OPTIONAL, //
@@ -126,8 +128,8 @@ public class CommandCreateState extends SingleLineCommand2<StateDiagram> {
 		if (display == null)
 			display = quark.getName();
 
-		final String stereotype = arg.get("STEREOTYPE", 0);
-		LeafType type = getTypeFromStereotype(stereotype);
+		final Stereogroup stereogroup = Stereogroup.build(arg);
+		LeafType type = stereogroup.getLeafType();
 		if (type == null)
 			type = LeafType.STATE;
 		if (diagram.checkConcurrentStateOk(quark) == false)
@@ -146,9 +148,7 @@ public class CommandCreateState extends SingleLineCommand2<StateDiagram> {
 		if (currentPass == ParserPass.ONE) {
 
 			ent.setDisplay(Display.getWithNewlines(diagram.getPragma(), display));
-
-			if (stereotype != null)
-				ent.setStereotype(Stereotype.build(stereotype));
+			ent.setStereotype(stereogroup.buildStereotype());
 
 			final String urlString = arg.get(UrlBuilder.URL_KEY, 0);
 			if (urlString != null) {
@@ -157,15 +157,19 @@ public class CommandCreateState extends SingleLineCommand2<StateDiagram> {
 				ent.addUrl(url);
 			}
 
-			Colors colors = color().getColor(arg, diagram.getSkinParam().getIHtmlColorSet());
+			final HColorSet colorSet = diagram.getSkinParam().getIHtmlColorSet();
+			
+			Colors colors = color().getColor(arg, colorSet);
 			final String s = arg.get("LINECOLOR", 1);
 
-			final HColor lineColor = s == null ? null : diagram.getSkinParam().getIHtmlColorSet().getColor(s);
+			final HColor lineColor = s == null ? null : colorSet.getColor(s);
 			if (lineColor != null)
 				colors = colors.add(ColorType.LINE, lineColor);
 
 			if (arg.get("LINECOLOR", 0) != null)
 				colors = colors.addLegacyStroke(arg.get("LINECOLOR", 0));
+
+			colors = colors.mergeWith(stereogroup.getColors2(colorSet));
 
 			ent.setColors(colors);
 
@@ -176,31 +180,6 @@ public class CommandCreateState extends SingleLineCommand2<StateDiagram> {
 			CommandCreateClassMultilines.addTags(ent, arg.getLazzy("TAGS", 0));
 		}
 		return CommandExecutionResult.ok();
-	}
-
-	private LeafType getTypeFromStereotype(String stereotype) {
-		if ("<<choice>>".equalsIgnoreCase(stereotype))
-			return LeafType.STATE_CHOICE;
-
-		if ("<<fork>>".equalsIgnoreCase(stereotype))
-			return LeafType.STATE_FORK_JOIN;
-
-		if ("<<join>>".equalsIgnoreCase(stereotype))
-			return LeafType.STATE_FORK_JOIN;
-
-		if ("<<start>>".equalsIgnoreCase(stereotype))
-			return LeafType.CIRCLE_START;
-
-		if ("<<end>>".equalsIgnoreCase(stereotype))
-			return LeafType.CIRCLE_END;
-
-		if ("<<history>>".equalsIgnoreCase(stereotype))
-			return LeafType.PSEUDO_STATE;
-
-		if ("<<history*>>".equalsIgnoreCase(stereotype))
-			return LeafType.DEEP_HISTORY;
-
-		return null;
 	}
 
 }

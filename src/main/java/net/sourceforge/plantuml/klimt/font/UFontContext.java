@@ -42,9 +42,8 @@ import net.sourceforge.plantuml.klimt.shape.UText;
 
 public enum UFontContext {
 
-	EPS, SVG, G2D, TIKZ;
+	EPS, SVG, G2D, TIKZ, PDF;
 
-	// ::comment when __HAXE__ or __TEAVM__
 	public TextLayout createTextLayout(UText shape) {
 		return createTextLayout(shape.getFontConfiguration().getFont(), shape.getText());
 	}
@@ -52,5 +51,4 @@ public enum UFontContext {
 	public TextLayout createTextLayout(UFont font, String text) {
 		return new TextLayout(text, UFontImpl.getUnderlayingFont(font, text), FileFormat.gg.getFontRenderContext());
 	}
-	// ::done
 }

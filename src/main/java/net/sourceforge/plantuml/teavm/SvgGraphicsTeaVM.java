@@ -68,6 +68,18 @@ public class SvgGraphicsTeaVM {
 	private double[] strokeDasharray = null;
 
 	/**
+	 * Background rectangle covering the whole viewBox. Created in the constructor
+	 * when a non-trivial background color is provided, and resized to the final
+	 * diagram dimensions in {@link #updateSvgSize(double, double, double)}.
+	 */
+	private Element pendingBackground = null;
+
+	
+	public SvgGraphicsTeaVM() {
+		this(null);
+	}
+
+	/**
 	 * Creates a new SVG graphics context for TeaVM rendering.
 	 *
 	 * <p>
@@ -76,7 +88,7 @@ public class SvgGraphicsTeaVM {
 	 * {@link #updateSvgSize(double, double, double)} once the actual diagram
 	 * dimensions and scale factor are known.
 	 */
-	public SvgGraphicsTeaVM() {
+	public SvgGraphicsTeaVM(String defaultBackgroundcolor) {
 		this.document = HTMLDocument.current();
 
 		// Create SVG root element
@@ -87,6 +99,24 @@ public class SvgGraphicsTeaVM {
 		// Create defs for gradients, filters, etc.
 		this.defs = createSvgElement("defs");
 		svgRoot.appendChild(defs);
+
+		// Paint background (must be added before mainGroup so it sits behind
+		// every drawing). The rect dimensions are filled in by updateSvgSize().
+		// Aligned with SvgGraphics.paintBackcolor(): skip null, transparent, pure
+		// black and pure white to avoid emitting a useless rectangle.
+		if (defaultBackgroundcolor != null && defaultBackgroundcolor.equals("#00000000") == false
+				&& defaultBackgroundcolor.equals("#000000") == false
+				&& defaultBackgroundcolor.equals("#FFFFFF") == false) {
+			pendingBackground = createSvgElement("rect");
+			pendingBackground.setAttribute("x", "0");
+			pendingBackground.setAttribute("y", "0");
+			pendingBackground.setAttribute("width", "0");
+			pendingBackground.setAttribute("height", "0");
+			pendingBackground.setAttribute("fill", defaultBackgroundcolor);
+			pendingBackground.setAttribute("stroke", "none");
+			svgRoot.appendChild(pendingBackground);
+			svgRoot.setAttribute("style", "background-color:" + defaultBackgroundcolor + ";");
+		}
 
 		// Create main group for all drawings
 		this.mainGroup = createSvgElement("g");
@@ -141,6 +171,13 @@ public class SvgGraphicsTeaVM {
 		svgRoot.setAttribute("viewBox", "0 0 " + w + " " + h);
 		svgRoot.setAttribute("width", format(w * scale));
 		svgRoot.setAttribute("height", format(h * scale));
+
+		// Resize the background rectangle to cover the full viewBox now that the
+		// final diagram dimensions are known.
+		if (pendingBackground != null) {
+			pendingBackground.setAttribute("width", String.valueOf(w));
+			pendingBackground.setAttribute("height", String.valueOf(h));
+		}
 	}
 
 	public void setFillColor(String color) {

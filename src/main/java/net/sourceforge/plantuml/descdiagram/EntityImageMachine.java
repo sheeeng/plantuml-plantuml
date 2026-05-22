@@ -86,9 +86,9 @@ public class EntityImageMachine extends AbstractEntityImage {
 	private UStroke getStroke() {
 		UStroke stroke = getSkinParam().getThickness(LineParam.machineBorder, getStereo());
 
-		if (stroke == null) {
+		if (stroke == null)
 			stroke = UStroke.withThickness(1.5);
-		}
+
 		return stroke;
 	}
 
@@ -125,13 +125,12 @@ public class EntityImageMachine extends AbstractEntityImage {
 
 		ug = ug.apply(SkinParamUtils.getColor(getSkinParam(), getStereo(), ColorParam.machineBorder));
 		HColor backcolor = getEntity().getColors().getColor(ColorType.BACK);
-		if (backcolor == null) {
+		if (backcolor == null)
 			backcolor = SkinParamUtils.getColor(getSkinParam(), getStereo(), ColorParam.machineBackground);
-		}
+
 		ug = ug.apply(backcolor.bg());
-		if (url != null) {
+		if (url != null)
 			ug.startUrl(url);
-		}
 
 		final UStroke stroke = getStroke();
 		ug.apply(stroke).draw(rect);
@@ -141,9 +140,9 @@ public class EntityImageMachine extends AbstractEntityImage {
 		header.add(name);
 		header.drawU(ug.apply(UTranslate.dx(5)), dimTotal.getWidth(), dimTitle.getHeight());
 
-		if (url != null) {
+		if (url != null)
 			ug.closeUrl();
-		}
+
 	}
 
 	public ShapeType getShapeType() {

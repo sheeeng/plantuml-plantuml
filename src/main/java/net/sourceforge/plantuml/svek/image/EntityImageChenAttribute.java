@@ -57,6 +57,7 @@ import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ShapeType;
@@ -86,8 +87,8 @@ public class EntityImageChenAttribute extends AbstractEntityImage {
 			titleFontConfiguration = titleFontConfiguration.underline();
 		}
 
-		title = entity.getDisplay().create8(titleFontConfiguration, HorizontalAlignment.CENTER, getSkinParam(), CreoleMode.FULL,
-				getStyle().wrapWidth());
+		title = entity.getDisplay().create8(titleFontConfiguration, HorizontalAlignment.CENTER, getSkinParam(),
+				CreoleMode.FULL, getStyle().wrapWidth());
 
 		url = entity.getUrl99();
 	}
@@ -98,6 +99,11 @@ public class EntityImageChenAttribute extends AbstractEntityImage {
 
 	private Style getStyle() {
 		return getStyle(getEntity(), getSkinParam());
+	}
+
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.chenEerDiagram, SName.chenAttribute);
 	}
 
 	private static Style getStyle(Entity group, ISkinParam skinParam) {

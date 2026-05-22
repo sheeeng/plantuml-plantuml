@@ -124,8 +124,8 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 	private final List<HideOrShow> hides2 = new ArrayList<>();
 	private final List<HideOrShow> removed = new ArrayList<>();
 
-	private final AtomicInteger cpt1 = new AtomicInteger(1);
-	private final AtomicInteger cpt2 = new AtomicInteger(1);
+	private final AtomicInteger cpt1 = new AtomicInteger(0);
+	private final AtomicInteger cpt2 = new AtomicInteger(0);
 
 	private List<Bag> stacks = new ArrayList<>();
 
@@ -158,8 +158,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 	@Override
 	public void startingPass(ParserPass pass) {
 		this.setLastEntity(null);
-		this.cpt1.set(1);
-		this.cpt2.set(1);
+		this.cpt2.set(0);
 		if (stacks.size() > 1)
 			stacks.subList(1, stacks.size()).clear();
 	}

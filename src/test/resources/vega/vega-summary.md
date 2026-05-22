@@ -2,8 +2,8 @@
 
 | Metric | Icon | Count |
 |---|:---:|---:|
-| Total   | = | 106 |
-| Passed  | :white_check_mark: | 96 |
+| Total   | = | 132 |
+| Passed  | :white_check_mark: | 122 |
 | Failed  | :x: | 0 |
 | Skipped | :fast_forward: | 10 |
 

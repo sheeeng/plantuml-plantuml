@@ -35,7 +35,6 @@
  */
 package net.sourceforge.plantuml.klimt.color;
 
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -61,6 +60,10 @@ public class HColorSet {
 		if (result == null)
 			return HColors.WHITE;
 		return result;
+	}
+
+	public HColor getColorOrNull(String s) {
+		return parseColor(s);
 	}
 
 	public HColor getColor(String s) throws NoSuchColorException {

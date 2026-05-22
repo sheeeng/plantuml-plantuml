@@ -79,7 +79,7 @@ public class EntityImageTips extends AbstractEntityImage {
 		super(entity);
 		this.bibliotekon = bibliotekon;
 
-		style = getDefaultStyleDefinition(getStyleName()).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		style = getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 		if (entity.getColors().getColor(ColorType.BACK) == null)
 			this.noteBackgroundColor = style.value(PName.BackGroundColor).asColor(getSkinParam().getIHtmlColorSet());
 		else
@@ -89,8 +89,10 @@ public class EntityImageTips extends AbstractEntityImage {
 
 	}
 
-	private StyleSignature getDefaultStyleDefinition(SName sname) {
-		return StyleSignatureBasic.of(SName.root, SName.element, sname, SName.note).withTOBECHANGED(getStereo());
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.note)
+				.withTOBECHANGED(getStereo());
 	}
 
 	private Position getPosition() {

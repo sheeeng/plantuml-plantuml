@@ -154,7 +154,49 @@ public abstract class TimeHeader {
 
 		return FontConfiguration.create(font, color, color, null);
 	}
-	
+
+	protected abstract boolean isZeroOnDay(TimePoint instant);
+
+	protected final void drawColorsBackground(UGraphic ug, double totalHeightWithoutFooter) {
+
+		final double height = totalHeightWithoutFooter - getFullHeaderHeight(ug.getStringBounder());
+		Pending pending = null;
+
+		for (LocalDate day = getMinDay(); day.compareTo(getMaxDay()) <= 0; day = day.plusDays(1)) {
+			final TimePoint wink = TimePoint.ofStartOfDay(day);
+			final double x1 = getTimeScale().getPosition(wink);
+			final double x2 = getTimeScale().getPosition(wink) + getTimeScale().getWidth(wink);
+			HColor back = getColor(wink);
+			// Day of week should be stronger than period of time (back color).
+			final HColor backDoW = getColor(wink.toDayOfWeek());
+			if (backDoW != null)
+				back = backDoW;
+
+			if (back == null && isZeroOnDay(wink))
+				back = closedBackgroundColor();
+
+			if (back == null) {
+				if (pending != null)
+					pending.draw(ug, height);
+				pending = null;
+			} else {
+				if (pending != null && pending.color.equals(back) == false) {
+					pending.draw(ug, height);
+					pending = null;
+				}
+				if (pending == null)
+					pending = new Pending(back, x1, x2);
+				else
+					pending.x2 = x2;
+
+			}
+		}
+
+		if (pending != null)
+			pending.draw(ug, height);
+
+	}
+
 	private static final class TextBlockKey {
 		private final String text;
 		private final FontConfiguration fontConfiguration;

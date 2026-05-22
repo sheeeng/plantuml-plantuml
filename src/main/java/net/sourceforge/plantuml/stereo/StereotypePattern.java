@@ -48,6 +48,8 @@ import net.sourceforge.plantuml.regex.RegexOptional;
 
 public class StereotypePattern {
 
+	@Deprecated
+	// Use Stereogroup.optionalStereogroup()
 	public static IRegex optional(String param) {
 		return new RegexConcat( //
 				RegexLeaf.spaceZeroOrMore(), //

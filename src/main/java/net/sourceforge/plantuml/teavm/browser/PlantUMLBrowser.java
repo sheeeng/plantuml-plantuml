@@ -59,8 +59,8 @@ import net.sourceforge.plantuml.teavm.UGraphicTeaVM;
  * &lt;/script&gt;
  * </pre>
  *
- * Both functions accept an optional {@code options} object as the last argument,
- * e.g. {@code { dark: true }} to enable dark-mode rendering.
+ * Both functions accept an optional {@code options} object as the last
+ * argument, e.g. {@code { dark: true }} to enable dark-mode rendering.
  *
  * <h2>Architecture: JavaScript-driven paradigm</h2>
  *
@@ -114,8 +114,8 @@ import net.sourceforge.plantuml.teavm.UGraphicTeaVM;
  *
  * We solve this by:
  * <ol>
- * <li>Lazily starting a background thread on the first call to
- * {@link #render} or {@link #renderToString}</li>
+ * <li>Lazily starting a background thread on the first call to {@link #render}
+ * or {@link #renderToString}</li>
  * <li>Having the exported function just queue a render request and wake the
  * thread</li>
  * <li>The worker thread performs the actual rendering in the correct coroutine
@@ -129,8 +129,8 @@ import net.sourceforge.plantuml.teavm.UGraphicTeaVM;
  *
  * The class uses a simple producer-consumer pattern:
  * <ul>
- * <li>Producer: {@link #render} / {@link #renderToString} called from JS,
- * sets pending request and notifies</li>
+ * <li>Producer: {@link #render} / {@link #renderToString} called from JS, sets
+ * pending request and notifies</li>
  * <li>Consumer: {@code workerLoop()} waits for requests, processes them one at
  * a time</li>
  * </ul>
@@ -167,8 +167,8 @@ public class PlantUMLBrowser {
 	private static final Object LOCK = new Object();
 
 	/**
-	 * Whether the worker thread has been started. Guarded by {@link #LOCK} for
-	 * the start transition; read without locking on the fast path.
+	 * Whether the worker thread has been started. Guarded by {@link #LOCK} for the
+	 * start transition; read without locking on the fast path.
 	 */
 	private static volatile boolean workerStarted = false;
 
@@ -206,9 +206,9 @@ public class PlantUMLBrowser {
 	/**
 	 * Starts the worker thread on the first call. Subsequent calls are no-ops.
 	 *
-	 * Because the TeaVM JS output is an ES2015 module, there is no
-	 * {@code main()} entry point that runs automatically at load time, so we
-	 * defer thread creation until the first render request arrives.
+	 * Because the TeaVM JS output is an ES2015 module, there is no {@code main()}
+	 * entry point that runs automatically at load time, so we defer thread creation
+	 * until the first render request arrives.
 	 */
 	private static void ensureWorkerStarted() {
 		if (workerStarted == false) {
@@ -260,8 +260,8 @@ public class PlantUMLBrowser {
 	 *                  caller
 	 * @param elementId the {@code id} of the HTML element where the SVG should be
 	 *                  rendered
-	 * @param options   optional JS object with rendering options (e.g.
-	 *                  {@code { dark: true }}); may be {@code null}
+	 * @param options   optional JS object with rendering options (e.g. {@code {
+	 *                  dark: true }}); may be {@code null}
 	 */
 	@JSExport
 	public static void render(String[] lines, String elementId, JSObject options) {
@@ -277,20 +277,20 @@ public class PlantUMLBrowser {
 	}
 
 	/**
-	 * Renders a PlantUML diagram and delivers the resulting SVG as a string via
-	 * the {@code onSuccess} callback. Errors go to {@code onError}.
+	 * Renders a PlantUML diagram and delivers the resulting SVG as a string via the
+	 * {@code onSuccess} callback. Errors go to {@code onError}.
 	 *
 	 * <p>
-	 * Same queueing and asynchronous behavior as {@link #render}: this method
-	 * only queues the request; the worker thread performs the actual rendering
-	 * and invokes the callback. A previous pending request will be overwritten.
+	 * Same queueing and asynchronous behavior as {@link #render}: this method only
+	 * queues the request; the worker thread performs the actual rendering and
+	 * invokes the callback. A previous pending request will be overwritten.
 	 *
 	 * @param lines     the PlantUML source code, split into lines by the JavaScript
 	 *                  caller
 	 * @param onSuccess callback invoked with the SVG string when rendering succeeds
 	 * @param onError   callback invoked with an error message when rendering fails
-	 * @param options   optional JS object with rendering options (e.g.
-	 *                  {@code { dark: true }}); may be {@code null}
+	 * @param options   optional JS object with rendering options (e.g. {@code {
+	 *                  dark: true }}); may be {@code null}
 	 */
 	@JSExport
 	public static void renderToString(String[] lines, StringCallback onSuccess, StringCallback onError,
@@ -311,9 +311,9 @@ public class PlantUMLBrowser {
 	// =========================================================================
 
 	/**
-	 * Extracts the {@code dark} boolean property from a JavaScript options
-	 * object. Returns {@code false} if the object is null/undefined or if the
-	 * property is absent.
+	 * Extracts the {@code dark} boolean property from a JavaScript options object.
+	 * Returns {@code false} if the object is null/undefined or if the property is
+	 * absent.
 	 */
 	@JSBody(params = "opts", script = "return (opts && opts.dark === true);")
 	private static native boolean isDark(JSObject opts);
@@ -384,11 +384,8 @@ public class PlantUMLBrowser {
 
 	/** Parses and renders PlantUML source lines to an SVG graphics context. */
 	private static SvgGraphicsTeaVM buildSvg(String[] lines, boolean darkMode) throws Exception {
-		final SvgGraphicsTeaVM svg = new SvgGraphicsTeaVM();
 		final ColorMapper colorMapper = darkMode ? ColorMapper.TEAVM_DARK : ColorMapper.TEAVM_LIGHT;
-		final HColor back = darkMode ? HColors.BLACK : HColors.WHITE;
 
-		UGraphic ug = UGraphicTeaVM.build(back, colorMapper, STRING_BOUNDER, svg);
 		final Diagram diagram = PSystemBuilder2.getInstance().createDiagram(lines);
 		final FileFormatOption fileFormat = new FileFormatOption(FileFormat.SVG);
 
@@ -398,6 +395,18 @@ public class PlantUMLBrowser {
 		final Scale scale = ((AbstractDiagram) diagram).getScale();
 		final UgDiagram ugDiagram = (UgDiagram) diagram;
 		TextBlock tb = ugDiagram.getTextBlock12026(0, fileFormat);
+
+		HColor tbBackcolor = tb.getBackcolor();
+		final SvgGraphicsTeaVM svg;
+
+		if (tbBackcolor == null) {
+			svg = new SvgGraphicsTeaVM();
+			tbBackcolor = darkMode ? HColors.BLACK : HColors.WHITE;
+		} else {
+			svg = new SvgGraphicsTeaVM(tbBackcolor.toSvg(colorMapper));
+		}
+
+		UGraphic ug = UGraphicTeaVM.build(tbBackcolor, colorMapper, STRING_BOUNDER, svg);
 
 		if (diagram instanceof TitledDiagram)
 			tb = DiagramChromeFactory12026.create(tb, (TitledDiagram) ugDiagram,
@@ -411,9 +420,8 @@ public class PlantUMLBrowser {
 		final XDimension2D dim = tb.calculateDimension(STRING_BOUNDER);
 
 		if (dim.getWidth() > MAX_SVG_SIZE || dim.getHeight() > MAX_SVG_SIZE)
-			throw new RuntimeException("Diagram too large for browser rendering: "
-					+ (int) dim.getWidth() + "x" + (int) dim.getHeight()
-					+ " (max " + MAX_SVG_SIZE + ")");
+			throw new RuntimeException("Diagram too large for browser rendering: " + (int) dim.getWidth() + "x"
+					+ (int) dim.getHeight() + " (max " + MAX_SVG_SIZE + ")");
 
 		final double scaleFactor = scale == null ? 1.0 : scale.getScale(dim.getWidth(), dim.getHeight());
 		svg.updateSvgSize(dim.getWidth(), dim.getHeight(), scaleFactor);

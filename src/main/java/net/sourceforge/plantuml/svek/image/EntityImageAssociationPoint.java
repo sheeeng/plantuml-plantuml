@@ -46,6 +46,7 @@ import net.sourceforge.plantuml.klimt.shape.UEllipse;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ShapeType;
@@ -63,9 +64,14 @@ public class EntityImageAssociationPoint extends AbstractEntityImage {
 		return new XDimension2D(SIZE, SIZE);
 	}
 
-	private Style getStyle() {
+	@Override
+	public StyleSignature getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, SName.classDiagram, SName.arrow)
-				.withTOBECHANGED(getStereo()).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+				.withTOBECHANGED(getStereo());
+	}
+
+	private Style getStyle() {
+		return getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
 	final public void drawU(UGraphic ug) {

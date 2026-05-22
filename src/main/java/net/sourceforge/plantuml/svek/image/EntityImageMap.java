@@ -66,6 +66,7 @@ import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.Ports;
@@ -132,9 +133,14 @@ public class EntityImageMap extends AbstractEntityImage implements Stencil, With
 		return new XDimension2D(width, height);
 	}
 
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.objectDiagram, SName.map);
+	}
+
 	private Style getStyle() {
-		return StyleSignatureBasic.of(SName.root, SName.element, SName.objectDiagram, SName.map)
-				.withTOBECHANGED(getEntity().getStereotype()).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		return getStyleSignature().withTOBECHANGED(getEntity().getStereotype())
+				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
 	private Style getStyleHeader() {

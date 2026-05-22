@@ -55,6 +55,7 @@ import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.PName;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ShapeType;
@@ -75,8 +76,8 @@ public class EntityImageChenEntity extends AbstractEntityImage {
 		final FontConfiguration titleFontConfiguration = getStyleStateTitle(entity, getSkinParam())
 				.getFontConfiguration(getSkinParam().getIHtmlColorSet(), entity.getColors());
 
-		title = entity.getDisplay().create8(titleFontConfiguration, HorizontalAlignment.CENTER, getSkinParam(), CreoleMode.FULL,
-				getStyleState().wrapWidth());
+		title = entity.getDisplay().create8(titleFontConfiguration, HorizontalAlignment.CENTER, getSkinParam(),
+				CreoleMode.FULL, getStyleState().wrapWidth());
 
 		url = entity.getUrl99();
 	}
@@ -87,6 +88,11 @@ public class EntityImageChenEntity extends AbstractEntityImage {
 
 	private Style getStyleState() {
 		return getStyleState(getEntity(), getSkinParam());
+	}
+
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.chenEerDiagram, SName.chenEntity);
 	}
 
 	private static Style getStyleState(Entity group, ISkinParam skinParam) {

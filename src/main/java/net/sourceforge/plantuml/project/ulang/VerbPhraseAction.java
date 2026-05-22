@@ -80,8 +80,6 @@ public abstract class VerbPhraseAction {
 //	}
 
 	public VerbPhraseMatcher parse(TextNavigator tn) {
-
-		System.out.println("DEBUT " + tn);
 		return parseVerbPhrase(tn);
 
 //		while (true) {
@@ -139,27 +137,19 @@ public abstract class VerbPhraseAction {
 		final String v2 = verbMatch.getAcceptedMatch();
 		if (v2.length() == 0)
 			return false;
-		System.out.println("-->v2=" + v2);
 
 		tn.jump(v2.length());
 		skipSpaces(tn);
-		System.out.println("-->tn=" + tn);
 
 		if (ignored != null) {
 			tn.jump(ignored.match(tn).getAcceptedMatch().length());
 			skipSpaces(tn);
-			System.out.println("-->tn=" + tn);
 		}
 
 		final UMatcher complementMatcher = complement.toUnicodeBracketedExpressionComplement().match(tn);
 		final String v3 = complementMatcher.getAcceptedMatch();
-		System.out.println("-->v3=" + v3);
 		if (v3.length() == 0)
 			return false;
-
-		// System.out.println("<" + v1 + ">");
-		System.out.println("[" + v2 + "] " + verbMatch);
-		System.out.println("{" + v3 + "} " + complementMatcher);
 
 		return true;
 

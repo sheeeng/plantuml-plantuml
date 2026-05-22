@@ -66,7 +66,7 @@ public class EntityImageAssociation extends AbstractEntityImage {
 		return getStyleSignature().getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
-	private StyleSignatureBasic getStyleSignature() {
+	public StyleSignatureBasic getStyleSignature() {
 		return StyleSignatureBasic.of(SName.root, SName.element, getStyleName(), SName.diamond);
 	}
 

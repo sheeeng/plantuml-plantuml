@@ -41,7 +41,6 @@ import java.util.Objects;
 import net.sourceforge.plantuml.url.Url;
 
 public class StyleKey {
-	// ::remove file when __HAXE__
 
 	public final EnumSet<SName> snames;
 	public final boolean isStared;

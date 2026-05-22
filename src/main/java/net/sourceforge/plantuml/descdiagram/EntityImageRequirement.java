@@ -61,6 +61,7 @@ import net.sourceforge.plantuml.skin.SkinParamUtils;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.style.Style;
+import net.sourceforge.plantuml.style.StyleSignature;
 import net.sourceforge.plantuml.style.StyleSignatureBasic;
 import net.sourceforge.plantuml.svek.AbstractEntityImage;
 import net.sourceforge.plantuml.svek.ShapeType;
@@ -83,18 +84,24 @@ public class EntityImageRequirement extends AbstractEntityImage {
 		if (stereotype == null || stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR) == null) {
 			this.desc = tmp;
 		} else {
-			final TextBlock stereo = Display.getWithNewlines(getSkinParam().getPragma(), stereotype.getLabel(getSkinParam().guillemet())).create(
-					FontConfiguration.create(getSkinParam(), FontParam.REQUIREMENT_STEREOTYPE, stereotype),
-					HorizontalAlignment.CENTER, getSkinParam());
+			final TextBlock stereo = Display
+					.getWithNewlines(getSkinParam().getPragma(), stereotype.getLabel(getSkinParam().guillemet()))
+					.create(FontConfiguration.create(getSkinParam(), FontParam.REQUIREMENT_STEREOTYPE, stereotype),
+							HorizontalAlignment.CENTER, getSkinParam());
 			this.desc = TextBlockUtils.mergeTB(stereo, tmp, HorizontalAlignment.CENTER);
 		}
 		this.url = entity.getUrl99();
 
 	}
 
+	@Override
+	public StyleSignature getStyleSignature() {
+		return StyleSignatureBasic.of(SName.root, SName.element, SName.componentDiagram, SName.requirement);
+	}
+
 	private Style getStyle() {
-		return StyleSignatureBasic.of(SName.root, SName.element, SName.componentDiagram, SName.requirement)
-				.withTOBECHANGED(getEntity().getStereotype()).getMergedStyle(getSkinParam().getCurrentStyleBuilder());
+		return getStyleSignature().withTOBECHANGED(getEntity().getStereotype())
+				.getMergedStyle(getSkinParam().getCurrentStyleBuilder());
 	}
 
 	private UStroke getStroke() {

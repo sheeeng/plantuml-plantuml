@@ -181,7 +181,13 @@ class TimeHeaderSimple extends TimeHeader {
 	}
 
 	@Override
+	protected boolean isZeroOnDay(TimePoint instant) {
+		return false;
+	}
+
+	@Override
 	public void drawTimeHeader(UGraphic ug, double totalHeightWithoutFooter) {
+		drawColorsBackground(ug, totalHeightWithoutFooter);
 		drawSmallVlinesDay(ug, totalHeightWithoutFooter);
 		printVerticalSeparators(ug, totalHeightWithoutFooter);
 		drawSimpleDayCounter(ug);
