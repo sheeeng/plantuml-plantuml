@@ -54,7 +54,6 @@ import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.teavm.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.utils.BlocLines;
-import net.sourceforge.plantuml.utils.LineLocation;
 import net.sourceforge.plantuml.utils.StartUtils;
 import net.sourceforge.plantuml.version.IteratorCounter2;
 
@@ -72,6 +71,36 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 	}
 
 	@Override
+	public List<Explanation> explain(PathSystem pathSystem, UmlSource source, Previous previous,
+			PreprocessingArtifact preprocessing) {
+		final List<Explanation> result = new ArrayList<>();
+		AbstractDiagram sys = createEmptyDiagram(pathSystem, source, previous, preprocessing);
+
+		IteratorCounter2 it = source.iterator2();
+		final StringLocated startLine = it.next();
+		if (StartUtils.isStartDirective(startLine.getString()) == false)
+			throw new UnsupportedOperationException();
+
+		final Set<ParserPass> requiredPass = sys.getRequiredPass();
+
+		for (ParserPass pass : requiredPass) {
+			while (it.hasNext()) {
+				if (StartUtils.isEndDirective(it.peek().getString())) {
+					it = source.iterator2();
+					it.next();
+					// For next pass
+					break;
+				}
+				result.add(explainFewLines(sys, source, it, pass, preprocessing));
+			}
+
+		}
+
+		return result;
+
+	}
+
+	@Override
 	final public AbstractDiagram createSystem(PathSystem pathSystem, UmlSource source, Previous previous,
 			PreprocessingArtifact preprocessing) {
 
@@ -86,7 +115,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 			if (it.hasNext())
 				it.next();
 
-			return buildEmptyError(source, startLine.getLocation(), it.getTrace(), preprocessing);
+			return buildEmptyError(source, startLine, it.getTrace(), preprocessing);
 		}
 		AbstractDiagram sys = createEmptyDiagram(pathSystem, source, previous, preprocessing);
 
@@ -117,11 +146,11 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 
 		final String err = sys.checkFinalError();
 		if (err != null) {
-			final LineLocation location = it.next().getLocation();
+			final StringLocated location = it.next();
 			return buildExecutionError(source, err, location, it.getTrace(), preprocessing);
 		}
 		if (source.getTotalLineCount() == 2) {
-			final LineLocation location = it.next().getLocation();
+			final StringLocated location = it.next();
 			return buildEmptyError(source, location, it.getTrace(), preprocessing);
 		}
 
@@ -136,7 +165,7 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 			ParserPass currentPass, PreprocessingArtifact preprocessing) {
 		final Step step = getCandidate(it);
 		if (step == null) {
-			final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, it.peek().getLocation(),
+			final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, "Syntax Error?", 0, it.peek(),
 					getDiagramType());
 			it.next();
 			return PSystemErrorUtils.buildV2(source, err, null, it.getTrace(), preprocessing);
@@ -147,9 +176,9 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 
 		final CommandExecutionResult result = sys.executeCommand(step.command, step.blocLines, currentPass);
 		if (result.isOk() == false) {
-			final LineLocation location = ((StringLocated) step.blocLines.getFirst()).getLocation();
-			final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR, result.getError(), result.getScore(),
-					location, getDiagramType());
+			final StringLocated line = (StringLocated) step.blocLines.getFirst();
+			final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR, result.getError(), result.getScore(), line,
+					getDiagramType());
 			sys = PSystemErrorUtils.buildV2(source, err, result.getDebugLines(), it.getTrace(), preprocessing,
 					result.getRootCause());
 		}
@@ -157,6 +186,19 @@ public abstract class PSystemCommandFactory extends PSystemAbstractFactory {
 			sys = result.getNewDiagram();
 
 		return sys;
+
+	}
+
+	private Explanation explainFewLines(AbstractDiagram sys, UmlSource source, final IteratorCounter2 it,
+			ParserPass currentPass, PreprocessingArtifact preprocessing) {
+		final Step step = getCandidate(it);
+		if (step == null)
+			return null;
+
+		if (step.command.isEligibleFor(currentPass) == false)
+			return null;
+
+		return new Explanation(step.blocLines, sys.explain(step.command, step.blocLines));
 
 	}
 

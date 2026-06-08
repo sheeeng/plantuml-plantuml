@@ -51,6 +51,7 @@ import net.sourceforge.plantuml.cheneer.ChenEerDiagramFactory;
 import net.sourceforge.plantuml.classdiagram.ClassDiagramFactory;
 import net.sourceforge.plantuml.cli.GlobalConfig;
 import net.sourceforge.plantuml.cli.GlobalConfigKey;
+import net.sourceforge.plantuml.command.Explanation;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
@@ -203,6 +204,29 @@ public class PSystemBuilder {
 		return singleton;
 	}
 
+	final public List<Explanation> explain(PathSystem pathSystem, List<StringLocated> source,
+			List<StringLocated> rawSource, Previous previous, PreprocessingArtifact preprocessing) {
+		final Collection<DiagramType> types = DiagramType.findStartTypes(source.get(0).getString());
+		final UmlSource umlSource = UmlSource.createWithRaw(source, types.contains(DiagramType.SEQUENCE), rawSource);
+
+		umlSource.patchBase64();
+
+		final Collection<DiagramType> diagramTypes = umlSource.getDiagramTypes();
+
+		for (PSystemFactory systemFactory : factories) {
+			if (!diagramTypes.contains(systemFactory.getDiagramType()))
+				continue;
+
+			final Diagram sys = systemFactory.createSystem(pathSystem, umlSource, previous, preprocessing);
+			if (isOk(sys)) {
+				return systemFactory.explain(pathSystem, umlSource, previous, preprocessing);
+			}
+		}
+
+		return null;
+
+	}
+
 	@DuplicateCode(reference = "PSystemBuilder2")
 	final public Diagram createPSystem(PathSystem pathSystem, List<StringLocated> source, List<StringLocated> rawSource,
 			Previous previous, PreprocessingArtifact preprocessing) {
@@ -217,18 +241,6 @@ public class PSystemBuilder {
 
 			umlSource.patchBase64();
 
-//			for (StringLocated s : source) {
-//				if (s.getPreprocessorError() != null) {
-//					// Dead code : should not append
-//					assert false;
-//					Log.error("Preprocessor Error: " + s.getPreprocessorError());
-//					final ErrorUml err = new ErrorUml(ErrorUmlType.SYNTAX_ERROR, s.getPreprocessorError(), 0,
-//							s.getLocation(), null);
-//					return PSystemErrorUtils.buildV2(umlSource, err, Collections.<String>emptyList(), source,
-//							preprocessing);
-//				}
-//			}
-
 			final Collection<DiagramType> diagramTypes = umlSource.getDiagramTypes();
 			if (diagramTypes.contains(DiagramType.UNKNOWN))
 				return new PSystemUnsupported(umlSource, preprocessing);
@@ -240,7 +252,7 @@ public class PSystemBuilder {
 				if (PSystemDotFactory.isGraphvizDotHeader(secondLine)) {
 					final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
 							"This looks like a DOT diagram. Please use @startdot instead of @startuml.", 100,
-							source.get(1).getLocation(), DiagramType.SEQUENCE);
+							source.get(1), DiagramType.SEQUENCE);
 
 					return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
 							preprocessing);
@@ -248,14 +260,14 @@ public class PSystemBuilder {
 				} else if (secondLine.trim().equals("ditaa")) {
 					final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
 							"This looks like a DITAA diagram. Please use @startditaa instead of @startuml.", 100,
-							source.get(1).getLocation(), DiagramType.SEQUENCE);
+							source.get(1), DiagramType.SEQUENCE);
 
 					return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
 							preprocessing);
 				} else if (secondLine.trim().equals("nwdiag {")) {
 					final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
 							"This looks like a network diagram. Please use @startnwdiag instead of @startuml.", 100,
-							source.get(1).getLocation(), DiagramType.SEQUENCE);
+							source.get(1), DiagramType.SEQUENCE);
 
 					return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
 							preprocessing);
@@ -277,8 +289,7 @@ public class PSystemBuilder {
 				} catch (Throwable t) {
 					final StringLocated s = source.get(0);
 					final ErrorUml err = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
-							"Fatal crash error, you should send a mail to plantuml@gmail.com with: " + t, 0,
-							s.getLocation(), null);
+							"Fatal crash error, you should send a mail to plantuml@gmail.com with: " + t, 0, s, null);
 					errors.add(PSystemErrorUtils.buildV2(umlSource, err, Collections.<String>emptyList(), source,
 							preprocessing, t));
 				}

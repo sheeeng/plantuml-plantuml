@@ -33,30 +33,34 @@
  * 
  *
  */
-package net.sourceforge.plantuml.gantt.time;
+package net.sourceforge.plantuml.mcp;
 
-import java.time.DayOfWeek;
-import java.time.YearMonth;
-import java.util.Locale;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-import net.sourceforge.plantuml.utils.I18nTimeData;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-public abstract class TimeStringUtils {
+import net.sourceforge.plantuml.BlockUml;
+import net.sourceforge.plantuml.SourceStringReader;
+import net.sourceforge.plantuml.command.Explanation;
 
-	public static String shortName(DayOfWeek dayOfWeek, Locale locale) {
-		return I18nTimeData.shortName(dayOfWeek, locale);
-	}
+public class DiagramExplainer {
 
-	public static String shortNameYYYY(YearMonth yearMonth, Locale locale) {
-		return I18nTimeData.shortName(yearMonth.getMonth(), locale) + " " + yearMonth.getYear();
-	}
+	public List<Explanation> explain(String source) throws IOException {
+		if (source.startsWith("@start") == false)
+			return Arrays.asList(
+					Explanation.ofError("The input must start with a @start... directive (for example @startuml)"));
 
-	public static String longName(YearMonth yearMonth, Locale locale) {
-		return I18nTimeData.longName(yearMonth.getMonth(), locale);
-	}
+		final SourceStringReader ss = new SourceStringReader(source, UTF_8);
+		final List<BlockUml> blocks = ss.getBlocks();
+		if (blocks.size() != 1)
+			return Arrays.asList(Explanation.ofError("Expected exactly one diagram in the source"));
 
-	public static String longNameYYYY(YearMonth yearMonth, Locale locale) {
-		return I18nTimeData.longName(yearMonth.getMonth(), locale) + " " + yearMonth.getYear();
+		final BlockUml blockUml = blocks.get(0);
+
+		return blockUml.explain();
+
 	}
 
 }

@@ -50,6 +50,7 @@ import net.sourceforge.plantuml.annotation.DuplicateCode;
 import net.sourceforge.plantuml.api.PSystemFactory;
 import net.sourceforge.plantuml.chart.ChartDiagramFactory;
 import net.sourceforge.plantuml.classdiagram.ClassDiagramFactory;
+import net.sourceforge.plantuml.command.Explanation;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramType;
 import net.sourceforge.plantuml.core.UmlSource;
@@ -83,7 +84,6 @@ import net.sourceforge.plantuml.wbs.WBSDiagramFactory;
 import net.sourceforge.plantuml.yaml.YamlDiagramFactory;
 
 public class PSystemBuilder2 {
-	// ::remove file when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__ __GPLV2__
 
 	private final static PSystemBuilder2 singleton = new PSystemBuilder2();
 
@@ -103,7 +103,9 @@ public class PSystemBuilder2 {
 		factories.add(new MindMapDiagramFactory());
 		factories.add(new WBSDiagramFactory());
 		factories.add(new NwDiagramFactory());
+		// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__
 		factories.add(new PSystemSudokuFactory());
+		// ::done
 		factories.add(new PSystemCreoleFactory());
 		factories.add(new TimingDiagramFactory());
 		factories.add(new ChartDiagramFactory());
@@ -112,7 +114,9 @@ public class PSystemBuilder2 {
 		factories.add(new YamlDiagramFactory());
 		factories.add(new PSystemEbnfFactory());
 		factories.add(new PSystemRegexFactory());
+		// ::comment when __MIT__ __EPL__ __BSD__ __ASL__ __LGPL__
 		factories.add(new PSystemSudokuFactory());
+		// ::done
 	}
 
 	public static PSystemBuilder2 getInstance() {
@@ -171,7 +175,7 @@ public class PSystemBuilder2 {
 			if (secondLine.trim().equals("nwdiag {")) {
 				final ErrorUml error = new ErrorUml(ErrorUmlType.EXECUTION_ERROR,
 						"This looks like a network diagram. Please use @startnwdiag instead of @startuml.", 100,
-						source.get(1).getLocation(), DiagramType.SEQUENCE);
+						source.get(1), DiagramType.SEQUENCE);
 
 				return PSystemErrorUtils.buildV2(umlSource, error, Collections.<String>emptyList(), source,
 						preprocessing);
@@ -213,6 +217,40 @@ public class PSystemBuilder2 {
 			return false;
 
 		return true;
+	}
+
+	/**
+	 * Explains, line by line, how the given preprocessed source is parsed.
+	 *
+	 * <p>
+	 * TeaVM counterpart of {@link net.sourceforge.plantuml.PSystemBuilder#explain}.
+	 * It builds the {@link UmlSource} the same way as
+	 * {@link #createDiagramFromPreprocessed(List, PreprocessingArtifact)}, finds
+	 * the first factory that produces a valid diagram for the detected type, and
+	 * delegates to its {@code explain}. {@code pathSystem} and {@code previous}
+	 * are {@code null} here, as everywhere else in this builder.
+	 *
+	 * @param source        the preprocessed source lines
+	 * @param preprocessing the preprocessing artifact
+	 * @return the list of explanations, or {@code null} if no factory matched
+	 */
+	@DuplicateCode(reference = "PSystemBuilder")
+	public List<Explanation> explain(List<StringLocated> source, PreprocessingArtifact preprocessing) {
+		final UmlSource umlSource = UmlSource.create(source, false);
+		umlSource.patchBase64();
+
+		final Collection<DiagramType> diagramTypes = umlSource.getDiagramTypes();
+
+		for (PSystemFactory systemFactory : factories) {
+			if (diagramTypes.contains(systemFactory.getDiagramType()) == false)
+				continue;
+
+			final Diagram sys = systemFactory.createSystem(null, umlSource, null, preprocessing);
+			if (isOk(sys))
+				return systemFactory.explain(null, umlSource, null, preprocessing);
+		}
+
+		return null;
 	}
 
 	private List<String> clean(String[] tab) {

@@ -53,6 +53,7 @@ import net.sourceforge.plantuml.cli.GlobalConfigKey;
 import net.sourceforge.plantuml.code.AsciiEncoder;
 import net.sourceforge.plantuml.code.Transcoder;
 import net.sourceforge.plantuml.code.TranscoderUtil;
+import net.sourceforge.plantuml.command.Explanation;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.error.PSystemErrorPreprocessor;
 import net.sourceforge.plantuml.jaws.Jaws;
@@ -150,7 +151,7 @@ public class BlockUml {
 			this.included.addAll(timLoader.load(this.rawSource));
 			List<StringLocated> tmp = timLoader.getResultList();
 			Jaws.mutateExpands1(tmp);
-			
+
 			this.data = tmp;
 			this.debug = timLoader.getDebug();
 			this.preprocessorError = timLoader.isPreprocessorError();
@@ -198,6 +199,16 @@ public class BlockUml {
 			// ::done
 		}
 		return system;
+	}
+
+	public List<Explanation> explain() {
+		if (preprocessorError)
+			return Collections.singletonList(Explanation.ofError("Preprocessor error"));
+
+		if (!TeaVM.isTeaVM())
+			return PSystemBuilder.getInstance().explain(pathSystem, data, rawSource, previous, preprocessingArtifact);
+
+		return PSystemBuilder2.getInstance().explain(data, preprocessingArtifact);
 	}
 
 	public final List<StringLocated> getData() {
