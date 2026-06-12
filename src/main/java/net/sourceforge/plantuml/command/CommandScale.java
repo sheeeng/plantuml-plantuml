@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.command;
 
 import net.sourceforge.plantuml.ScaleSimple;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.core.AbstractDiagram;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
@@ -64,6 +65,26 @@ public class CommandScale extends SingleLineCommand2<AbstractDiagram> {
 								RegexLeaf.spaceZeroOrMore(), //
 								new RegexLeaf(1, "DIV", "([0-9.]+)") //
 						)), RegexLeaf.end()); //
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// 'scale 1.5' or 'scale 2/3' multiplies the size of the final image.
+		final String scale = arg.get("SCALE", 0);
+		final String div = arg.get("DIV", 0);
+		sb.append("Scaling the diagram by a factor of ").append(scale);
+		if (div != null)
+			sb.append(" / ").append(div);
+
+		// Zero is detected on the raw strings, to mirror the validation of
+		// executeArg without risking a NumberFormatException here.
+		if (scale.matches("[0.]+") || (div != null && div.matches("[0.]+")))
+			sb.append(" (rejected at execution: scale cannot be zero)");
+
+		return sb.toString();
 	}
 
 	@Override

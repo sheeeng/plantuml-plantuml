@@ -37,21 +37,19 @@ package net.sourceforge.plantuml.activitydiagram3.command;
 
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagram3;
 import net.sourceforge.plantuml.activitydiagram3.ftile.BoxStyle;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
 import net.sourceforge.plantuml.klimt.color.ColorParser;
 import net.sourceforge.plantuml.klimt.color.ColorType;
-import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexResult;
-import net.sourceforge.plantuml.skin.ColorParam;
 import net.sourceforge.plantuml.stereo.Stereogroup;
-import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.stereo.StereotypePattern;
 import net.sourceforge.plantuml.url.Url;
 import net.sourceforge.plantuml.url.UrlBuilder;
@@ -69,7 +67,7 @@ public class CommandActivity3 extends SingleLineCommand2<ActivityDiagram3> {
 		return RegexConcat.build(CommandActivity3.class.getName(), RegexLeaf.start(), //
 				UrlBuilder.OPTIONAL, //
 				color().getRegex(), //
-				StereotypePattern.optional("IGNORED"), //
+				StereotypePattern.optionalIGNORED(), //
 				new RegexLeaf(":"), //
 				new RegexLeaf(1, "LABEL", "(.*?)"), //
 				new RegexLeaf(";"), //
@@ -80,6 +78,39 @@ public class CommandActivity3 extends SingleLineCommand2<ActivityDiagram3> {
 
 	private static ColorParser color() {
 		return ColorParser.simpleColor(ColorType.BACK);
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// ':label;' appends an activity to the current flow. The stereotypes
+		// written after the ';' carry the colors and may select a box style
+		// (see Stereogroup).
+		sb.append("Adding the activity \"").append(arg.get("LABEL", 0)).append("\"");
+
+		final Stereogroup stereogroup = Stereogroup.build(arg);
+		if (stereogroup.isEmpty() == false) {
+			sb.append(", stereotyped ").append(arg.get("STEREOGROUP", 0));
+			final BoxStyle style = stereogroup.getBoxStyle();
+			if (style != BoxStyle.PLAIN)
+				sb.append(" (box style: ").append(style.name()).append(")");
+		}
+
+		if (arg.get(UrlBuilder.URL_KEY, 0) != null)
+			sb.append(", with a URL link");
+
+		// Mirror the two deprecation warnings emitted by executeArg; note that
+		// the leading color is parsed but no longer applied.
+		if (arg.get("IGNORED", 0) != null)
+			sb.append(" (the stereotype before the ':' is ignored: write it after the ';')");
+
+		if (arg.get("COLOR", 0) != null)
+			sb.append(" (deprecated and ignored color syntax: write <<").append(arg.get("COLOR", 0))
+					.append(">> after the ';')");
+
+		return sb.toString();
 	}
 
 	@Override
@@ -94,27 +125,19 @@ public class CommandActivity3 extends SingleLineCommand2<ActivityDiagram3> {
 			url = urlBuilder.getUrl(arg.get(UrlBuilder.URL_KEY, 0));
 		}
 
-		// Colors colors = color().getColor(arg,
-		// diagram.getSkinParam().getIHtmlColorSet());
 		final Stereogroup stereogroup = Stereogroup.build(arg);
-		final Colors colors = stereogroup.getColors(diagram.getSkinParam().getIHtmlColorSet());
 
 		if (arg.get("IGNORED", 0) != null)
 			diagram.addWarning(new Warning("You must use stereotype at the end of the line after the ';'"));
 
 		if (arg.get("COLOR", 0) != null)
-			diagram.addWarning(new Warning("This syntax is deprecated, you must add <<" + arg.get("COLOR", 0) + ">> at the end of the line, after the ';'"));
-
-		final Stereotype stereotype = stereogroup.buildStereotype();
-//		if (stereo != null) {
-//			stereotype = Stereotype.build(stereo);
-//			colors = colors.applyStereotype(stereotype, diagram.getSkinParam(), ColorParam.activityBackground);
-//		}
+			diagram.addWarning(new Warning("This syntax is deprecated, you must add <<" + arg.get("COLOR", 0)
+					+ ">> at the end of the line, after the ';'"));
 
 		final BoxStyle style = stereogroup.getBoxStyle();
 
 		final Display display = Display.getWithNewlines2(diagram.getPragma(), arg.get("LABEL", 0));
-		return diagram.addActivity(display, style, url, colors, stereotype);
+		return diagram.addActivity(display, style, url, stereogroup);
 	}
 
 }

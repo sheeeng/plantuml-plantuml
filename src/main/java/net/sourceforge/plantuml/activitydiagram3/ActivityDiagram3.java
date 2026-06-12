@@ -50,6 +50,7 @@ import net.sourceforge.plantuml.decoration.Rainbow;
 import net.sourceforge.plantuml.decoration.symbol.USymbol;
 import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.HColor;
+import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.compress.CompressionMode;
 import net.sourceforge.plantuml.klimt.compress.CompressionXorYBuilder;
 import net.sourceforge.plantuml.klimt.creole.Display;
@@ -57,6 +58,7 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
 import net.sourceforge.plantuml.sequencediagram.NotePosition;
 import net.sourceforge.plantuml.sequencediagram.NoteType;
+import net.sourceforge.plantuml.stereo.Stereogroup;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.url.Url;
@@ -104,11 +106,15 @@ public class ActivityDiagram3 extends TitledDiagram {
 		return swimlanes.nextLinkRenderer();
 	}
 
-	public CommandExecutionResult addActivity(Display activity, BoxStyle boxStyle, Url url, Colors colors,
-			Stereotype stereotype) {
+	public CommandExecutionResult addActivity(Display activity, BoxStyle boxStyle, Url url, Stereogroup stereogroup)
+			throws NoSuchColorException {
+
+		final Colors colors = stereogroup.getInnerColors(getSkinParam().getIHtmlColorSet());
+
 		manageSwimlaneStrategy();
 		final InstructionSimple ins = new InstructionSimple(activity, nextLinkRenderer(),
-				swimlanes.getCurrentSwimlane(), boxStyle, url, colors, stereotype, getCurrentStyleBuilder());
+				swimlanes.getCurrentSwimlane(), boxStyle, url, colors, stereogroup.buildStereotype(),
+				getCurrentStyleBuilder());
 		final CommandExecutionResult added = current().add(ins);
 		if (added.isOk() == false)
 			return added;
@@ -342,10 +348,10 @@ public class ActivityDiagram3 extends TitledDiagram {
 		return CommandExecutionResult.error("Cannot find if");
 	}
 
-	public void startRepeat(Display label, BoxStyle boxStyleIn, Colors colors, Stereotype stereotype) {
+	public void startRepeat(Display label, BoxStyle boxStyleIn, Colors colors, Stereogroup stereogroup) {
 		manageSwimlaneStrategy();
 		final InstructionRepeat instructionRepeat = new InstructionRepeat(swimlanes, current(), nextLinkRenderer(),
-				label, boxStyleIn, colors, stereotype);
+				label, boxStyleIn, colors, stereogroup);
 		current().add(instructionRepeat);
 		setCurrent(instructionRepeat);
 		setNextLinkRendererInternal(LinkRendering.none());
@@ -353,12 +359,12 @@ public class ActivityDiagram3 extends TitledDiagram {
 	}
 
 	public CommandExecutionResult repeatWhile(Display label, Display yes, Display out, Display linkLabel,
-			Rainbow linkColor, Colors color, Stereotype stereotype) {
+			Rainbow linkColor, Stereogroup stereotype) {
 		manageSwimlaneStrategy();
 		if (current() instanceof InstructionRepeat) {
 			final InstructionRepeat instructionRepeat = (InstructionRepeat) current();
 			final LinkRendering back = LinkRendering.create(linkColor).withDisplay(linkLabel);
-			instructionRepeat.setTest(label, yes, out, nextLinkRenderer(), back, swimlanes.getCurrentSwimlane(), color,
+			instructionRepeat.setTest(label, yes, out, nextLinkRenderer(), back, swimlanes.getCurrentSwimlane(),
 					stereotype);
 			setCurrent(instructionRepeat.getParent());
 			this.setNextLinkRendererInternal(LinkRendering.none());

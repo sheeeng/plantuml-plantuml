@@ -36,12 +36,12 @@
 package net.sourceforge.plantuml.activitydiagram3.command;
 
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagram3;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
 import net.sourceforge.plantuml.decoration.Rainbow;
 import net.sourceforge.plantuml.descdiagram.command.CommandLinkElement;
-import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.IRegex;
@@ -51,7 +51,6 @@ import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexOr;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.stereo.Stereogroup;
-import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.utils.LineLocation;
 
 public class CommandRepeatWhile3 extends SingleLineCommand2<ActivityDiagram3> {
@@ -106,6 +105,45 @@ public class CommandRepeatWhile3 extends SingleLineCommand2<ActivityDiagram3> {
 	}
 
 	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// 'repeat while (test) is (yes) not (no)' closes the repeat loop
+		// opened by 'repeat': while the test holds, the flow loops back.
+		// 'is (...)' labels the loop-back arrow, 'not (...)' the exit arrow,
+		// and the lazzy lookups unify the four syntax variants, like in
+		// executeArg.
+		sb.append("Closing the repeat loop");
+
+		final String test = arg.getLazzy("TEST", 0);
+		if (test != null && test.isEmpty() == false)
+			sb.append(", looping back while \"").append(test).append("\"");
+
+		final String when = arg.getLazzy("WHEN", 0);
+		if (when != null)
+			sb.append(", loop-back arrow labelled \"").append(when).append("\"");
+
+		final String out = arg.getLazzy("OUT", 0);
+		if (out != null)
+			sb.append(", exit arrow labelled \"").append(out).append("\"");
+
+		final String color = arg.get("XCOLOR", 0);
+		if (color != null)
+			sb.append(", exit arrow color or style '").append(color).append("'");
+
+		final String label = arg.get("LABEL", 0);
+		if (label != null && label.isEmpty() == false)
+			sb.append(", arrow labelled \"").append(label).append("\"");
+
+		final Stereogroup stereogroup = Stereogroup.build(arg);
+		if (stereogroup.isEmpty() == false)
+			sb.append(", stereotyped ").append(arg.get("STEREOGROUP", 0));
+
+		return sb.toString();
+	}
+
+	@Override
 	protected CommandExecutionResult executeArg(ActivityDiagram3 diagram, LineLocation location, RegexResult arg,
 			ParserPass currentPass) throws NoSuchColorException {
 		final Display test = Display.getWithNewlines(diagram.getPragma(), arg.getLazzy("TEST", 0));
@@ -121,11 +159,9 @@ public class CommandRepeatWhile3 extends SingleLineCommand2<ActivityDiagram3> {
 					diagram.getSkinParam().colorArrowSeparationSpace());
 
 		final Stereogroup stereogroup = Stereogroup.build(arg);
-		final Colors colors = stereogroup.getColors(diagram.getSkinParam().getIHtmlColorSet());
-		final Stereotype stereotype = stereogroup.buildStereotype();
 
 		final Display linkLabel = Display.getWithNewlines(diagram.getPragma(), arg.get("LABEL", 0));
-		return diagram.repeatWhile(test, yes, out, linkLabel, rainbow, colors, stereotype);
+		return diagram.repeatWhile(test, yes, out, linkLabel, rainbow, stereogroup);
 	}
 
 }

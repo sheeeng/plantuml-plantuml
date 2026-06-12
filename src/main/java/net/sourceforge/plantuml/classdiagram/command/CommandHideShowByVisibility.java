@@ -42,6 +42,7 @@ import java.util.StringTokenizer;
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.abel.EntityPortion;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.classdiagram.ClassDiagram;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
@@ -65,14 +66,54 @@ public class CommandHideShowByVisibility extends SingleLineCommand2<TitledDiagra
 		return RegexConcat.build(CommandHideShowByVisibility.class.getName(), RegexLeaf.start(), //
 				new RegexLeaf(1, "COMMAND", "(hide|show)"), //
 				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf(1,
-						"VISIBILITY", "((?:public|private|protected|package)?(?:[,%s]+(?:public|private|protected|package))*)"), //
+				new RegexLeaf(1, "VISIBILITY",
+						"((?:public|private|protected|package)?(?:[,%s]+(?:public|private|protected|package))*)"), //
 				RegexLeaf.spaceOneOrMore(), //
 				new RegexLeaf(1, "PORTION", "(members?|attributes?|fields?|methods?)"), RegexLeaf.end());
 	}
 
 	@Override
-	protected CommandExecutionResult executeArg(TitledDiagram classDiagram, LineLocation location, RegexResult arg, ParserPass currentPass) {
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// Hides or shows class members according to their visibility modifier.
+		// This command only applies to class diagrams and is silently ignored
+		// for other diagram types (see executeArg).
+		final boolean show = arg.get("COMMAND", 0).equalsIgnoreCase("show");
+		sb.append(show ? "Showing the " : "Hiding the ");
+
+		// Same tokenization as executeArgClass.
+		final StringTokenizer st = new StringTokenizer(StringUtils.goLowerCase(arg.get("VISIBILITY", 0)), " ,");
+		final StringBuilder visibilities = new StringBuilder();
+		while (st.hasMoreTokens()) {
+			if (visibilities.length() > 0)
+				visibilities.append(", ");
+			visibilities.append(st.nextToken());
+		}
+		if (visibilities.length() > 0)
+			sb.append(visibilities).append(" ");
+
+		// Same normalization as getEntityPortion: 'attributes' and 'fields'
+		// are the same portion.
+		final String portion = StringUtils.goLowerCase(arg.get("PORTION", 0));
+		if (portion.startsWith("met"))
+			sb.append("methods");
+		else if (portion.startsWith("mem"))
+			sb.append("members (fields and methods)");
+		else
+			sb.append("fields");
+		sb.append(" of classes");
+
+		if (visibilities.length() == 0)
+			sb.append(" (no visibility modifier given: ignored at execution)");
+
+		return sb.toString();
+	}
+
+	@Override
+	protected CommandExecutionResult executeArg(TitledDiagram classDiagram, LineLocation location, RegexResult arg,
+			ParserPass currentPass) {
 		if (classDiagram instanceof ClassDiagram) {
 			return executeArgClass((ClassDiagram) classDiagram, arg);
 		}

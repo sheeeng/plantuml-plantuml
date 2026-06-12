@@ -37,20 +37,19 @@ package net.sourceforge.plantuml.activitydiagram3.command;
 
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagram3;
 import net.sourceforge.plantuml.activitydiagram3.ftile.BoxStyle;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.CommandMultilines3;
 import net.sourceforge.plantuml.command.MultilinesStrategy;
 import net.sourceforge.plantuml.command.Trim;
 import net.sourceforge.plantuml.klimt.color.ColorParser;
 import net.sourceforge.plantuml.klimt.color.ColorType;
-import net.sourceforge.plantuml.klimt.color.Colors;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.stereo.Stereogroup;
-import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.utils.BlocLines;
 import net.sourceforge.plantuml.warning.Warning;
 
@@ -80,6 +79,39 @@ public class CommandActivityLong3 extends CommandMultilines3<ActivityDiagram3> {
 	}
 
 	@Override
+	@Explain
+	protected String explainNow(BlocLines lines) {
+		// Mirror executeNow.
+		lines = lines.removeEmptyColumns();
+		final RegexResult line0 = getStartingPattern().matcher(lines.getFirst().getTrimmed().getString());
+		final RegexResult lineLast = getEndingPattern().matcher(lines.getLast().getString());
+		if (line0 == null || lineLast == null)
+			return "Adding a multiline activity";
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append("Adding an activity spanning ").append(lines.size()).append(lines.size() == 1 ? " line" : " lines")
+				.append(" of text");
+
+		// The stereotypes written after the final ';' carry the colors and may
+		// select a box style (see Stereogroup).
+		final Stereogroup stereogroup = Stereogroup.build(lineLast);
+		if (stereogroup.isEmpty() == false) {
+			sb.append(", stereotyped ").append(lineLast.get("STEREOGROUP", 0));
+			final BoxStyle style = stereogroup.getBoxStyle();
+			if (style != BoxStyle.PLAIN)
+				sb.append(" (box style: ").append(style.name().toLowerCase()).append(")");
+		}
+
+		// Mirror the deprecation warning emitted by executeNow; note that the
+		// leading color is parsed but no longer applied.
+		if (line0.get("COLOR", 0) != null)
+			sb.append(" (deprecated and ignored color syntax: write <<").append(line0.get("COLOR", 0))
+					.append(">> after the ';')");
+
+		return sb.toString();
+	}
+
+	@Override
 	protected CommandExecutionResult executeNow(ActivityDiagram3 diagram, BlocLines lines) throws NoSuchColorException {
 		lines = lines.removeEmptyColumns();
 		final RegexResult line0 = getStartingPattern().matcher(lines.getFirst().getTrimmed().getString());
@@ -90,12 +122,9 @@ public class CommandActivityLong3 extends CommandMultilines3<ActivityDiagram3> {
 					+ ">> at the end of the line, after the ';'"));
 
 		final Stereogroup stereogroup = Stereogroup.build(lineLast);
-		final Stereotype stereotype = stereogroup.buildStereotype();
-		final Colors colors = stereogroup.getColors(diagram.getSkinParam().getIHtmlColorSet());
-
 		final BoxStyle style = stereogroup.getBoxStyle();
 		lines = lines.removeStartingAndEnding(line0.get("DATA", 0), 0);
 		lines = lines.overrideLastLine(lineLast.get("TEXT", 0));
-		return diagram.addActivity(lines.toDisplay(), style, null, colors, stereotype);
+		return diagram.addActivity(lines.toDisplay(), style, null, stereogroup);
 	}
 }

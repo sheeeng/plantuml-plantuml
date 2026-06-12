@@ -36,13 +36,12 @@
 package net.sourceforge.plantuml.activitydiagram3.command;
 
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagram3;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
 import net.sourceforge.plantuml.klimt.color.ColorParser;
-import net.sourceforge.plantuml.klimt.color.ColorType;
 import net.sourceforge.plantuml.klimt.color.Colors;
-import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.IRegex;
@@ -72,11 +71,35 @@ public class CommandSwitch extends SingleLineCommand2<ActivityDiagram3> {
 	}
 
 	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// 'switch (test)' opens a multi-branch block: each branch starts with
+		// 'case (value)' and the block is closed by 'endswitch'.
+		sb.append("Starting a switch");
+
+		final String test = arg.get("TEST", 0);
+		if (test.length() > 0)
+			sb.append(", testing \"").append(test).append("\"");
+
+		final Stereogroup stereogroup = Stereogroup.build(arg);
+		if (stereogroup.isEmpty() == false)
+			sb.append(", stereotyped ").append(arg.get("STEREOGROUP", 0));
+
+		// The leading color is parsed but no longer applied by executeArg.
+		if (arg.get("COLOR", 0) != null)
+			sb.append(" (the leading color is currently ignored: use a stereotype instead)");
+
+		return sb.toString();
+	}
+
+	@Override
 	protected CommandExecutionResult executeArg(ActivityDiagram3 diagram, LineLocation location, RegexResult arg,
 			ParserPass currentPass) throws NoSuchColorException {
 
 		final Stereogroup stereogroup = Stereogroup.build(arg);
-		final Colors colors = stereogroup.getColors(diagram.getSkinParam().getIHtmlColorSet());
+		final Colors colors = stereogroup.getInnerColors(diagram.getSkinParam().getIHtmlColorSet());
 
 //		final String s = arg.get("COLOR", 0);
 //		final HColor color = s == null ? null : diagram.getSkinParam().getIHtmlColorSet().getColor(s);

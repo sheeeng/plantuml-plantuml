@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.command;
 
 import net.sourceforge.plantuml.TitledDiagram;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
 import net.sourceforge.plantuml.regex.RegexLeaf;
@@ -58,7 +59,18 @@ public class CommandMinwidth extends SingleLineCommand2<TitledDiagram> {
 	}
 
 	@Override
-	protected CommandExecutionResult executeArg(TitledDiagram diagram, LineLocation location, RegexResult arg, ParserPass currentPass) {
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		// Intent: force a minimum width for the diagram. Note that the call to
+		// setMinwidth is commented out in executeArg, so this command is
+		// parsed but has no effect on the rendering.
+		return "Setting the minimum width of the diagram to " + arg.get("VALUE", 0)
+				+ " pixels (currently ignored by the rendering engine)";
+	}
+
+	@Override
+	protected CommandExecutionResult executeArg(TitledDiagram diagram, LineLocation location, RegexResult arg,
+			ParserPass currentPass) {
 		final int minwidth = Integer.parseInt(arg.get("VALUE", 0));
 		// diagram.setMinwidth(minwidth);
 		return CommandExecutionResult.ok();

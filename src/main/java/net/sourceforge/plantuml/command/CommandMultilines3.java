@@ -53,7 +53,8 @@ public abstract class CommandMultilines3<S extends Diagram> implements Command<S
 	private final IRegex patternEnd;
 
 	public CommandMultilines3(IRegex patternStart, MultilinesStrategy strategy, Trim trimEnd, IRegex patternEnd) {
-		if (TeaVM.a()) assert patternStart.getPatternAsString().startsWith("^") && patternStart.getPatternAsString().endsWith("$");
+		if (TeaVM.a())
+			assert patternStart.getPatternAsString().startsWith("^") && patternStart.getPatternAsString().endsWith("$");
 
 		this.strategy = strategy;
 		this.starting = patternStart;
@@ -97,6 +98,14 @@ public abstract class CommandMultilines3<S extends Diagram> implements Command<S
 		lines = lines.cleanList(strategy);
 		return executeNow(system, lines);
 	}
+
+	@Override
+	final public String explain(BlocLines lines) {
+		lines = lines.cleanList(strategy);
+		return explainNow(lines);
+	}
+
+	protected abstract String explainNow(BlocLines lines);
 
 	protected abstract CommandExecutionResult executeNow(S system, BlocLines lines) throws NoSuchColorException;
 

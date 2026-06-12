@@ -37,6 +37,7 @@ package net.sourceforge.plantuml.activitydiagram3.command;
 
 import net.sourceforge.plantuml.activitydiagram3.ActivityDiagram3;
 import net.sourceforge.plantuml.activitydiagram3.ftile.BoxStyle;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
@@ -51,7 +52,6 @@ import net.sourceforge.plantuml.regex.RegexLeaf;
 import net.sourceforge.plantuml.regex.RegexOptional;
 import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.stereo.Stereogroup;
-import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.utils.LineLocation;
 import net.sourceforge.plantuml.warning.Warning;
 
@@ -81,20 +81,49 @@ public class CommandRepeat3 extends SingleLineCommand2<ActivityDiagram3> {
 	}
 
 	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// 'repeat' opens a repeat loop, closed by 'repeat while (test)'. The
+		// optional ':label;' is the activity drawn at the top of the loop,
+		// where the backward edge comes back.
+		sb.append("Starting a repeat loop");
+
+		final String label = arg.get("LABEL", 0);
+		if (label != null && label.isEmpty() == false)
+			sb.append(", with the activity \"").append(label).append("\" at the top");
+
+		final Stereogroup stereogroup = Stereogroup.build(arg);
+		if (stereogroup.isEmpty() == false) {
+			sb.append(", stereotyped ").append(arg.get("STEREOGROUP", 0));
+			final BoxStyle style = stereogroup.getBoxStyle();
+			if (style != BoxStyle.PLAIN)
+				sb.append(" (box style: ").append(style.name().toLowerCase()).append(")");
+		}
+
+		// Mirror the deprecation warning emitted by executeArg; note that the
+		// leading color is parsed but no longer applied.
+		if (arg.get("COLOR", 0) != null)
+			sb.append(" (deprecated and ignored color syntax: write <<").append(arg.get("COLOR", 0))
+					.append(">> at the end of the line)");
+
+		return sb.toString();
+	}
+
+	@Override
 	protected CommandExecutionResult executeArg(ActivityDiagram3 diagram, LineLocation location, RegexResult arg,
 			ParserPass currentPass) throws NoSuchColorException {
 		final Display label = Display.getWithNewlines(diagram.getPragma(), arg.get("LABEL", 0));
 		final Stereogroup stereogroup = Stereogroup.build(arg);
 		final BoxStyle boxStyle = stereogroup.getBoxStyle();
 
-		final Stereotype stereotype = stereogroup.buildStereotype();
-
 		if (arg.get("COLOR", 0) != null)
 			diagram.addWarning(new Warning("This syntax is deprecated, you must add <<" + arg.get("COLOR", 0)
 					+ ">> at the end of the line, after the ';'"));
 
-		final Colors colors = stereogroup.getColors(diagram.getSkinParam().getIHtmlColorSet());
-		diagram.startRepeat(label, boxStyle, colors, stereotype);
+		final Colors colors = stereogroup.getInnerColors(diagram.getSkinParam().getIHtmlColorSet());
+		diagram.startRepeat(label, boxStyle, colors, stereogroup);
 
 		return CommandExecutionResult.ok();
 	}

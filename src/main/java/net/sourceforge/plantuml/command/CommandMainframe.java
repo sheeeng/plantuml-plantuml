@@ -37,6 +37,7 @@ package net.sourceforge.plantuml.command;
 
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.abel.DisplayPositioned;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
@@ -60,6 +61,15 @@ public class CommandMainframe extends SingleLineCommand2<TitledDiagram> {
 						new RegexConcat(RegexLeaf.spaceZeroOrMore(), new RegexLeaf(":"), RegexLeaf.spaceZeroOrMore()), //
 						RegexLeaf.spaceOneOrMore()), //
 				new RegexLeaf(1, "LABEL", "(.*[%pLN_.].*)"), RegexLeaf.end()); //
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		// 'mainframe Title' (or 'mainframe: Title') draws a frame around the
+		// whole diagram, with the label in its top left pentagonal corner, as
+		// in UML 'sd' interaction frames.
+		return "Framing the whole diagram with the label \"" + arg.get("LABEL", 0) + "\"";
 	}
 
 	@Override

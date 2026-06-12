@@ -37,6 +37,7 @@ package net.sourceforge.plantuml.command;
 
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.abel.DisplayPositioned;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 import net.sourceforge.plantuml.klimt.geom.VerticalAlignment;
@@ -64,6 +65,15 @@ public class CommandCaption extends SingleLineCommand2<TitledDiagram> {
 						new RegexLeaf(1, "DISPLAY1", "[%g](.*)[%g]"), //
 						new RegexLeaf(1, "DISPLAY2", "(.*[%pLN_.].*)")), //
 				RegexLeaf.end()); //
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		// The caption may be quoted (DISPLAY1) or unquoted (DISPLAY2);
+		// executeArg reads whichever is present through getLazzy. It is
+		// displayed centered at the bottom of the diagram.
+		return "Setting the caption of the diagram to \"" + arg.getLazzy("DISPLAY", 0) + "\"";
 	}
 
 	@Override

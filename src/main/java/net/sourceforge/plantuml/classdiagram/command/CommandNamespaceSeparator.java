@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.classdiagram.command;
 
 import net.sourceforge.plantuml.TitledDiagram;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
@@ -65,6 +66,19 @@ public class CommandNamespaceSeparator extends SingleLineCommand2<TitledDiagram>
 				RegexLeaf.spaceOneOrMore(), //
 				new RegexLeaf(1, "SEPARATOR", "((?:none|null)|" + CommandLinkClass.getSeparator() + ")"),
 				RegexLeaf.end()); //
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		// The namespace separator is the string splitting an element name into
+		// nested namespaces (the default is '.'); 'none' or 'null' disables
+		// this splitting, so dots become plain characters of the name.
+		final String separator = arg.get("SEPARATOR", 0);
+		if ("none".equalsIgnoreCase(separator) || "null".equalsIgnoreCase(separator))
+			return "Disabling the namespace separator: element names are no longer split into namespaces";
+
+		return "Setting the namespace separator to '" + separator + "'";
 	}
 
 	@Override

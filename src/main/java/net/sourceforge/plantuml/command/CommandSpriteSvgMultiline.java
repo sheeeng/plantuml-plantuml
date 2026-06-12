@@ -40,6 +40,7 @@ import java.util.List;
 
 import net.sourceforge.plantuml.Lazy;
 import net.sourceforge.plantuml.TitledDiagram;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.Pattern2;
@@ -70,6 +71,20 @@ public class CommandSpriteSvgMultiline extends CommandMultilines2<TitledDiagram>
 				RegexLeaf.spaceOneOrMore(), //
 				new RegexLeaf(1, "SVGSTART", "(\\<svg\\b.*)"), //
 				RegexLeaf.end());
+	}
+
+	@Override
+	@Explain
+	protected String explainNow(BlocLines lines) {
+		// Mirror executeNow: the '<svg' element starts on the declaration line
+		// itself and the closing '</svg>' line is part of the data, so the
+		// whole block contributes to the SVG.
+		final RegexResult line0 = getStartingPattern().matcher(lines.getFirst().getTrimmed().getString());
+		if (line0 == null)
+			return "Defining a sprite from an inline SVG element";
+
+		return "Defining the sprite '" + line0.get("NAME", 0) + "' from an inline SVG element of " + lines.size()
+				+ (lines.size() == 1 ? " line" : " lines");
 	}
 
 	@Override

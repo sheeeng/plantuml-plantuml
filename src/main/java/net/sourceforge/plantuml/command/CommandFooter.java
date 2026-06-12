@@ -36,6 +36,7 @@
 package net.sourceforge.plantuml.command;
 
 import net.sourceforge.plantuml.TitledDiagram;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.font.FontParam;
 import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
@@ -68,6 +69,24 @@ public class CommandFooter extends SingleLineCommand2<TitledDiagram> {
 						new RegexLeaf(1, "LABEL1", "[%g](.*)[%g]"), //
 						new RegexLeaf(1, "LABEL2", "(.*[%pLN_.].*)")), //
 				RegexLeaf.end()); //
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// 'center footer Text' (or 'footer: Text') displays a footer under
+		// the diagram. When no position is given, the alignment comes from
+		// the current style. The label may be quoted (LABEL1) or unquoted
+		// (LABEL2), hence the lazzy lookup, like in executeArg.
+		sb.append("Setting the footer of the diagram to \"").append(arg.getLazzy("LABEL", 0)).append("\"");
+
+		final String position = arg.get("POSITION", 0);
+		if (position != null)
+			sb.append(", aligned ").append(position);
+
+		return sb.toString();
 	}
 
 	@Override

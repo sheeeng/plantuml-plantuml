@@ -35,6 +35,9 @@
  */
 package net.sourceforge.plantuml.classdiagram.command;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.abel.Entity;
@@ -42,6 +45,7 @@ import net.sourceforge.plantuml.abel.EntityGender;
 import net.sourceforge.plantuml.abel.EntityGenderUtils;
 import net.sourceforge.plantuml.abel.EntityPortion;
 import net.sourceforge.plantuml.abel.LeafType;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
@@ -68,8 +72,8 @@ public class CommandHideShowByGender extends SingleLineCommand2<TitledDiagram> {
 		return RegexConcat.build(CommandHideShowByGender.class.getName(), RegexLeaf.start(), //
 				new RegexLeaf(1, "COMMAND", "(hide|show)"), //
 				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf(1,
-						"GENDER", "(?:(class|object|interface|enum|annotation|dataclass|record|abstract|[%pLN_.]+|[%g][^%g]+[%g]|\\<\\<.*\\>\\>)[%s]+)*?"), //
+				new RegexLeaf(1, "GENDER",
+						"(?:(class|object|interface|enum|annotation|dataclass|record|abstract|[%pLN_.]+|[%g][^%g]+[%g]|\\<\\<.*\\>\\>)[%s]+)*?"), //
 				new RegexOptional( //
 						new RegexConcat( //
 								new RegexLeaf(1, "EMPTY", "(empty)"), //
@@ -91,6 +95,53 @@ public class CommandHideShowByGender extends SingleLineCommand2<TitledDiagram> {
 		// return EntityGenderUtils.emptyMembers();
 
 		return EntityGenderUtils.all();
+	}
+
+	private static final List<String> TYPE_KEYWORDS = Arrays.asList("class", "object", "interface", "enum", "abstract",
+			"annotation", "protocol", "struct", "exception", "metaclass", "stereotype", "dataclass", "record");
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// Hides or shows a portion of the elements, optionally filtered by a
+		// kind keyword, a stereotype or a single element name. In class and
+		// description diagrams the filter applies as written (restricted to
+		// the current package, if any); in sequence diagrams only the portion
+		// is used; other diagram types silently ignore the command.
+		final boolean show = arg.get("COMMAND", 0).equalsIgnoreCase("show");
+		sb.append(show ? "Showing the " : "Hiding the ");
+
+		if (arg.get("EMPTY", 0) != null)
+			sb.append("empty ");
+
+		// Same normalization as getEntityPortion.
+		final String portion = StringUtils.goLowerCase(arg.get("PORTION", 0));
+		if (portion.startsWith("met"))
+			sb.append("methods");
+		else if (portion.startsWith("mem"))
+			sb.append("members (fields and methods)");
+		else if (portion.startsWith("cir"))
+			sb.append("circled character icon");
+		else if (portion.startsWith("ste"))
+			sb.append("stereotype");
+		else
+			sb.append("fields");
+
+		// Same dispatch as the execute methods: no filter, a type keyword, a
+		// stereotype, or an element name.
+		final String gender = arg.get("GENDER", 0);
+		if (gender == null)
+			sb.append(" of all elements");
+		else if (gender.startsWith("<<"))
+			sb.append(" of the elements stereotyped ").append(gender);
+		else if (TYPE_KEYWORDS.contains(StringUtils.goLowerCase(gender)))
+			sb.append(" of every ").append(StringUtils.goLowerCase(gender));
+		else
+			sb.append(" of '").append(StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(gender)).append("'");
+
+		return sb.toString();
 	}
 
 	@Override

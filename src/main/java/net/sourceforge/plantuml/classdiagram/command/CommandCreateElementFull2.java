@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.LeafType;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.classdiagram.ClassDiagram;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
@@ -135,6 +136,59 @@ public class CommandCreateElementFull2 extends SingleLineCommand2<ClassDiagram> 
 	@Override
 	protected final boolean isForbidden(CharSequence line) {
 		return FORBIDDEN_PATTERN.matcher(line).matches();
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// Mirror the symbol deduction of executeArg: the shape of the code or
+		// of the display ('()...', '(...)', ':...:', '[...]') overrides the
+		// keyword.
+		String codeRaw = arg.getLazzy("CODE", 0);
+		final String displayRaw = StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(arg.getLazzy("DISPLAY", 0));
+		final char codeChar = getCharEncoding(codeRaw);
+		final char codeDisplay = getCharEncoding(displayRaw);
+		final String symbol;
+		if (codeRaw.startsWith("()")) {
+			symbol = "interface";
+			codeRaw = StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(StringUtils.trin(codeRaw.substring(2)));
+		} else if (codeChar == '(' || codeDisplay == '(')
+			symbol = "usecase";
+		else if (codeChar == ':' || codeDisplay == ':')
+			symbol = "actor";
+		else if (codeChar == '[' || codeDisplay == '[')
+			symbol = "component";
+		else
+			symbol = arg.get("SYMBOL", 0);
+
+		final String idShort = StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(codeRaw);
+		sb.append("Creating the ").append(symbol == null ? "element" : symbol).append(" '").append(idShort).append("'");
+
+		if (displayRaw != null)
+			sb.append(" displayed as \"").append(displayRaw).append("\"");
+
+		final String stereotype = arg.getLazzy("STEREOTYPE", 0);
+		if (stereotype != null)
+			sb.append(", stereotype ").append(stereotype);
+
+		final String tags = arg.getLazzy("TAGS", 0);
+		if (tags != null && tags.isEmpty() == false)
+			sb.append(", tagged ").append(tags);
+
+		if (arg.get(UrlBuilder.URL_KEY, 0) != null)
+			sb.append(", with a URL link");
+
+		if (arg.get("COLOR", 0) != null)
+			sb.append(", background color ").append(arg.get("COLOR", 0));
+
+		// Without the 'mix_' prefix, this command is only accepted once
+		// 'allowmixing' has been set.
+		if (mode == Mode.NORMAL_KEYWORD)
+			sb.append(" (requires 'allowmixing')");
+
+		return sb.toString();
 	}
 
 	@Override

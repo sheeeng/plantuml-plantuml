@@ -40,6 +40,7 @@ import net.sourceforge.plantuml.abel.Entity;
 import net.sourceforge.plantuml.abel.LeafType;
 import net.sourceforge.plantuml.abel.Link;
 import net.sourceforge.plantuml.abel.LinkArg;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.SingleLineCommand2;
@@ -71,8 +72,9 @@ final public class CommandLinkLollipop extends SingleLineCommand2<AbstractClassO
 								new RegexLeaf(1, "HEADER", "@([\\d.]+)"), //
 								RegexLeaf.spaceOneOrMore() //
 						)), //
-				new RegexLeaf(3, "ENT1", "(?:" + optionalKeywords(diagramType) + "[%s]+)?"
-						+ CommandLinkClass.getClassIdentifier() + "[%s]*(\\<\\<.*\\>\\>)?"), //
+				new RegexLeaf(3, "ENT1",
+						"(?:" + optionalKeywords(diagramType) + "[%s]+)?" + CommandLinkClass.getClassIdentifier()
+								+ "[%s]*(\\<\\<.*\\>\\>)?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional(new RegexLeaf(1, "FIRST_LABEL", "[%g]([^%g]+)[%g]")), //
 				RegexLeaf.spaceZeroOrMore(), //
@@ -81,8 +83,9 @@ final public class CommandLinkLollipop extends SingleLineCommand2<AbstractClassO
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional(new RegexLeaf(1, "SECOND_LABEL", "[%g]([^%g]+)[%g]")), //
 				RegexLeaf.spaceZeroOrMore(), //
-				new RegexLeaf(3, "ENT2", "(?:" + optionalKeywords(diagramType) + "[%s]+)?"
-						+ CommandLinkClass.getClassIdentifier() + "[%s]*(\\<\\<.*\\>\\>)?"), //
+				new RegexLeaf(3, "ENT2",
+						"(?:" + optionalKeywords(diagramType) + "[%s]+)?" + CommandLinkClass.getClassIdentifier()
+								+ "[%s]*(\\<\\<.*\\>\\>)?"), //
 				RegexLeaf.spaceZeroOrMore(), //
 				new RegexOptional( //
 						new RegexConcat( //
@@ -107,6 +110,60 @@ final public class CommandLinkLollipop extends SingleLineCommand2<AbstractClassO
 			return LeafType.LOLLIPOP_HALF;
 
 		return LeafType.LOLLIPOP_FULL;
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// 'C --(' Name' or 'Name ()-- C' attaches an interface lollipop to a
+		// class. The lollipop is created as a new leaf, while the class must
+		// already exist (executeArg fails otherwise). A doubled symbol ('(('
+		// or '))') is a half circle, '()' is a full circle - see getType().
+		final String symbol;
+		final String lollipop;
+		final String existing;
+		if (arg.get("LOL_THEN_ENT", 1) == null) {
+			symbol = arg.get("ENT_THEN_LOL", 1);
+			existing = arg.get("ENT1", 1);
+			lollipop = arg.get("ENT2", 1);
+		} else {
+			symbol = arg.get("LOL_THEN_ENT", 0);
+			lollipop = arg.get("ENT1", 1);
+			existing = arg.get("ENT2", 1);
+		}
+
+		sb.append("Attaching the interface lollipop '")
+				.append(StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(lollipop)).append("' to '")
+				.append(StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(existing)).append("'");
+
+		if (symbol.charAt(0) == symbol.charAt(1))
+			sb.append(" (half circle: required interface)");
+		else
+			sb.append(" (full circle: provided interface)");
+
+		if (getQueue(arg).contains("."))
+			sb.append(", dashed");
+
+		final String firstLabel = arg.get("FIRST_LABEL", 0);
+		if (firstLabel != null)
+			sb.append(", label \"").append(firstLabel).append("\" on the first end");
+
+		final String secondLabel = arg.get("SECOND_LABEL", 0);
+		if (secondLabel != null)
+			sb.append(", label \"").append(secondLabel).append("\" on the second end");
+
+		final String labelLink = arg.get("LABEL_LINK", 0);
+		if (labelLink != null)
+			sb.append(", labelled \"").append(StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(labelLink))
+					.append("\"");
+
+		final String weight = arg.get("HEADER", 0);
+		if (weight != null)
+			sb.append(", weight ").append(weight);
+
+		return sb.toString();
 	}
 
 	@Override

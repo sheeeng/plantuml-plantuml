@@ -41,6 +41,7 @@ import com.plantuml.ubrex.builder.UBrexLeaf;
 import com.plantuml.ubrex.builder.UBrexNamed;
 
 import net.atmp.CucaDiagram;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.command.ParserPass;
 import net.sourceforge.plantuml.command.UBrexSingleLineCommand2;
@@ -61,6 +62,32 @@ public class UBrexCommandHideShow2 extends UBrexSingleLineCommand2<CucaDiagram> 
 				new UBrexNamed("WHAT", //
 						new UBrexLeaf("【 << 〇*「〤<>」>> ┇ 〇+〴S 】 ")), //
 				UBrexLeaf.end());
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		final StringBuilder sb = new StringBuilder();
+
+		// UBREX twin of CommandHideShow2: hides or shows whole elements,
+		// designated by their name or by a stereotype (see
+		// CucaDiagram.hideOrShow2).
+		final char tmp = arg.get("COMMAND", 0).charAt(0);
+		final boolean show = tmp == 's' || tmp == 'S';
+		sb.append(show ? "Showing" : "Hiding");
+
+		final String what = arg.get("WHAT", 0).trim();
+		if (what.startsWith("<<"))
+			sb.append(" the elements stereotyped ").append(what);
+		else
+			sb.append(" the elements matching '").append(what).append("'");
+
+		// Only the first letter of COMMAND is read by executeArg, so the
+		// '-class' variants behave like the plain keywords.
+		if (arg.get("COMMAND", 0).contains("-"))
+			sb.append(" (the '-class' suffix has no specific effect)");
+
+		return sb.toString();
 	}
 
 	@Override

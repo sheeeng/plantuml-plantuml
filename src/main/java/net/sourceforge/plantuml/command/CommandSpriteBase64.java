@@ -38,6 +38,7 @@ package net.sourceforge.plantuml.command;
 import java.io.IOException;
 
 import net.sourceforge.plantuml.TitledDiagram;
+import net.sourceforge.plantuml.annotation.Explain;
 import net.sourceforge.plantuml.klimt.sprite.SpriteImage;
 import net.sourceforge.plantuml.regex.IRegex;
 import net.sourceforge.plantuml.regex.RegexConcat;
@@ -66,6 +67,15 @@ public class CommandSpriteBase64 extends SingleLineCommand2<TitledDiagram> {
 				new RegexLeaf("data:image/png;base64,"), //
 				new RegexLeaf(1, "DATA", "([A-Za-z0-9+/=]+)"), //
 				RegexLeaf.end());
+	}
+
+	@Override
+	@Explain
+	protected String explainArg(LineLocation location, RegexResult arg) {
+		// Defines a sprite from an inline PNG image encoded as a data URI;
+		// executeArg fails if the Base64 payload is not a decodable PNG.
+		return "Defining the sprite '" + arg.get("NAME", 0) + "' from an inline Base64 encoded PNG image ("
+				+ arg.get("DATA", 0).length() + " characters)";
 	}
 
 	@Override
