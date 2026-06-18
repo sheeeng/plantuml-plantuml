@@ -41,34 +41,30 @@ public class UFontFactory {
 	 * Builds a font using a face (weight + italic axis) and size.
 	 *
 	 * @param fullDefinition font family definition
-	 * @param face font face (style + weight), defaults to normal if null
-	 * @param fontSize font size
+	 * @param face           font face (style + weight), defaults to normal if null
+	 * @param fontSize       font size
 	 * @return configured font
 	 */
 	public static UFont build(String fullDefinition, UFontFace face, int fontSize) {
-		final FontStack fontStack = new FontStack(fullDefinition);
+		final FontStack fontStack = FontStack.build(fullDefinition);
 		final UFontFace safeFace = face == null ? UFontFace.normal() : face;
-		return new UFontImpl(fontStack, safeFace, fontSize);
+		return new UFont(fontStack, safeFace, fontSize);
 	}
 
 	public static UFont serif(int size) {
-		return build("Serif", UFontFace.normal(), size);
+		return build(FontStack.SERIF, UFontFace.normal(), size);
 	}
 
 	public static UFont sansSerif(int size) {
-		return build("SansSerif", UFontFace.normal(), size);
+		return build(FontStack.SANS_SERIF, UFontFace.normal(), size);
 	}
 
-	public static UFont courier(int size) {
-		return build("Courier", UFontFace.normal(), size);
+	public static UFont monospace(int size) {
+		return build(FontStack.MONOSPACE, UFontFace.normal(), size);
 	}
 
 	public static UFont byDefault(int size) {
 		return sansSerif(12);
-	}
-
-	public static UFont monospaced(int size) {
-		return build("Monospaced", UFontFace.normal(), size);
 	}
 
 }

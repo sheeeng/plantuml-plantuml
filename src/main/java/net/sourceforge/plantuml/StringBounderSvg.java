@@ -40,7 +40,6 @@ import java.awt.font.LineMetrics;
 
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.font.UFont;
-import net.sourceforge.plantuml.klimt.font.UFontImpl;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
 import net.sourceforge.plantuml.text.SvgCharSizeHack;
 
@@ -71,8 +70,7 @@ public class StringBounderSvg implements StringBounder {
 
 	@Override
 	public double getDescent(UFont font, String text) {
-		final LineMetrics lineMetrics = UFontImpl.getUnderlayingFont(font, text).getLineMetrics(text,
-				fontRenderContext);
+		final LineMetrics lineMetrics = font.getUnderlayingFont(text).getLineMetrics(text, fontRenderContext);
 		final double descent = lineMetrics.getDescent();
 		return descent;
 	}

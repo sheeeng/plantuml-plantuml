@@ -2,15 +2,15 @@
  * PlantUML : a free UML diagram generator
  * ========================================================================
  *
- * (C) Copyright 2009-2025, Arnaud Roques
+ * (C) Copyright 2009-2024, Arnaud Roques
  *
  * Project Info:  https://plantuml.com
- *
+ * 
  * If you like this project or if you find it useful, you can support us at:
- *
+ * 
  * https://plantuml.com/patreon (only 1$ per month!)
  * https://plantuml.com/paypal
- *
+ * 
  * This file is part of PlantUML.
  *
  * PlantUML is free software; you can redistribute it and/or modify it
@@ -33,21 +33,57 @@
  *
  *
  */
-package net.sourceforge.plantuml.klimt.drawing.svg;
+package net.sourceforge.plantuml.asciiverse;
 
-import org.w3c.dom.Document;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
-public class W3cSvgDocument extends PortableSvgDocument {
+public class DataTable<E> {
 
-	private final Document wrapped;
+	private final Map<CellKey, E> cells;
+	private final E defaultValue;
 
-	public W3cSvgDocument(Document wrapped) {
-		this.wrapped = wrapped;
+	private static class CellKey {
+		final int x;
+		final int y;
+
+		CellKey(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			CellKey cellKey = (CellKey) o;
+			return x == cellKey.x && y == cellKey.y;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(x, y);
+		}
 	}
 
-	@Override
-	public IElement createElement(String name) {
-		return new W3cElementAdapter(wrapped.createElement(name));
+	public DataTable(E defaultValue) {
+		this.defaultValue = defaultValue;
+		this.cells = new HashMap<>();
+	}
+
+	public void set(int x, int y, E value) {
+		cells.put(new CellKey(x, y), value);
+	}
+
+	public E get(int x, int y) {
+		return cells.getOrDefault(new CellKey(x, y), defaultValue);
+	}
+
+	public boolean contains(int x, int y) {
+		return cells.containsKey(new CellKey(x, y));
 	}
 
 }
