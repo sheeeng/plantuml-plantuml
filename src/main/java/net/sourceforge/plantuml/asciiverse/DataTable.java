@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class DataTable<E> {
+final class DataTable<E> {
 
 	private final Map<CellKey, E> cells;
 	private final E defaultValue;

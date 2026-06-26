@@ -34,8 +34,8 @@ npx @modelcontextprotocol/inspector npx -y @plantuml/mcp-js
 
 It opens a browser UI (with a session token in the printed URL). Make sure the
 transport is **stdio**, click **Connect**, then open **Tools → List Tools** to
-see `plantuml_version` and `check_syntax`, and run them with the inputs shown
-below.
+see `plantuml_version`, `check_syntax`, `render_diagram` and `explain_diagram`,
+and run them with the inputs shown below.
 
 
 ## Quick start
@@ -61,7 +61,7 @@ To avoid surprise updates, pin a specific version:
   "mcpServers": {
     "plantuml-js": {
       "command": "npx",
-      "args": ["-y", "@plantuml/mcp-js@0.1.3"]
+      "args": ["-y", "@plantuml/mcp-js@0.2.0"]
     }
   }
 }
@@ -87,7 +87,8 @@ a client to connect — that is normal, a stdio server is driven by its client.
 | ------------------ | ----------- | ------------------------------------------------ |
 | `plantuml_version` | available   | Returns the version of the embedded PlantUML.    |
 | `check_syntax`     | available   | Validates a diagram and reports syntax errors.   |
-| `diagram_explain`  | available   | Explains a diagram line by line.                 |
+| `render_diagram`   | available   | Renders a diagram to a deterministic SVG.        |
+| `explain_diagram`  | available   | Explains a diagram line by line.                 |
 
 **`plantuml_version`** takes no parameters and returns the version string.
 
@@ -121,7 +122,33 @@ An invalid one reports the offending line and message:
 The failure fields are `errorLineNumber` (1-based), `errorMessage`, `errorLine`
 (the offending source line, when available) and `errorContext`.
 
-**`diagram_explain`** takes a single `source` parameter and explains how the
+**`render_diagram`** takes a single `source` parameter and renders the diagram
+to a deterministic SVG. A valid diagram:
+
+```
+@startuml
+Alice -> Bob
+@enduml
+```
+
+returns something like:
+
+```json
+{
+  "valid": true,
+  "diagramType": "SequenceDiagram",
+  "lineCount": 3,
+  "warnings": [],
+  "svg": "<svg ...>...</svg>"
+}
+```
+
+The rendering is **deterministic**: text dimensions come from a built-in glyph
+width table rather than from the host's installed fonts or AWT, so the same
+source yields byte-for-byte the same SVG on any machine. On failure it reports
+the same fields as `check_syntax` (without `svg`).
+
+**`explain_diagram`** takes a single `source` parameter and explains how the
 diagram is parsed, line by line. It returns a JSON array of objects, each with
 `input` (the source line(s) that produced the explanation), `explain` (a
 human-readable explanation) and `line` (1-based line number, when available).
@@ -143,12 +170,14 @@ returns something like:
 
 ## Scope and limitations
 
-Because the JavaScript build is **headless** (no browser DOM, no native
-Graphviz), it deliberately does **not** render diagrams: the SVG output pipeline
-depends on the browser DOM and is out of scope here. This server focuses on the
-text-only capabilities of the engine.
+The JavaScript build is **headless** (no browser DOM, no *native* Graphviz
+binary). It renders to **SVG only**, via a deterministic, font-metrics-free
+pipeline (see `render_diagram` above); raster and document formats (PNG/PDF) are
+out of scope here. Layouts that need Graphviz (class, state, component, ...) are
+handled by the Viz.js (`@viz-js/viz`) WASM build rather than a native `dot`, so
+they work too — only PNG/PDF output is unavailable.
 
-If you need diagram **rendering** (SVG/PNG/PDF), use the Java-based
+If you need those raster/document formats, use the Java-based
 [`plantuml-mcp`](https://github.com/plantuml/plantuml-mcp) server instead. It
 exposes the same kind of tools but requires a Java runtime.
 
@@ -168,8 +197,11 @@ MCP client (LM Studio, Claude Desktop, ...)
 ```
 
 Unlike the root project's TeaVM *browser* build (`PlantUMLBrowser`), the
-headless entry point pulls in none of the DOM / Viz.js / worker-thread
-machinery: the exported functions are synchronous and return plain strings.
+headless entry point stays minimal: `plantuml_version`, `check_syntax` and
+`explain_diagram` are synchronous and return plain strings. `render_diagram`
+is asynchronous — it runs on a TeaVM worker thread and uses the Viz.js
+(`@viz-js/viz`) WASM build for Graphviz-dependent layouts — and delivers its
+result JSON through a callback that `server.js` wraps in a Promise.
 
 
 ## Links

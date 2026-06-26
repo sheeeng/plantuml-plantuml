@@ -20,10 +20,12 @@ configuring a JVM.
 
 ### Scope and limitations
 
-Because the JavaScript build is **headless** (no browser DOM, no native
-Graphviz), it deliberately does **not** provide diagram rendering: the SVG
-output pipeline depends on the browser DOM and is out of scope here. This
-server focuses on the text-only capabilities of the engine.
+The JavaScript build is **headless** (no browser DOM, no *native* Graphviz
+binary). It renders to **SVG only**, via a deterministic, font-metrics-free
+pipeline; raster and document formats (PNG/PDF) are out of scope here. Layouts
+that need Graphviz (class, state, component, ...) are handled by the Viz.js
+(`@viz-js/viz`) WASM build rather than a native `dot`, so they work too — only
+PNG/PDF output is unavailable.
 
 Tools:
 
@@ -31,10 +33,11 @@ Tools:
 | ------------------ | ----------- | ------------------------------------------------ |
 | `plantuml_version` | available   | Returns the version of the embedded PlantUML.    |
 | `check_syntax`     | available   | Validates a diagram and reports syntax errors.   |
-| `diagram_explain`  | planned     | Explains a diagram line by line.                 |
+| `render_diagram`   | available   | Renders a diagram to a deterministic SVG.        |
+| `explain_diagram`  | available   | Explains a diagram line by line.                 |
 
-If you need diagram **rendering** (SVG/PNG/PDF), use the Java-based
-`plantuml-mcp` server instead.
+If you need raster/document formats (PNG/PDF), use the Java-based `plantuml-mcp`
+server instead.
 
 ## Architecture
 
@@ -52,8 +55,11 @@ MCP client (LM Studio, Claude Desktop, ...)
 ```
 
 Unlike the root project's TeaVM *browser* build (`PlantUMLBrowser`), the
-headless entry point pulls in none of the DOM / Viz.js / worker-thread
-machinery: the exported functions are synchronous and return plain strings.
+headless entry point keeps things minimal: `plantuml_version`, `check_syntax`
+and `explain_diagram` are synchronous and return plain strings. `render_diagram`
+is asynchronous — it runs on a TeaVM worker thread and relies on the Viz.js
+(`@viz-js/viz`) WASM build for Graphviz-dependent layouts — delivering its result
+JSON through a callback that `server.js` wraps in a Promise.
 
 ## Building
 
@@ -111,7 +117,7 @@ session token). In the UI:
 
 1. Make sure the transport is **stdio** and click **Connect**.
 2. Open the **Tools** tab and click **List Tools** — you should see
-   `plantuml_version` and `check_syntax`.
+   `plantuml_version`, `check_syntax`, `render_diagram` and `explain_diagram`.
 3. Select a tool, fill in its parameters, and click **Run Tool**.
 
 **`plantuml_version`** takes no parameters and returns the version string.
