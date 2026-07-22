@@ -109,8 +109,8 @@ import net.sourceforge.plantuml.url.Url;
  * <p>
  * It does <b>not</b> handle diagram chrome (title, header, footer, etc.). The
  * input {@link TextBlock} is expected to be already fully decorated (e.g. by
- * {@link DiagramChromeFactory}). Handwritten mode is applied automatically
- * when {@code skinParam.handwritten()} is {@code true}.
+ * {@link DiagramChromeFactory}). Handwritten mode is applied automatically when
+ * {@code skinParam.handwritten()} is {@code true}.
  */
 public class TextBlockExporter {
 
@@ -145,8 +145,8 @@ public class TextBlockExporter {
 		this.pragma = builder.pragma;
 		this.diagramType = builder.diagramType;
 		this.isHandwritten = builder.isHandwritten;
-		this.stringBounder = builder.fileFormatOption
-				.getDefaultStringBounder(builder.skinParam != null ? builder.skinParam : SvgCharSizeHack.NO_HACK);
+		this.stringBounder = builder.fileFormatOption.getDefaultStringBounder(
+				builder.skinParam != null ? builder.skinParam : SvgCharSizeHack.NO_HACK, this.pragma);
 	}
 
 	/**
@@ -293,6 +293,9 @@ public class TextBlockExporter {
 			option = option.withRootAttribute("data-diagram-type", diagramType.name());
 		}
 
+		if (fileFormatOption.getDecimal() >= 0)
+			option = option.withDecimal(fileFormatOption.getDecimal());
+
 		if (p.isTrue(PragmaKey.SVG_INTERACTIVE)) {
 			String interactiveBaseFilename = "default";
 			if (diagramType == DiagramType.SEQUENCE)
@@ -402,7 +405,7 @@ public class TextBlockExporter {
 	public static class Builder {
 		// Required
 		private final TextBlock textBlock;
-		private final FileFormatOption fileFormatOption;
+		private FileFormatOption fileFormatOption;
 		private final boolean isHandwritten;
 
 		// Optional with defaults
@@ -494,6 +497,9 @@ public class TextBlockExporter {
 			this.scale = diagram.getScale();
 			this.pragma = diagram.getPragma();
 			this.diagramType = diagram.getDiagramType();
+			this.fileFormatOption = fileFormatOption
+					.withTikzFontDistortion(diagram.getSkinParam().getTikzFontDistortion());
+			this.fileFormatOption.getTikzFontDistortion().updateFromPragma(diagram.getPragma());
 			return this;
 		}
 

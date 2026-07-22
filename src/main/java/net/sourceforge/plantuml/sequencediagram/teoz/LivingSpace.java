@@ -36,6 +36,9 @@
 package net.sourceforge.plantuml.sequencediagram.teoz;
 
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -76,7 +79,9 @@ public class LivingSpace {
 	private Real posD;
 
 	private boolean create = false;
-	private double createY = 0;
+	// Life segments: y -> true for a create, false for a destroy. A TreeMap is
+	// used so that the repeated layout passes do not duplicate entries.
+	private final SortedMap<Double, Boolean> aliveChanges = new TreeMap<Double, Boolean>();
 
 	private final ParticipantEnglober englober;
 
@@ -143,8 +148,30 @@ public class LivingSpace {
 	}
 
 	public void drawLineAndLiveboxes(UGraphic ug, double height, Context2D context) {
-		mutingLine.drawLine(ug, context, createY, height);
-		liveboxes.drawBoxes(ug, context, createY, height);
+		// The line is drawn only over the alive segments: a participant may be
+		// created and destroyed several times
+		boolean alive = create == false;
+		double aliveSince = 0;
+		for (Map.Entry<Double, Boolean> ent : aliveChanges.entrySet()) {
+			if (alive == false && ent.getValue())
+				aliveSince = ent.getKey();
+			else if (alive && ent.getValue() == false)
+				mutingLine.drawLine(ug, context, aliveSince, ent.getKey());
+
+			alive = ent.getValue();
+		}
+		if (alive)
+			mutingLine.drawLine(ug, context, aliveSince, height);
+
+		liveboxes.drawBoxes(ug, context, getFirstCreateY(), height);
+	}
+
+	private double getFirstCreateY() {
+		for (Map.Entry<Double, Boolean> ent : aliveChanges.entrySet())
+			if (ent.getValue())
+				return ent.getKey();
+
+		return 0;
 	}
 
 	// public void addDelayTile(DelayTile tile) {
@@ -153,10 +180,20 @@ public class LivingSpace {
 
 	public void drawHead(UGraphic ug, Context2D context, VerticalAlignment verticalAlignment,
 			HorizontalAlignment horizontalAlignment) {
+		drawHeadOrTail(ug, context, verticalAlignment, horizontalAlignment, headType);
+	}
+
+	public void drawTail(UGraphic ug, Context2D context, VerticalAlignment verticalAlignment,
+			HorizontalAlignment horizontalAlignment) {
+		drawHeadOrTail(ug, context, verticalAlignment, horizontalAlignment, tailType);
+	}
+
+	private void drawHeadOrTail(UGraphic ug, Context2D context, VerticalAlignment verticalAlignment,
+			HorizontalAlignment horizontalAlignment, ComponentType type) {
 		if (create && verticalAlignment == VerticalAlignment.BOTTOM) {
 			return;
 		}
-		final Component comp = rose.createComponentParticipant(p, headType, null, skinParam,
+		final Component comp = rose.createComponentParticipant(p, type, null, skinParam,
 				p.getDisplay(skinParam.forceSequenceParticipantUnderlined()));
 		final XDimension2D dim = comp.getPreferredDimension(ug.getStringBounder());
 		if (horizontalAlignment == HorizontalAlignment.RIGHT) {
@@ -216,12 +253,16 @@ public class LivingSpace {
 	}
 
 	public void goCreate(double y) {
-		this.createY = y;
+		this.aliveChanges.put(y, Boolean.TRUE);
 		this.create = true;
 	}
 
 	public void goCreate() {
 		this.create = true;
+	}
+
+	public void goDestroy(double y) {
+		this.aliveChanges.put(y, Boolean.FALSE);
 	}
 
 	public void delayOn(double y, double height) {
@@ -254,6 +295,82 @@ public class LivingSpace {
 
 	public Real getPosE(StringBounder stringBounder) {
 		return getPosD(stringBounder).addFixed(marginAfter);
+	}
+
+	// ---------------------------------------------------------------------
+	// ASCII rendering positions.
+	//
+	// Exact character-grid counterparts of posB/C/D/A/E above, expressed as
+	// Real on a dedicated ASCII RealLine (created in
+	// SequenceDiagramFileMakerTeoz.getAsciiBlock(), separate from the pixel
+	// xorigin) with the convention 1.0 = 1 character. The derivation formulas
+	// mirror the pixel ones, but every delta is an integer number of cells,
+	// so the values resolved by asciiXOrigin.compileNow() are exact integers
+	// (no quantization).
+	//
+	// asciiPosB is the box's left column; the box width is code.length()+2
+	// (see Participant.asciiDimension()); the lifeline runs through the
+	// middle. Widths come from the participant, never from a Rose Component.
+	// ---------------------------------------------------------------------
+	private Real asciiPosB;
+	private Real asciiPosC;
+	private Real asciiPosD;
+
+	private int asciiWidth() {
+		return p.asciiDimension().getWidth();
+	}
+
+	public void setAsciiPosB(Real asciiPosB) {
+		this.asciiPosB = asciiPosB;
+	}
+
+	public Real getAsciiPosB() {
+		return asciiPosB;
+	}
+
+	public Real getAsciiPosC() {
+		if (asciiPosC == null)
+			this.asciiPosC = asciiPosB.addFixed(asciiWidth() / 2);
+
+		return asciiPosC;
+	}
+
+	public Real getAsciiPosD() {
+		if (asciiPosD == null)
+			this.asciiPosD = asciiPosB.addFixed(asciiWidth());
+
+		return asciiPosD;
+	}
+
+	private int asciiMarginBefore;
+	private int asciiMarginAfter;
+
+	public void ensureAsciiMarginBefore(int margin) {
+		if (margin < 0)
+			throw new IllegalArgumentException();
+		this.asciiMarginBefore = Math.max(asciiMarginBefore, margin);
+	}
+
+	public void ensureAsciiMarginAfter(int margin) {
+		if (margin < 0)
+			throw new IllegalArgumentException();
+		this.asciiMarginAfter = Math.max(asciiMarginAfter, margin);
+	}
+
+	public Real getAsciiPosA() {
+		return getAsciiPosB().addFixed(-asciiMarginBefore);
+	}
+
+	public Real getAsciiPosE() {
+		return getAsciiPosD().addFixed(asciiMarginAfter);
+	}
+
+	public Real getAsciiLifeColumn() {
+		return getAsciiPosC();
+	}
+
+	public Real getAsciiLeftColumn() {
+		return getAsciiPosB();
 	}
 
 }

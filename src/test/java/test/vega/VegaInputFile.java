@@ -1,6 +1,5 @@
 package test.vega;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,6 +27,7 @@ import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.error.PSystemError;
 import net.sourceforge.plantuml.json.JsonObject;
+import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.yaml.parser.Monomorph;
 import net.sourceforge.plantuml.yaml.parser.MonomorphType;
 import net.sourceforge.plantuml.yaml.parser.YamlParser;
@@ -71,6 +71,8 @@ public class VegaInputFile {
 		CHECKERS.put(FileFormat.XMI_ARGO, new VegaCheckerXmi());
 		CHECKERS.put(FileFormat.XMI_CUSTOM, new VegaCheckerXmi());
 		CHECKERS.put(FileFormat.XMI_SCRIPT, new VegaCheckerXmi());
+		CHECKERS.put(FileFormat.ATXT, new VegaCheckerAtxt());
+		CHECKERS.put(FileFormat.UTXT, new VegaCheckerUtxt());
 	}
 
 	private final Path path;
@@ -237,6 +239,10 @@ public class VegaInputFile {
 				result.add(FileFormat.SVG_DETERMINISTIC);
 			else if (trimmed.equals("LATEX"))
 				result.add(FileFormat.LATEX_DETERMINISTIC);
+			else if (trimmed.equals("UTXT"))
+				result.add(FileFormat.UTXT);
+			else if (trimmed.equals("ATXT"))
+				result.add(FileFormat.ATXT);
 			else
 				result.add(FileFormat.valueOf(trimmed));
 		}
@@ -281,11 +287,16 @@ public class VegaInputFile {
 		}
 	}
 
+	private SFile getCurrentDir() {
+		final Path parent = path.toAbsolutePath().getParent();
+		return new SFile(parent.toString());
+	}
+
 	private void doRunSingleFile() throws IOException {
 		assertFalse(getPumlSource().isEmpty(), "PlantUML source in " + path);
 
 		final String source = getPumlSourceAsString();
-		final SourceStringReader ssr = new SourceStringReader(source, UTF_8);
+		final SourceStringReader ssr = new SourceStringReader(source, getCurrentDir());
 		final Diagram diagram = ssr.getBlocks().get(0).getDiagram();
 		this.diagramClass = diagram.getClass();
 		this.rootCause = diagram.getRootCause();
@@ -299,10 +310,13 @@ public class VegaInputFile {
 
 		for (final FileFormat fileFormat : fileFormats) {
 			for (int imageIndex = 0; imageIndex < nbImages; imageIndex++) {
-				final SourceStringReader ssrForFormat = new SourceStringReader(source, UTF_8);
+				final SourceStringReader ssrForFormat = new SourceStringReader(source, getCurrentDir());
 				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				final DiagramDescription description = ssrForFormat.outputImage(baos, imageIndex,
-						new FileFormatOption(fileFormat));
+				FileFormatOption fileFormatOption = new FileFormatOption(fileFormat);
+				final String decimal = getYamlString("decimal");
+				if (decimal != null)
+					fileFormatOption = fileFormatOption.withDecimal(Integer.parseInt(decimal.trim()));
+				final DiagramDescription description = ssrForFormat.outputImage(baos, imageIndex, fileFormatOption);
 
 				this.description = description.getDescription();
 
@@ -315,7 +329,8 @@ public class VegaInputFile {
 						"Empty output for " + path + " [" + fileFormat + " image " + (imageIndex + 1) + "]");
 
 				if (getActualStringException() != null)
-					assertNotNull(getExpectedException(), "No expected-exception declared in " + path);
+					assertNotNull(getExpectedException(),
+							"No expected-exception declared in " + path + " " + getActualStringException());
 
 				if (getExpectedException() != null || getActualStringException() != null)
 					assertEquals(getExpectedException(), getActualStringException(),
@@ -461,8 +476,10 @@ public class VegaInputFile {
 		return this.rootCause.getClass().getSimpleName() + " - " + this.rootCause.getMessage();
 	}
 
+	public static final boolean FORCE_WRITE = "true".equals(System.getenv("VEGA_FORCE_WRITE"));
+
 	public boolean forceWrite() {
-		return hasYamlHeader == false;
+		return FORCE_WRITE || hasYamlHeader == false;
 	}
 
 }

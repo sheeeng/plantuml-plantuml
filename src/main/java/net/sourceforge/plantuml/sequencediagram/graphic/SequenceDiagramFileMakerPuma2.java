@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.plantuml.FileFormatOption;
+import net.sourceforge.plantuml.asciiverse.AsciiBlock;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
@@ -63,7 +64,7 @@ public class SequenceDiagramFileMakerPuma2 implements FileMaker {
 
 	public SequenceDiagramFileMakerPuma2(SequenceDiagram diagram, Rose skin, FileFormatOption fileFormatOption) {
 		this.diagram = diagram;
-		this.stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam());
+		this.stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam(), diagram.getPragma());
 		final DrawableSetInitializer initializer = new DrawableSetInitializer(skin, diagram.getSkinParam(),
 				diagram.isShowFootbox(), /* diagram.getAutonewpage(), */ diagram.getCounter());
 
@@ -132,6 +133,11 @@ public class SequenceDiagramFileMakerPuma2 implements FileMaker {
 			delta = 0;
 
 		return drawableSet.asTextBlock(delta, fullDimension.getWidth(), page, diagram.isShowFootbox());
+	}
+
+	@Override
+	public AsciiBlock getAsciiBlock(int num, FileFormatOption fileFormat) {
+		throw new UnsupportedOperationException();
 	}
 
 }

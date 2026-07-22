@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import net.sourceforge.plantuml.FileFormat;
-import net.sourceforge.plantuml.LatexManager;
 import net.sourceforge.plantuml.klimt.UPath;
 import net.sourceforge.plantuml.klimt.awt.XColor;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
@@ -347,7 +346,7 @@ public class TikzGraphics {
 			if (bold)
 				sb.append("\\textbf{");
 
-			sb.append(LatexManager.protectText(text));
+			sb.append(LatexTextMetrics.protectText(text));
 			if (bold)
 				sb.append("}");
 
@@ -360,7 +359,7 @@ public class TikzGraphics {
 		} else {
 			appendPendingUrl(sb);
 			sb.append("{");
-			sb.append(LatexManager.protectText(text));
+			sb.append(LatexTextMetrics.protectText(text));
 			sb.append("}");
 		}
 		sb.append("};");

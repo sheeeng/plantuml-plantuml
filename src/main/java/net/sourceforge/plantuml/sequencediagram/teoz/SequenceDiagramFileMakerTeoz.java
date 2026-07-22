@@ -37,6 +37,9 @@ package net.sourceforge.plantuml.sequencediagram.teoz;
 
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.annotation.Fast;
+import net.sourceforge.plantuml.asciiverse.ADimension2D;
+import net.sourceforge.plantuml.asciiverse.AsciiBlock;
+import net.sourceforge.plantuml.asciiverse.InfinitePlan;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -71,7 +74,7 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 
 	public SequenceDiagramFileMakerTeoz(SequenceDiagram diagram, Rose skin, FileFormatOption fileFormatOption,
 			int index) {
-		this.stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam());
+		this.stringBounder = fileFormatOption.getDefaultStringBounder(diagram.getSkinParam(), diagram.getPragma());
 		this.diagram = diagram;
 		this.skin = skin;
 		this.body = new PlayingSpaceWithParticipants(createMainTile());
@@ -97,13 +100,17 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 				xorigin, yorigin);
 
 		this.dolls = new Dolls(tileArguments);
+		// The dolls constraints must be set before the PlayingSpace is built:
+		// PlayingSpace captures dolls.getMinX()/getMaxX(), which freeze the
+		// margins (see LivingSpace.getPosA/getPosE) needed for the box titles
+		this.dolls.addConstraints(stringBounder);
 		final PlayingSpace mainTile = new PlayingSpace(diagram, dolls, tileArguments);
 		this.livingSpaces.addConstraints(stringBounder);
 		mainTile.addConstraints();
-		this.dolls.addConstraints(stringBounder);
 		xorigin.compileNow();
-		if (YGauge.USE_ME)
-			System.err.println("COMPILING Y");
+		// The Y line is solved here, ONCE, before anything reads a gauge: every tile
+		// built above chained its YGauge onto yorigin, and getCurrentValue() is only
+		// meaningful after this call
 		yorigin.compileNow();
 		tileArguments.setBordered(mainTile);
 		return mainTile;
@@ -141,6 +148,9 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 			@Fast
 			@Override
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
+				// The exporter calculates the dimension before calling drawU(),
+				// so the page index must be set here too
+				body.setIndex(num);
 				final double totalWidth = body.calculateDimension(stringBounder).getWidth();
 				final double totalHeight = body.calculateDimension(stringBounder).getHeight() + heightEnglober1
 						+ heightEnglober2;
@@ -151,6 +161,22 @@ public class SequenceDiagramFileMakerTeoz implements FileMaker {
 				return null;
 			}
 
+		};
+	}
+
+	@Override
+	public AsciiBlock getAsciiBlock(int num, FileFormatOption fileFormat) {
+		return new AsciiBlock() {
+
+			@Override
+			public ADimension2D asciiDimension() {
+				return new ADimension2D(20, 20);
+			}
+
+			@Override
+			public void asciiDraw(InfinitePlan plan) {
+				body.asciiDraw(plan);
+			}
 		};
 	}
 

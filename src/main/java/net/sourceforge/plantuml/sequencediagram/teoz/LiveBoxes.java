@@ -146,6 +146,26 @@ public class LiveBoxes {
 					}
 
 				}
+				if (current instanceof Note) {
+					// An activate or deactivate attached to a previous message applies
+					// retroactively at the message position, that is above this note:
+					// the note placement must take it into account
+					while (it.hasNext()) {
+						final Event next = nextButSkippingNotes(it);
+						if (next instanceof LifeEvent == false)
+							break;
+
+						final LifeEvent le = (LifeEvent) next;
+						if (le.getParticipant() != p || le.getMessage() == null)
+							continue;
+
+						if (mode != EventsHistoryMode.IGNORE_FUTURE_ACTIVATE && le.isActivate())
+							level++;
+
+						if (mode == EventsHistoryMode.CONSIDER_FUTURE_DEACTIVATE && le.isDeactivateOrDestroy())
+							level = Math.max(0, level - 1);
+					}
+				}
 				if (level < 0)
 					return 0;
 
@@ -164,10 +184,16 @@ public class LiveBoxes {
 				continue;
 
 			if (current instanceof Message) {
-				final Event next = nextButSkippingNotes(it);
-				if (next instanceof LifeEvent) {
+				// Several life events may follow the message (for example a
+				// deactivate then a destroy): the destroy is not always the
+				// first one
+				Event next = nextButSkippingNotes(it);
+				while (next instanceof LifeEvent) {
 					final LifeEvent le = (LifeEvent) next;
-					return le.isDestroy(p);
+					if (le.isDestroy(p))
+						return true;
+
+					next = nextButSkippingNotes(it);
 				}
 			}
 			return false;
@@ -316,18 +342,24 @@ public class LiveBoxes {
 	public void drawBoxes(UGraphic ug, Context2D context, double createY, double endY) {
 		final Stairs stairs = getStairs(createY, endY);
 		final int max = stairs.getMaxIndent();
-		if (max == 0)
-			drawDestroys(ug, stairs, context);
-
 		for (int i = 1; i <= max; i++)
 			drawOneLevel(ug, i, stairs, context);
 
+		// Destroys at indent 0 are always handled here, regardless of the
+		// participant's global max indent: a destroy occurring after a past
+		// deactivation (max > 0) still lands at indent 0 and would otherwise
+		// never be visited by drawOneLevel, whose pending/closing logic only
+		// fires when a box is currently open at that level. Drawn last (on top
+		// of the z-order) so the cross is never painted over by an activation
+		// box drawn afterwards.
+		drawDestroys(ug, stairs, context);
 	}
 
 	private void drawDestroys(UGraphic ug, Stairs stairs, Context2D context) {
 		final LiveBoxesDrawer drawer = new LiveBoxesDrawer(context, skin, skinParam, delays, p.getStereotype());
 		for (Step yposition : stairs.getSteps())
-			drawer.drawDestroyIfNeeded(ug, yposition);
+			if (yposition.getIndent() == 0)
+				drawer.drawDestroyIfNeeded(ug, yposition);
 
 	}
 
@@ -344,7 +376,12 @@ public class LiveBoxes {
 				pending = false;
 			} else if (pending == false && (it.hasNext() == false || indent < levelToDraw)) {
 				drawer.doDrawing(ug, yposition.getValue());
-				drawer.drawDestroyIfNeeded(ug, yposition);
+				// Indent-0 destroys are handled exclusively by drawDestroys() (called
+				// unconditionally from drawBoxes) to avoid drawing the cross twice;
+				// only nested-activation closings (indent > 0) are drawn here, since
+				// drawDestroys() does not know about the per-level x offset.
+				if (indent > 0)
+					drawer.drawDestroyIfNeeded(ug, yposition);
 				pending = true;
 			}
 		}

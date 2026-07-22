@@ -31,10 +31,28 @@ import net.sourceforge.plantuml.json.JsonArray;
 import net.sourceforge.plantuml.json.JsonObject;
 import net.sourceforge.plantuml.json.WriterConfig;
 import net.sourceforge.plantuml.log.Logme;
+import net.sourceforge.plantuml.tikz.LatexEngine;
 
 @Execution(ExecutionMode.SAME_THREAD)
 @Isolated
 class VegaTest {
+
+	// To regenerate all the "expected" reference files instead of comparing
+	// against them, set the VEGA_FORCE_WRITE environment variable to "true"
+	// before running the tests (see VegaInputFile.FORCE_WRITE).
+	//
+	// Windows (PowerShell):
+	//   $env:VEGA_FORCE_WRITE="true"; .\gradlew test --tests test.vega.VegaTest
+	//   Remove-Item Env:\VEGA_FORCE_WRITE
+	//
+	// Windows (cmd.exe):
+	//   set VEGA_FORCE_WRITE=true && gradlew test --tests test.vega.VegaTest
+	//   set VEGA_FORCE_WRITE=
+	//
+	// Linux / macOS (bash):
+	//   VEGA_FORCE_WRITE=true ./gradlew test --tests test.vega.VegaTest
+	//
+	// Always review the changes with "git diff" before committing.
 
 	public static final Path VEGA_RESOURCES = Paths.get("src", "test", "resources", "vega");
 
@@ -42,6 +60,7 @@ class VegaTest {
 
 	static {
 		TitledDiagram.FORCE_SMETANA = true;
+		LatexEngine.FORCE_NONE = true;
 	}
 
 	@BeforeEach

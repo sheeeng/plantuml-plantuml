@@ -182,7 +182,7 @@ public class GanttDiagram extends TitledDiagram implements GanttStyle {
 
 	@Override
 	public TextBlock getTextBlock(int num, FileFormatOption fileFormatOption) {
-		final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(getSkinParam());
+		final StringBounder stringBounder = fileFormatOption.getDefaultStringBounder(getSkinParam(), getPragma());
 		if (this.timeBounds.getPrintStart() == null) {
 			initMinMax();
 		} else {
@@ -581,6 +581,14 @@ public class GanttDiagram extends TitledDiagram implements GanttStyle {
 		return result.plus(Duration.ofHours(totalHours));
 	}
 
+	public Duration durationOfDaysHoursMinutesSeconds(int totalDays, int totalHours, int totalMinutes,
+			int totalSeconds) {
+		return durationOfDays(totalDays) //
+				.plusHours(totalHours) //
+				.plusMinutes(totalMinutes) //
+				.plusSeconds(totalSeconds);
+	}
+
 	@Override
 	protected ImageData exportTxt(OutputStream os, int index, FileFormat fileFormat) throws IOException {
 		initMinMax();
@@ -609,7 +617,7 @@ public class GanttDiagram extends TitledDiagram implements GanttStyle {
 			row++;
 		}
 
-		final InfinitePlan plan = new InfinitePlan();
+		final InfinitePlan plan = new InfinitePlan(FileFormat.ATXT);
 		table.asciiDraw(plan);
 
 		plan.exportTxt(os);
@@ -657,9 +665,9 @@ public class GanttDiagram extends TitledDiagram implements GanttStyle {
 	private String durationOf(Task task, Locale locale) {
 		final TimePoint start = task.getStart();
 		final TimePoint end = task.getEnd();
-		final int days = end.getAbsoluteDayNum() - start.getAbsoluteDayNum();
+		final Duration duration = Duration.between(start.toLocalDateTime(), end.toLocalDateTime());
 
-		return GanttI18n.durationInDays(locale, days);
+		return GanttI18n.durationHumanReadable(locale, duration);
 	}
 
 	private final Set<GanttTaskTableColumn> displayedColumn = EnumSet.of(GanttTaskTableColumn.START,

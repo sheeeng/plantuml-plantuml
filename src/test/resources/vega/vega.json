@@ -1,6 +1,230 @@
 {
   "tests": [
     {
+      "file": "asciiverse/altpar_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(3 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_003.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(4 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_004.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(4 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_005.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_006.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(4 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_007.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/altpar_008.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(5 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/basic_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/basic_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/basic_003.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/group_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(3 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/hello_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/hello_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/layout_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(5 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/layout_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/layout_002b.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/layout_003.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/leftmsg_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/leftmsg_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/leftmsg_003.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/multiline_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/nested_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(3 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/partition_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(3 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/self_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/selfnote_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/selfnote_001b.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/selfnote_001c.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/selfnote_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/selfnote_003.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(1 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/timeline_001.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(3 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "asciiverse/timeline_002.puml",
+      "folder": "asciiverse",
+      "status": "pass",
+      "description": "(2 participants)",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
       "file": "crash/crash-not-crashing.puml",
       "folder": "crash",
       "status": "pass",
@@ -20,9 +244,9 @@
         "net.sourceforge.plantuml.UgDiagram.getExporter(UgDiagram.java:121)",
         "net.sourceforge.plantuml.UgDiagram.exportDiagram(UgDiagram.java:93)",
         "net.sourceforge.plantuml.SourceStringReader.outputImage(SourceStringReader.java:192)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:304)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:319)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -37,12 +261,12 @@
         "net.sourceforge.plantuml.crash.CrashDiagram.checkFinalError(CrashDiagram.java:100)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.finalizeDiagram(PSystemCommandFactory.java:150)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:141)",
-        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:1)",
+        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:61)",
         "net.sourceforge.plantuml.PSystemBuilder.createPSystem(PSystemBuilder.java:264)",
         "net.sourceforge.plantuml.BlockUml.getDiagram(BlockUml.java:194)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:289)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:300)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -55,18 +279,18 @@
       "stacktrace": [
         "java.lang.IllegalStateException: This is a normal crash when PARSING",
         "net.sourceforge.plantuml.crash.CommandSelectCrash.executeArg(CommandSelectCrash.java:89)",
-        "net.sourceforge.plantuml.crash.CommandSelectCrash.executeArg(CommandSelectCrash.java:1)",
+        "net.sourceforge.plantuml.crash.CommandSelectCrash.executeArg(CommandSelectCrash.java:52)",
         "net.sourceforge.plantuml.command.UBrexSingleLineCommand2.execute(UBrexSingleLineCommand2.java:178)",
         "net.sourceforge.plantuml.command.ProtectedCommand.execute(ProtectedCommand.java:57)",
         "net.sourceforge.plantuml.core.AbstractDiagram.executeCommand(AbstractDiagram.java:176)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.executeFewLines(PSystemCommandFactory.java:180)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:136)",
-        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:1)",
+        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:61)",
         "net.sourceforge.plantuml.PSystemBuilder.createPSystem(PSystemBuilder.java:264)",
         "net.sourceforge.plantuml.BlockUml.getDiagram(BlockUml.java:194)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:289)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:300)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -82,6 +306,66 @@
       "status": "pass",
       "description": "(2 entities)",
       "diagram_class": "DescriptionDiagram"
+    },
+    {
+      "file": "migration/ChenMovieAlias_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(30 entities)",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "ChenEerDiagram"
+    },
+    {
+      "file": "migration/ChenMovieExtended_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(30 entities)",
+      "diagram_class": "ChenEerDiagram"
+    },
+    {
+      "file": "migration/ChenMovie_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(16 entities)",
+      "diagram_class": "ChenEerDiagram"
+    },
+    {
+      "file": "migration/ChenRankDir_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(3 entities)",
+      "diagram_class": "ChenEerDiagram"
+    },
+    {
+      "file": "migration/HideShow001_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(1 entities)",
+      "diagram_class": "ClassDiagram"
+    },
+    {
+      "file": "migration/HideShow002_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "ClassDiagram"
+    },
+    {
+      "file": "migration/HideShow003_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(3 entities)",
+      "tag": "specification",
+      "allow-failure": "true",
+      "diagram_class": "ClassDiagram"
+    },
+    {
+      "file": "migration/HideShow004_Test.puml",
+      "folder": "migration",
+      "status": "pass",
+      "description": "(4 entities)",
+      "diagram_class": "ClassDiagram"
     },
     {
       "file": "mvp/hello-both.puml",
@@ -103,9 +387,9 @@
         "org.junit.jupiter.api.Assertions.assertFalse(Assertions.java:266)",
         "test.vega.VegaCheckerDebug.checkDebugContains(VegaCheckerDebug.java:33)",
         "test.vega.VegaCheckerDebug.checkOutput(VegaCheckerDebug.java:19)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:351)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:366)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -395,16 +679,16 @@
       "stacktrace": [
         "java.lang.IllegalArgumentException",
         "net.sourceforge.plantuml.klimt.geom.XDimension2D.<init>(XDimension2D.java:52)",
-        "net.sourceforge.plantuml.packetdiag.PacketBlock$1.calculateDimension(PacketBlock.java:274)",
+        "net.sourceforge.plantuml.packetdiag.PacketBlock$1.calculateDimension(PacketBlock.java:273)",
         "net.sourceforge.plantuml.packetdiag.PacketDiagram$1.calculateDimension(PacketDiagram.java:168)",
         "net.sourceforge.plantuml.klimt.shape.TextBlockUtils$2.calculateDimension(TextBlockUtils.java:170)",
         "net.sourceforge.plantuml.core.TextBlockExporter.calculateFinalDimension(TextBlockExporter.java:200)",
         "net.sourceforge.plantuml.core.TextBlockExporter.exportTo(TextBlockExporter.java:160)",
         "net.sourceforge.plantuml.UgDiagram.exportDiagram(UgDiagram.java:93)",
         "net.sourceforge.plantuml.SourceStringReader.outputImage(SourceStringReader.java:192)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:304)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:319)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -418,7 +702,7 @@
       "message": "/ by zero",
       "stacktrace": [
         "java.lang.ArithmeticException: / by zero",
-        "net.sourceforge.plantuml.packetdiag.PacketDiagram.lambda$3(PacketDiagram.java:401)",
+        "net.sourceforge.plantuml.packetdiag.PacketDiagram.lambda$adjustIndicators$2(PacketDiagram.java:401)",
         "java.base/java.util.stream.IntPipeline$1$1.accept(IntPipeline.java:180)",
         "java.base/java.util.stream.SliceOps$2$1.accept(SliceOps.java:315)",
         "java.base/java.util.stream.IntStream$1.tryAdvance(IntStream.java:960)",
@@ -434,12 +718,12 @@
         "net.sourceforge.plantuml.packetdiag.PacketDiagram.checkFinalError(PacketDiagram.java:227)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.finalizeDiagram(PSystemCommandFactory.java:150)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:141)",
-        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:1)",
+        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:61)",
         "net.sourceforge.plantuml.PSystemBuilder.createPSystem(PSystemBuilder.java:264)",
         "net.sourceforge.plantuml.BlockUml.getDiagram(BlockUml.java:194)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:289)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:300)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -525,7 +809,7 @@
       "message": "/ by zero",
       "stacktrace": [
         "java.lang.ArithmeticException: / by zero",
-        "net.sourceforge.plantuml.packetdiag.PacketDiagram.lambda$3(PacketDiagram.java:401)",
+        "net.sourceforge.plantuml.packetdiag.PacketDiagram.lambda$adjustIndicators$2(PacketDiagram.java:401)",
         "java.base/java.util.stream.IntPipeline$1$1.accept(IntPipeline.java:180)",
         "java.base/java.util.stream.SliceOps$2$1.accept(SliceOps.java:315)",
         "java.base/java.util.stream.IntStream$1.tryAdvance(IntStream.java:960)",
@@ -541,12 +825,12 @@
         "net.sourceforge.plantuml.packetdiag.PacketDiagram.checkFinalError(PacketDiagram.java:227)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.finalizeDiagram(PSystemCommandFactory.java:150)",
         "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:141)",
-        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:1)",
+        "net.sourceforge.plantuml.command.PSystemCommandFactory.createSystem(PSystemCommandFactory.java:61)",
         "net.sourceforge.plantuml.PSystemBuilder.createPSystem(PSystemBuilder.java:264)",
         "net.sourceforge.plantuml.BlockUml.getDiagram(BlockUml.java:194)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:289)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:300)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -597,26 +881,11 @@
     {
       "file": "packet/R11.07-len_0_8.puml",
       "folder": "packet",
-      "status": "skipped",
+      "status": "pass",
       "description": "Packet Diagram",
       "tag": "specification",
       "allow-failure": "true",
-      "diagram_class": "PacketDiagram",
-      "message": "width=0.0",
-      "stacktrace": [
-        "java.lang.IllegalArgumentException: width=0.0",
-        "net.sourceforge.plantuml.klimt.shape.URectangle.<init>(URectangle.java:142)",
-        "net.sourceforge.plantuml.klimt.shape.URectangle.build(URectangle.java:114)",
-        "net.sourceforge.plantuml.packetdiag.PacketBlock$1.drawU(PacketBlock.java:282)",
-        "net.sourceforge.plantuml.packetdiag.PacketDiagram$1.drawU(PacketDiagram.java:206)",
-        "net.sourceforge.plantuml.klimt.shape.TextBlockUtils$2.drawU(TextBlockUtils.java:155)",
-        "net.sourceforge.plantuml.core.TextBlockExporter.exportTo(TextBlockExporter.java:177)",
-        "net.sourceforge.plantuml.UgDiagram.exportDiagram(UgDiagram.java:93)",
-        "net.sourceforge.plantuml.SourceStringReader.outputImage(SourceStringReader.java:192)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:304)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
-      ]
+      "diagram_class": "PacketDiagram"
     },
     {
       "file": "packet/R11.08-len_1_8.puml",
@@ -814,16 +1083,16 @@
       "stacktrace": [
         "java.lang.IllegalArgumentException",
         "net.sourceforge.plantuml.klimt.geom.XDimension2D.<init>(XDimension2D.java:52)",
-        "net.sourceforge.plantuml.packetdiag.PacketBlock$1.calculateDimension(PacketBlock.java:274)",
+        "net.sourceforge.plantuml.packetdiag.PacketBlock$1.calculateDimension(PacketBlock.java:273)",
         "net.sourceforge.plantuml.packetdiag.PacketDiagram$1.calculateDimension(PacketDiagram.java:168)",
         "net.sourceforge.plantuml.klimt.shape.TextBlockUtils$2.calculateDimension(TextBlockUtils.java:170)",
         "net.sourceforge.plantuml.core.TextBlockExporter.calculateFinalDimension(TextBlockExporter.java:200)",
         "net.sourceforge.plantuml.core.TextBlockExporter.exportTo(TextBlockExporter.java:160)",
         "net.sourceforge.plantuml.UgDiagram.exportDiagram(UgDiagram.java:93)",
         "net.sourceforge.plantuml.SourceStringReader.outputImage(SourceStringReader.java:192)",
-        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:304)",
-        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:256)",
-        "test.vega.VegaTest.lambda$11(VegaTest.java:174)"
+        "test.vega.VegaInputFile.doRunSingleFile(VegaInputFile.java:319)",
+        "test.vega.VegaInputFile.runSingleFile(VegaInputFile.java:262)",
+        "test.vega.VegaTest.lambda$testAllPumlFiles$10(VegaTest.java:193)"
       ]
     },
     {
@@ -881,6 +1150,188 @@
       "status": "pass",
       "description": "(2 participants)",
       "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "state/composite-autarkic-simple.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(2 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/composite-non-autarkic-outgoing-only.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(3 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/composite-non-autarkic-start-end.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(4 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/composite-siblings-with-transition.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(4 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/composite-two-levels-nested.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(3 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/composite-two-levels-non-autarkic.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(2 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-composite-non-autarkic-sibling-link.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-composite-non-autarkic-start-end.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-dash-three-regions.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-dash-two-regions.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(4 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-empty-first-region.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(5 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-nested-inside-composite.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(5 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-pipe-three-regions.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-pipe-two-regions.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(4 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-pipe-with-nested-composite-region.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-region-nested-composite.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-top-level-root.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(3 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/concurrent-with-internal-transitions.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(6 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "state/simple-states.puml",
+      "folder": "state",
+      "status": "pass",
+      "description": "(3 entities)",
+      "diagram_class": "StateDiagram"
+    },
+    {
+      "file": "sub/includesub-basic-with-include.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "sub/includesub-basic.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "sub/includesub-minimal.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "SequenceDiagram"
+    },
+    {
+      "file": "sub/includesub-same-file.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "DescriptionDiagram"
+    },
+    {
+      "file": "sub/repro1.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "DescriptionDiagram"
+    },
+    {
+      "file": "sub/repro2.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "ActivityDiagram3"
+    },
+    {
+      "file": "sub/subfile.puml",
+      "folder": "sub",
+      "status": "pass",
+      "description": "PREPROC",
+      "diagram_class": "PSystemErrorV2"
     },
     {
       "file": "svg/id/commons_01.puml",
@@ -949,7 +1400,7 @@
       "file": "svg/id/state_02.puml",
       "folder": "svg/id",
       "status": "pass",
-      "description": "(3 entities)",
+      "description": "(4 entities)",
       "diagram_class": "StateDiagram"
     },
     {
@@ -963,14 +1414,14 @@
       "file": "svg/id/state_04.puml",
       "folder": "svg/id",
       "status": "pass",
-      "description": "(5 entities)",
+      "description": "(6 entities)",
       "diagram_class": "StateDiagram"
     },
     {
       "file": "svg/id/state_05.puml",
       "folder": "svg/id",
       "status": "pass",
-      "description": "(5 entities)",
+      "description": "(7 entities)",
       "diagram_class": "StateDiagram"
     },
     {
@@ -1020,7 +1471,6 @@
       "folder": "tikz",
       "status": "pass",
       "description": "activity3",
-      "allow-failure": "true",
       "diagram_class": "ActivityDiagram3"
     },
     {
@@ -1028,7 +1478,6 @@
       "folder": "tikz",
       "status": "pass",
       "description": "activity3",
-      "allow-failure": "true",
       "diagram_class": "ActivityDiagram3"
     },
     {
@@ -1036,7 +1485,6 @@
       "folder": "tikz",
       "status": "pass",
       "description": "(2 participants)",
-      "allow-failure": "true",
       "diagram_class": "SequenceDiagram"
     },
     {
@@ -1044,7 +1492,6 @@
       "folder": "tikz",
       "status": "pass",
       "description": "(2 participants)",
-      "allow-failure": "true",
       "diagram_class": "SequenceDiagram"
     },
     {
@@ -1052,7 +1499,6 @@
       "folder": "tikz",
       "status": "pass",
       "description": "(2 participants)",
-      "allow-failure": "true",
       "diagram_class": "SequenceDiagram"
     },
     {
@@ -1176,6 +1622,34 @@
       "diagram_class": "GanttDiagram"
     },
     {
+      "file": "xgantt/hms0.puml",
+      "folder": "xgantt",
+      "status": "pass",
+      "description": "(Gantt)",
+      "diagram_class": "GanttDiagram"
+    },
+    {
+      "file": "xgantt/hms1.puml",
+      "folder": "xgantt",
+      "status": "pass",
+      "description": "(Gantt)",
+      "diagram_class": "GanttDiagram"
+    },
+    {
+      "file": "xgantt/hms2.puml",
+      "folder": "xgantt",
+      "status": "pass",
+      "description": "(Gantt)",
+      "diagram_class": "GanttDiagram"
+    },
+    {
+      "file": "xgantt/hms3.puml",
+      "folder": "xgantt",
+      "status": "pass",
+      "description": "(Gantt)",
+      "diagram_class": "GanttDiagram"
+    },
+    {
       "file": "xmi/clazz/XMI0000_class.puml",
       "folder": "xmi/clazz",
       "status": "pass",
@@ -1219,9 +1693,9 @@
     }
   ],
   "summary": {
-    "total": 135,
-    "passed": 130,
+    "total": 205,
+    "passed": 201,
     "failed": 0,
-    "skipped": 5
+    "skipped": 4
   }
 }
