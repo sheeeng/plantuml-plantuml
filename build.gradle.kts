@@ -43,11 +43,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
 
-	testImplementation(libs.glytching.junit.extensions)
-	testImplementation(libs.assertj.core)
 	testImplementation(libs.xmlunit.core)
-	testImplementation(libs.mockito.core)
-	testImplementation(libs.mockito.junit.jupiter)
 	testImplementation(libs.junit.pioneer)
 	implementation(libs.jlatexmath)
     implementation(libs.elk.core)

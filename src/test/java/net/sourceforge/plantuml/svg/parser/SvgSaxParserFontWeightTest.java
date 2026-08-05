@@ -1,23 +1,25 @@
 package net.sourceforge.plantuml.svg.parser;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.ArgumentCaptor;
 
 import net.sourceforge.plantuml.klimt.UShape;
 import net.sourceforge.plantuml.klimt.awt.XColor;
+import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.HColorSimple;
-import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+import net.sourceforge.plantuml.klimt.color.HColors;
+import net.sourceforge.plantuml.klimt.drawing.AbstractCommonUGraphic;
+import net.sourceforge.plantuml.klimt.drawing.debug.StringBounderDebug;
 import net.sourceforge.plantuml.klimt.font.UFontFace;
 import net.sourceforge.plantuml.klimt.shape.UText;
 
@@ -29,8 +31,8 @@ import net.sourceforge.plantuml.klimt.shape.UText;
  *
  * <p>Strategy: build minimal SVG fragments containing a {@code <text>} element
  * with specific font-weight attributes, parse with {@code SvgSaxParser}, call
- * {@code drawU} with a mock {@link UGraphic}, capture the drawn shape, and assert
- * the weight on the resulting {@link UFontFace}.
+ * {@code drawU} with a {@link RecordingUGraphic} that just records every shape
+ * it is asked to draw, and assert the weight on the resulting {@link UFontFace}.
  */
 class SvgSaxParserFontWeightTest {
 
@@ -53,16 +55,12 @@ class SvgSaxParserFontWeightTest {
 		return new SvgSaxParser(svg);
 	}
 
-	/** Draws the parser, captures the first UText argument passed to draw(), and returns its UFontFace. */
+	/** Draws the parser, finds the first drawn UText shape, and returns its UFontFace. */
 	private static UFontFace capturedFace(SvgSaxParser parser) {
-		final UGraphic ug = mock(UGraphic.class, org.mockito.Mockito.RETURNS_SELF);
+		final RecordingUGraphic ug = new RecordingUGraphic();
 		parser.drawU(ug, 1.0, FONT_COLOR, FORCED_COLOR);
 
-		final ArgumentCaptor<UShape> captor = ArgumentCaptor.forClass(UShape.class);
-		verify(ug, atLeastOnce()).draw(captor.capture());
-
-		final List<UShape> shapes = captor.getAllValues();
-		for (UShape shape : shapes) {
+		for (final UShape shape : ug.getShapes()) {
 			if (shape instanceof UText) {
 				return ((UText) shape).getFontConfiguration().getFontFace();
 			}
@@ -77,43 +75,43 @@ class SvgSaxParserFontWeightTest {
 	@Test
 	void fontWeight700ProducesWeight700() {
 		final UFontFace face = capturedFace(parserWithText("700", null));
-		assertThat(face.getCssWeight()).isEqualTo(700);
+		assertEquals(700, face.getCssWeight());
 	}
 
 	@Test
 	void fontWeightBoldKeywordProducesWeight700() {
 		final UFontFace face = capturedFace(parserWithText("bold", null));
-		assertThat(face.getCssWeight()).isEqualTo(700);
+		assertEquals(700, face.getCssWeight());
 	}
 
 	@Test
 	void fontWeight500ProducesWeight500() {
 		final UFontFace face = capturedFace(parserWithText("500", null));
-		assertThat(face.getCssWeight()).isEqualTo(500);
+		assertEquals(500, face.getCssWeight());
 	}
 
 	@Test
 	void fontWeight300ProducesWeight300() {
 		final UFontFace face = capturedFace(parserWithText("300", null));
-		assertThat(face.getCssWeight()).isEqualTo(300);
+		assertEquals(300, face.getCssWeight());
 	}
 
 	@Test
 	void fontWeightLighterKeywordProducesWeight300() {
 		final UFontFace face = capturedFace(parserWithText("lighter", null));
-		assertThat(face.getCssWeight()).isEqualTo(300);
+		assertEquals(300, face.getCssWeight());
 	}
 
 	@Test
 	void fontWeightNormalKeywordProducesWeight400() {
 		final UFontFace face = capturedFace(parserWithText("normal", null));
-		assertThat(face.getCssWeight()).isEqualTo(400);
+		assertEquals(400, face.getCssWeight());
 	}
 
 	@Test
 	void missingFontWeightDefaultsTo400() {
 		final UFontFace face = capturedFace(parserWithText(null, null));
-		assertThat(face.getCssWeight()).isEqualTo(400);
+		assertEquals(400, face.getCssWeight());
 	}
 
 	// -----------------------------------------------------------------------
@@ -123,25 +121,25 @@ class SvgSaxParserFontWeightTest {
 	@Test
 	void fontStyleItalicProducesItalicFace() {
 		final UFontFace face = capturedFace(parserWithText(null, "italic"));
-		assertThat(face.isItalic()).isTrue();
+		assertTrue(face.isItalic());
 	}
 
 	@Test
 	void fontStyleObliqueProducesItalicFace() {
 		final UFontFace face = capturedFace(parserWithText(null, "oblique"));
-		assertThat(face.isItalic()).isTrue();
+		assertTrue(face.isItalic());
 	}
 
 	@Test
 	void fontStyleNormalProducesNonItalicFace() {
 		final UFontFace face = capturedFace(parserWithText(null, "normal"));
-		assertThat(face.isItalic()).isFalse();
+		assertFalse(face.isItalic());
 	}
 
 	@Test
 	void missingFontStyleDefaultsToNonItalic() {
 		final UFontFace face = capturedFace(parserWithText(null, null));
-		assertThat(face.isItalic()).isFalse();
+		assertFalse(face.isItalic());
 	}
 
 	// -----------------------------------------------------------------------
@@ -151,15 +149,15 @@ class SvgSaxParserFontWeightTest {
 	@Test
 	void weight600AndItalicAreIndependentAxes() {
 		final UFontFace face = capturedFace(parserWithText("600", "italic"));
-		assertThat(face.getCssWeight()).isEqualTo(600);
-		assertThat(face.isItalic()).isTrue();
+		assertEquals(600, face.getCssWeight());
+		assertTrue(face.isItalic());
 	}
 
 	@Test
 	void weight300NonItalicCombination() {
 		final UFontFace face = capturedFace(parserWithText("300", "normal"));
-		assertThat(face.getCssWeight()).isEqualTo(300);
-		assertThat(face.isItalic()).isFalse();
+		assertEquals(300, face.getCssWeight());
+		assertFalse(face.isItalic());
 	}
 
 	// -----------------------------------------------------------------------
@@ -170,6 +168,42 @@ class SvgSaxParserFontWeightTest {
 	@CsvSource({"100", "200", "300", "400", "500", "600", "700", "800", "900"})
 	void numericWeightRoundTrips(String cssWeight) {
 		final UFontFace face = capturedFace(parserWithText(cssWeight, null));
-		assertThat(face.toCssWeightString()).isEqualTo(cssWeight);
+		assertEquals(cssWeight, face.toCssWeightString());
+	}
+
+	// -----------------------------------------------------------------------
+	// Test double: a real (if minimal) UGraphic implementation - not a mock -
+	// that just records every shape it is asked to draw, the same
+	// architectural family as UGraphicTxt/UGraphicNull.
+	// -----------------------------------------------------------------------
+
+	private static final class RecordingUGraphic extends AbstractCommonUGraphic {
+
+		private final List<UShape> shapes = new ArrayList<>();
+
+		RecordingUGraphic() {
+			super(new StringBounderDebug());
+			basicCopy(HColors.BLACK, ColorMapper.IDENTITY);
+		}
+
+		@Override
+		protected AbstractCommonUGraphic copyUGraphic() {
+			return this;
+		}
+
+		@Override
+		public <SHAPE extends UShape> void draw(final SHAPE shape) {
+			shapes.add(shape);
+		}
+
+		List<UShape> getShapes() {
+			return shapes;
+		}
+
+		@Override
+		public void writeToStream(final OutputStream os, final String metadata, final int dpi) throws IOException {
+			// never called: this test never exports the drawing to a stream
+		}
+
 	}
 }
