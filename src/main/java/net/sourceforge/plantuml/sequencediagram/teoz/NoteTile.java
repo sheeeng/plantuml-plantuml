@@ -35,6 +35,9 @@
  */
 package net.sourceforge.plantuml.sequencediagram.teoz;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -171,9 +174,84 @@ public class NoteTile extends AbstractTile implements Tile {
 	}
 
 	public void addConstraints() {
-		// final Component comp = getComponent(stringBounder);
-		// final Dimension2D dim = comp.getPreferredDimension(stringBounder);
-		// final double width = dim.getWidth();
+		ensureOwnBoxClearsNote();
+	}
+
+	// See CommunicationTileSelf.ensureOwnBoxClearsLoop() (issue #2791): a `box
+	// "..." ... endbox` grouping draws its rectangle purely from its first/last
+	// participant's LivingSpace marginBefore/marginAfter (Doll.getPosA()/
+	// getPosE()), never from any tile's own footprint. A standalone
+	// "note left of"/"note right of"/"note over" can reach further than the
+	// participant(s) it is attached to -- exactly the same shape of overflow
+	// as a self-message loop, just for a note instead of a loop. Grow the
+	// relevant LivingSpace's own margin to cover it; harmless when the
+	// participant(s) here are not actually a box's first/last member (or are
+	// in no box at all), since that margin is then never read (see
+	// LivingSpace.getPosA()/getPosE(), read only by Doll).
+	//
+	// The formula self-selects by position: for NotePosition.LEFT, getMinX()
+	// already equals getX() (no leftward reach past livingSpace1.getPosB()
+	// unless the note itself is wider than the gap), and getMaxX() collapses
+	// to livingSpace1.getPosC(), which never exceeds getPosD() -- so the
+	// "wrong side" of the pair is always a no-op (overflow <= 0) without
+	// needing to branch on note.getPosition() here.
+	private void ensureOwnBoxClearsNote() {
+		final StringBounder stringBounder = getStringBounder();
+
+		final double overflowLeft = livingSpace1.getPosB(stringBounder).getCurrentValue()
+				- getMinX().getCurrentValue();
+		if (overflowLeft > 0)
+			livingSpace1.ensureMarginBefore(overflowLeft);
+
+		final LivingSpace rightAnchor = note.getPosition() == NotePosition.OVER_SEVERAL ? livingSpace2
+				: livingSpace1;
+		final double overflowRight = getMaxX().getCurrentValue()
+				- rightAnchor.getPosD(stringBounder).getCurrentValue();
+		if (overflowRight > 0)
+			rightAnchor.ensureMarginAfter(overflowRight);
+	}
+
+	// The right edges this note is built on, broken back down into Reals that are
+	// each safe to hand to Real.ensureBiggerThan() -- i.e. plain delta chains,
+	// re-read on every compile() pass. getMaxX() itself is NOT safe for that:
+	// under OVER_SEVERAL it composes a RealUtils.max(), which caches its resolved
+	// value the first time it is read (see the note in GroupingTile). Stacking one
+	// constraint per element of this list is the same "max", minus the caching.
+	// RealUtils.middle(), which getX() uses under OVER_SEVERAL, does not cache and
+	// needs no such treatment.
+	// The participant this note's own left edge is measured from, and how far left
+	// of that participant's posC it reaches -- a plain distance, no Real involved,
+	// so a caller can subtract it from a position it already holds. Used by
+	// GroupingTile to re-derive a group frame's left edge without reading the
+	// RealMin the constructor built it from.
+	//
+	// 0 for OVER_SEVERAL, where the left edge is a RealUtils.middle() between two
+	// participants and no fixed distance from either one describes it. That
+	// over-estimates the frame's left edge, hence its title's right edge, hence the
+	// push -- the harmless direction: a little too much room rather than a
+	// participant back under the frame.
+	LivingSpace getLeftAnchor() {
+		return livingSpace1;
+	}
+
+	double getLeftOverhang() {
+		final NotePosition position = note.getPosition();
+		if (position == NotePosition.LEFT)
+			return getUsedWidth(getStringBounder());
+
+		if (position == NotePosition.OVER)
+			return getUsedWidth(getStringBounder()) / 2;
+
+		return 0;
+	}
+
+	List<Real> getStableMaxX() {
+		final List<Real> result = new ArrayList<>();
+		result.add(getX(getStringBounder()).addFixed(getUsedWidth(getStringBounder())));
+		if (note.getPosition() == NotePosition.OVER_SEVERAL)
+			result.add(livingSpace2.getPosD(getStringBounder()));
+
+		return result;
 	}
 
 	@Override
