@@ -102,10 +102,16 @@ public class NoteTile extends AbstractTile implements Tile {
 		return yGauge;
 	}
 
+	// The component only depends on the tile's fixed data, not on the string
+	// bounder, but it was rebuilt on every call from every layout phase
+	private Component cachedComponent;
+
 	private Component getComponent(StringBounder stringBounder) {
-		final Component comp = skin.createComponentNote(note.getUsedStyles(), getNoteComponentType(note.getNoteStyle()),
-				note.getSkinParamBackcolored(skinParam), note.getDisplay(), note.getColors(), note.getPosition());
-		return comp;
+		if (cachedComponent == null)
+			cachedComponent = skin.createComponentNote(note.getUsedStyles(),
+					getNoteComponentType(note.getNoteStyle()), note.getSkinParamBackcolored(skinParam),
+					note.getDisplay(), note.getColors(), note.getPosition());
+		return cachedComponent;
 	}
 
 	protected static ComponentType getNoteComponentType(NoteStyle noteStyle) {
@@ -250,6 +256,21 @@ public class NoteTile extends AbstractTile implements Tile {
 		result.add(getX(getStringBounder()).addFixed(getUsedWidth(getStringBounder())));
 		if (note.getPosition() == NotePosition.OVER_SEVERAL)
 			result.add(livingSpace2.getPosD(getStringBounder()));
+
+		return result;
+	}
+
+	// Left-side mirror of getStableMaxX(): the left edges this note is built
+	// on, each safe to hand to Real.ensureBiggerThan() for the same reason --
+	// getMinX() itself composes a RealUtils.min() under OVER_SEVERAL, which
+	// caches its resolved value the first time it is read (see the note on
+	// GroupingTile.ensureFollowingParticipantClearsFrame()), so that case is
+	// split back into its two plain halves here too.
+	List<Real> getStableMinX() {
+		final List<Real> result = new ArrayList<>();
+		result.add(getX(getStringBounder()));
+		if (note.getPosition() == NotePosition.OVER_SEVERAL)
+			result.add(livingSpace1.getPosB(getStringBounder()));
 
 		return result;
 	}

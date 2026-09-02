@@ -176,8 +176,10 @@ public class SkinParam implements ISkinParam {
 		this.skin = newSkin;
 	}
 
-	// This must never return null: many callers use the result without any check, so
-	// returning null would only turn a style issue into an unrelated NullPointerException.
+	// This must never return null: many callers use the result without any check,
+	// so
+	// returning null would only turn a style issue into an unrelated
+	// NullPointerException.
 	private StyleBuilder getCurrentStyleBuilderInternal() {
 		try {
 			return StyleLoader.loadSkin(this.getDefaultSkin());
@@ -318,15 +320,22 @@ public class SkinParam implements ISkinParam {
 		return style.value(PName.BackGroundColor).asColor(getIHtmlColorSet());
 	}
 
+	private final Map<String, String> cacheKeyValue = new HashMap<>();
+
 	@Override
 	public String getValue(String key) {
+		if (cacheKeyValue.containsKey(key))
+			return cacheKeyValue.get(key);
 		applyPendingStyleMigration();
 		for (String key2 : cleanForKey(key)) {
 			final String result = params.get(key2);
-			if (result != null)
+			if (result != null) {
+				cacheKeyValue.put(key, result);
 				return result;
+			}
 
 		}
+		cacheKeyValue.put(key, null);
 		return null;
 	}
 
@@ -906,8 +915,22 @@ public class SkinParam implements ISkinParam {
 		return null;
 	}
 
+	private final Map<String, UStroke> cacheThickness = new HashMap<>();
+
 	@Override
 	public UStroke getThickness(LineParam param, Stereotype stereotype) {
+		// Called for every drawn element; the key building, parsing and
+		// LinkStyle churn below showed up in profiles, same idea as cacheKeyValue
+		final String key = stereotype == null ? param.name()
+				: param.name() + '\0' + stereotype.getLabel(Guillemet.DOUBLE_COMPARATOR);
+		if (cacheThickness.containsKey(key))
+			return cacheThickness.get(key);
+		final UStroke result = getThicknessSlow(param, stereotype);
+		cacheThickness.put(key, result);
+		return result;
+	}
+
+	private UStroke getThicknessSlow(LineParam param, Stereotype stereotype) {
 		LinkStyle style = null;
 		if (stereotype != null) {
 			checkStereotype(stereotype);
