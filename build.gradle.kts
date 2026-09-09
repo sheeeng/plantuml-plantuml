@@ -443,10 +443,10 @@ tasks.register<JdependHtmlTask>("jdependHtml") {
     jdependClasspath.from(jdependConfig)
 	xmlReport.set(file("$outputDir/jdepend-report.xml"))
 
-    xsltFile.set(file("tools/jdepend-report.xsl"))
+    xsltFile.set(file("tools/jdepend/jdepend-report.xsl"))
     htmlReport.set(file("$outputDir/jdepend-report.html"))
     
-    pumlXsltFile.set(file("tools/jdepend2puml.xsl"))
+    pumlXsltFile.set(file("tools/jdepend/jdepend2puml.xsl"))
     pumlReport.set(file("$outputDir/jdepend-report.puml"))
 }
 
@@ -1012,8 +1012,22 @@ tasks.register("npmPackage") {
 			  integration proofs of concept
 
 			Heavy optional sprite libraries (IBM, tupadr3, material, AWS...) are **not**
-			bundled here to keep the package small; load them from the project site if
-			you need them.
+			bundled here to keep the package small. To use them (and the rest of the
+			standard library: `!include <C4/C4_Context>`, azure, kubernetes, ...), point
+			the engine at wherever the bundles are hosted before rendering; they are
+			fetched lazily, one bundle per library, only when a diagram includes it:
+
+			```html
+			<script>
+			  window.PLANTUML_STDLIB_BASE = "https://plantuml.github.io/plantuml/js-plantuml/";
+			</script>
+			```
+
+			(Note the trailing slash: the value is a plain URL prefix.) For production,
+			self-host the bundles your diagrams use and point the base at your own
+			assets. Hosts that cannot load scripts at all (Web Workers, browser
+			extensions) set a `PLANTUML_STDLIB_LOADER` callback instead -- see
+			[GITHUB_INTEGRATION.md](./GITHUB_INTEGRATION.md).
 
 			## License
 

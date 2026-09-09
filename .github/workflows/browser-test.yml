@@ -2,7 +2,7 @@ name: browser-test
 
 # Functional checks for the browser (TeaVM) engine: builds the MIT npm package and asserts
 # behaviour in headless Chromium. Unlike perf-bench this one fails the build when a check fails.
-# To stop spending CI minutes on it, delete this file; browser-test/README.md documents how to
+# To stop spending CI minutes on it, delete this file; tools/browser-test/README.md documents how to
 # run the same checks locally in one command.
 
 on:
@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  themes:
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -52,26 +52,35 @@ jobs:
           test -f plantuml-mit/build/npm-plantuml/themes.js
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: browser-test/package-lock.json
+          cache-dependency-path: tools/browser-test/package-lock.json
 
       - name: Install Playwright
         run: |
-          cd browser-test
+          cd tools/browser-test
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps --only-shell chromium
 
       - name: Check themes
-        run: node browser-test/check-themes.js target=plantuml-mit/build/npm-plantuml
+        run: node tools/browser-test/check-themes.js target=plantuml-mit/build/npm-plantuml
 
       - name: Check background
-        run: node browser-test/check-background.js target=plantuml-mit/build/npm-plantuml
+        run: node tools/browser-test/check-background.js target=plantuml-mit/build/npm-plantuml
 
       - name: Check smetana layout
-        run: node browser-test/check-smetana.js target=plantuml-mit/build/npm-plantuml
+        run: node tools/browser-test/check-smetana.js target=plantuml-mit/build/npm-plantuml
+
+      - name: Check smetana fallback when viz is missing
+        run: node tools/browser-test/check-viz-fallback.js target=plantuml-mit/build/npm-plantuml
 
       - name: Check viz missing
-        run: node browser-test/check-viz-missing.js target=plantuml-mit/build/npm-plantuml
+        run: node tools/browser-test/check-viz-missing.js target=plantuml-mit/build/npm-plantuml
+
+      - name: Check stdlib loader
+        run: node tools/browser-test/check-stdlib-loader.js target=plantuml-mit/build/npm-plantuml
+
+      - name: Add Gradle title to Summary
+        run: echo "## Gradle" >> $GITHUB_STEP_SUMMARY
