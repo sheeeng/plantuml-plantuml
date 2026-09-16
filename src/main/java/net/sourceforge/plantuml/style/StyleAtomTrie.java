@@ -33,13 +33,12 @@
  *
  *
  */
-package net.sourceforge.plantuml.style.parser2;
+package net.sourceforge.plantuml.style;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedSet;
 
 /**
  * A set-trie: every declaration is stored under the sorted path of {@link StyleAtom} it
@@ -87,11 +86,17 @@ public final class StyleAtomTrie<T> {
 
 	/**
 	 * Stores {@code payload} under {@code atoms}, matched later only against a query whose
-	 * {@link LevelConstraint} it accepts (see {@link LevelConstraint#matches}).
+	 * {@link LevelConstraint} it accepts (see {@link LevelConstraint#matches}). {@code atoms} is
+	 * an {@link AtomArray} rather than any ordered collection because that is what both sides of
+	 * a match already hold: it is sorted in {@link StyleAtom}'s natural order and duplicate-free
+	 * by construction -- which {@link #findMatching} relies on, walking a stored path and the
+	 * query's own atoms in lockstep -- and it is indexable, so neither side needs copying or an
+	 * iterator to be walked.
 	 */
-	public void insert(SortedSet<StyleAtom> atoms, LevelConstraint levelConstraint, T payload) {
+	public void insert(AtomArray atoms, LevelConstraint levelConstraint, T payload) {
 		TrieNode<T> current = root;
-		for (StyleAtom atom : atoms) {
+		for (int i = 0; i < atoms.size(); i++) {
+			final StyleAtom atom = atoms.get(i);
 			TrieNode<T> child = current.children.get(atom);
 			if (child == null) {
 				child = new TrieNode<T>();
@@ -109,17 +114,20 @@ public final class StyleAtomTrie<T> {
 	 * results -- that is resolver work, left for later.
 	 */
 	public List<T> findMatching(StyleQuery query) {
-		final List<StyleAtom> queryAtoms = new ArrayList<StyleAtom>(query.getAtoms());
+		// The query's own AtomArray is walked in place: it is immutable, already sorted the way
+		// this walk needs, and offers indexed access, so there is nothing to copy it into.
 		final List<T> result = new ArrayList<T>();
-		collect(root, queryAtoms, 0, query.getLevelConstraint(), result);
+		collect(root, query.getAtoms(), 0, query.getLevelConstraint(), result);
 		return result;
 	}
 
-	private static <T> void collect(TrieNode<T> node, List<StyleAtom> queryAtoms, int fromIndex,
+	private static <T> void collect(TrieNode<T> node, AtomArray queryAtoms, int fromIndex,
 			LevelConstraint queryLevel, List<T> result) {
-		for (Stored<T> stored : node.rulesHere)
+		for (int i = 0; i < node.rulesHere.size(); i++) {
+			final Stored<T> stored = node.rulesHere.get(i);
 			if (LevelConstraint.matches(stored.levelConstraint, queryLevel))
 				result.add(stored.payload);
+		}
 
 		for (int i = fromIndex; i < queryAtoms.size(); i++) {
 			final TrieNode<T> child = node.children.get(queryAtoms.get(i));

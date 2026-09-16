@@ -9,18 +9,17 @@
 // over http exactly as it is in the npm package. Every check runs; the exit code is non-zero if
 // any failed, so it can gate a build. There are no golden files: the expected output for a theme is derived
 // from that theme's own text, read out of the served themes.js.
-const path = require('path'), http = require('http'), fs = require('fs'), crypto = require('crypto');
-const pw = require(process.env.BENCH_PW || 'playwright');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const { createCheckReporter, isErrorImage } = require('../lib/browser-check');
+const { parseTargetArg } = require('../lib/browser-cli');
+const { createMountedServer, startServer } = require('../lib/browser-http');
+const { createModulePageHtml, loadPlaywright, makeRenderModuleBody, maybeScriptTag, openRenderer } = require('../lib/browser-page');
 
-let dir = null, file = 'plantuml.js';
-for (let i = 2; i < process.argv.length; i++) {
-  const m = process.argv[i].match(/^target=(.+)$/);
-  if (!m) { console.error('bad arg: ' + process.argv[i]); process.exit(2); }
-  dir = m[1];
-  if (dir.endsWith('.js')) { file = path.basename(dir); dir = path.dirname(dir); }
-}
-if (!dir) { console.error('usage: node check-themes.js target=<dir-or-js>'); process.exit(2); }
-dir = path.resolve(dir);
+const scriptName = path.basename(__filename, '.js');
+const { dir, file } = parseTargetArg(process.argv, `node ${scriptName}.js target=<dir-or-js>`);
+const pw = loadPlaywright();
 
 const themesJsPath = path.join(dir, 'themes.js');
 if (!fs.existsSync(themesJsPath)) {
@@ -38,80 +37,57 @@ const THEMES = (() => {
 })();
 const NAMES = Object.keys(THEMES).sort();
 
-const pageHtml = `<!doctype html><html><head></head><body><div id="out"></div>
-${fs.existsSync(path.join(dir, 'viz-global.js')) ? '<script src="/viz-global.js"></script>' : ''}
-<script type="module">
-import {render} from '/${file}';
-window.__render=(lines,id)=>render(lines,id,{maxSvgSize:98304});
-window.__ready=1;
-</script></body></html>`;
-
-const server = http.createServer((req, res) => {
-  const u = decodeURIComponent(req.url.split('?')[0]);
-  if (u === '/index.html') { res.setHeader('content-type', 'text/html'); return res.end(pageHtml); }
-  const p = path.join(dir, u);
-  if (p.startsWith(dir) && fs.existsSync(p) && fs.statSync(p).isFile()) {
-    res.setHeader('content-type', 'application/javascript');
-    res.setHeader('cache-control', 'no-store');
-    return fs.createReadStream(p).pipe(res);
-  }
-  res.statusCode = 404; res.end();
+const pageHtml = createModulePageHtml({
+  modulePath: `/${file}`,
+  bodyHtml: maybeScriptTag(dir, 'viz-global.js', '/viz-global.js'),
+  moduleBody: makeRenderModuleBody({ maxSvgSize: 98304 }),
 });
 
-// The PlantUML error image is green on black; a themed diagram never is.
-const isErrorImage = svg => svg.includes('#33FF02') && svg.includes('#FF0000');
+const server = createMountedServer({
+  routes: {
+    '/index.html': { contentType: 'text/html', body: pageHtml },
+  },
+  mounts: [{ prefix: '/', dir }],
+});
+
 // The embedded source differs whenever the source text does, so it is excluded from comparisons.
 const shape = svg => svg.replace(/<\?plantuml-src[^?]*\?>/g, '');
 const hash = svg => crypto.createHash('sha256').update(shape(svg)).digest('hex');
 // A theme file starts with a YAML header; the body alone is what !theme executes.
 const themeBody = name => THEMES[name].replace(/^---\n[\s\S]*?\n---\n/, '');
 
-let failures = 0;
-function check(label, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok || !detail ? '' : '\n        ' + detail}`);
-  if (!ok) failures++;
-}
+const { check, finish } = createCheckReporter();
 
 const body = ['Alice -> Bob: hello', 'Bob --> Alice: hi', 'note right: a note'];
 const diagram = (...head) => ['@startuml', ...head, ...body, '@enduml'];
 
 (async () => {
-  await new Promise(r => server.listen(0, '127.0.0.1', r));
-  const port = server.address().port;
+  const port = await startServer(server);
   const browser = await pw.chromium.launch({ headless: true });
 
-  async function newRenderer({ blockThemesJs = false, preregister = false } = {}) {
-    const page = await browser.newPage();
+  async function openThemedRenderer({ blockThemesJs = false, preregister = false } = {}) {
     const consoleMessages = [];
-    page.on('console', m => consoleMessages.push({ type: m.type(), text: m.text() }));
-    if (blockThemesJs) await page.route('**/themes.js', r => r.abort());
-    if (preregister)
-      await page.addInitScript(`globalThis.PLANTUML_THEMES = ${JSON.stringify(THEMES)};`);
-    await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
-    await page.waitForFunction('window.__ready && window.__render', null, { timeout: 120000 });
-    const renderOnPage = async lines => {
-      const r = await page.evaluate(async ({ lines }) => {
-        const out = document.getElementById('out'); out.innerHTML = '';
-        const done = new Promise(res => {
-          const mo = new MutationObserver(() => {
-            if (out.querySelector('svg') || out.textContent) { mo.disconnect(); res(); }
-          });
-          mo.observe(out, { childList: true, subtree: true });
-        });
-        let err = null;
-        try { window.__render(lines, 'out'); } catch (e) { err = String((e && e.message) || e); }
-        if (!err) await Promise.race([done, new Promise(r => setTimeout(r, 60000))]);
-        const svg = out.querySelector('svg');
-        return { err, svg: svg ? svg.outerHTML : null };
-      }, { lines });
+    const renderOnPage = await openRenderer(browser, `http://127.0.0.1:${port}/index.html`, {
+      trackErrors: false,
+      onConsole: m => consoleMessages.push({ type: m.type(), text: m.text() }),
+      beforeGoto: async page => {
+        if (blockThemesJs) await page.route('**/themes.js', r => r.abort());
+        if (preregister)
+          await page.addInitScript(`globalThis.PLANTUML_THEMES = ${JSON.stringify(THEMES)};`);
+      },
+    }, { timeoutMs: 60000 });
+    const render = async lines => {
+      const r = await renderOnPage(lines);
       if (r.err || !r.svg) throw new Error('render produced no svg: ' + r.err);
       return r.svg;
     };
-    renderOnPage.consoleMessages = consoleMessages;
-    return renderOnPage;
+    render.page = renderOnPage.page;
+    render.errors = renderOnPage.errors;
+    render.consoleMessages = consoleMessages;
+    return render;
   }
 
-  const render = await newRenderer();
+  const render = await openThemedRenderer();
 
   console.log(`engine : ${path.join(dir, file)}`);
   console.log(`themes : ${NAMES.length} in themes.js\n`);
@@ -123,17 +99,17 @@ const diagram = (...head) => ['@startuml', ...head, ...body, '@enduml'];
   // 2. A theme must actually change the output. This is the regression guard for the original
   //    bug, where !theme was accepted and silently ignored.
   const amiga = await render(diagram('!theme amiga'));
-  check('!theme amiga changes the output', hash(amiga) !== hash(control),
+  check('`!theme amiga` changes the output', hash(amiga) !== hash(control),
     'identical to the unthemed diagram: the directive was ignored');
 
   // 3. ...and change it to that theme's own colours.
-  check('!theme amiga applies the amiga palette', amiga.includes('#0B58A8'),
+  check('`!theme amiga` applies the amiga palette', amiga.includes('#0B58A8'),
     'expected the theme background #0B58A8 in the svg');
 
   // 4. Strongest check: loading a theme by name must equal pasting that theme's body inline.
   //    Both sides come from the same engine, so only the loading path differs.
   const inlined = await render(diagram(...themeBody('amiga').split('\n')));
-  check('!theme amiga == the same theme inlined by hand', hash(amiga) === hash(inlined),
+  check('`!theme amiga` == the same theme inlined by hand', hash(amiga) === hash(inlined),
     'the theme loaded, but produced different output than executing its body directly');
 
   // 5. An unknown name must be reported, not ignored.
@@ -144,13 +120,13 @@ const diagram = (...head) => ['@startuml', ...head, ...body, '@enduml'];
   // 6. The YAML header of the loaded theme must reach %get_current_theme().
   const meta = await render(['@startuml', '!theme amiga', '!$m = %get_current_theme()',
     'Alice -> Bob: $m.display_name', '@enduml']);
-  check('%get_current_theme() returns the loaded theme metadata',
+  check('`%get_current_theme()` returns the loaded theme metadata',
     meta.includes('Amiga Workbench 1.x'), 'expected display_name from the theme YAML header');
 
   // 7. %get_all_theme() must not advertise more themes than the engine can load.
   const all = await render(['@startuml', '!$a = %get_all_theme()',
     'Alice -> Bob: count=%size($a)', '@enduml']);
-  check(`%get_all_theme() agrees with themes.js (${NAMES.length})`,
+  check(`\`%get_all_theme()\` agrees with \`themes.js\` (${NAMES.length})`,
     all.includes(`count=${NAMES.length}`),
     'the engine lists a different number of themes than it ships');
 
@@ -179,9 +155,9 @@ const diagram = (...head) => ['@startuml', ...head, ...body, '@enduml'];
   // 9. A host that registers PLANTUML_THEMES itself must not need themes.js to be fetchable.
   //    This is what lets themes work inside a Web Worker, where the script loader has no
   //    document to append a script tag to.
-  const preregistered = await newRenderer({ blockThemesJs: true, preregister: true });
+  const preregistered = await openThemedRenderer({ blockThemesJs: true, preregister: true });
   const amigaPre = await preregistered(diagram('!theme amiga'));
-  check('pre-registered PLANTUML_THEMES works without fetching themes.js',
+  check('pre-registered PLANTUML_THEMES works without fetching `themes.js`',
     amigaPre.includes('#0B58A8') && hash(amigaPre) === hash(amiga),
     'did not match the themes.js-loaded rendering of the same theme');
 
@@ -191,20 +167,19 @@ const diagram = (...head) => ['@startuml', ...head, ...body, '@enduml'];
   //     file is reported as a console warning, which is where the page author looks. An
   //     unknown theme name with themes.js present stays an error (checked above): only
   //     the missing-file case degrades.
-  const noThemes = await newRenderer({ blockThemesJs: true });
+  const noThemes = await openThemedRenderer({ blockThemesJs: true });
   const amigaMissing = await noThemes(diagram('!theme amiga'));
-  check('missing themes.js still renders the diagram, unthemed',
+  check('missing `themes.js` still renders the diagram, unthemed',
     !isErrorImage(amigaMissing) && hash(amigaMissing) === controlHash,
     isErrorImage(amigaMissing)
       ? 'rendered an error image, which would break published pages that upgrade the engine without deploying themes.js'
       : 'rendered something other than the plain unthemed diagram');
-  check('missing themes.js warns on the console',
+  check('missing `themes.js` warns on the console',
     noThemes.consoleMessages.some(m => m.type === 'warning' && m.text.includes('themes.js')),
     'no console warning mentions themes.js, so the page author gets no signal');
 
   await browser.close();
   server.close();
 
-  console.log(`\n${failures === 0 ? 'all checks passed' : failures + ' check(s) failed'}`);
-  process.exit(failures === 0 ? 0 : 1);
+  finish(scriptName, { leadingBlankLine: true });
 })().catch(e => { console.error(e); process.exit(1); });

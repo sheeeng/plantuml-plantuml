@@ -19,18 +19,16 @@
 // diagrams without the pragma still render through the Graphviz bridge (observed
 // via a WebAssembly.instantiate hook), so the default path is unchanged, and with
 // the pragma they render without touching WebAssembly at all.
-const path = require('path'), http = require('http'), fs = require('fs');
-const pw = require(process.env.BENCH_PW || 'playwright');
+const fs = require('fs');
+const path = require('path');
+const { createCheckReporter, isErrorImage } = require('../lib/browser-check');
+const { parseTargetArg } = require('../lib/browser-cli');
+const { createMountedServer, startServer } = require('../lib/browser-http');
+const { createModulePageHtml, loadPlaywright, makeRenderModuleBody, maybeScriptTag, openReadyPage, renderOn } = require('../lib/browser-page');
 
-let dir = null, file = 'plantuml.js';
-for (let i = 2; i < process.argv.length; i++) {
-  const m = process.argv[i].match(/^target=(.+)$/);
-  if (!m) { console.error('bad arg: ' + process.argv[i]); process.exit(2); }
-  dir = m[1];
-  if (dir.endsWith('.js')) { file = path.basename(dir); dir = path.dirname(dir); }
-}
-if (!dir) { console.error('usage: node check-smetana.js target=<dir-or-js>'); process.exit(2); }
-dir = path.resolve(dir);
+const scriptName = path.basename(__filename, '.js');
+const { dir, file } = parseTargetArg(process.argv, `node ${scriptName}.js target=<dir-or-js>`);
+const pw = loadPlaywright();
 
 if (!fs.existsSync(path.join(dir, 'viz-global.js'))) {
   console.error('viz-global.js not found next to the engine in ' + dir + ' (needed for the control page)');
@@ -47,35 +45,22 @@ window.__wasm = 0;
 });
 </script>`;
 
-const pageHtml = withViz => `<!doctype html><html><head>${hook}</head><body><div id="out"></div>
-${withViz ? '<script src="/viz-global.js"></script>' : ''}
-<script type="module">
-import {render} from '/${file}';
-window.__render=(lines,id)=>render(lines,id,{maxSvgSize:98304});
-window.__ready=1;
-</script></body></html>`;
-
-const server = http.createServer((req, res) => {
-  const u = decodeURIComponent(req.url.split('?')[0]);
-  if (u === '/index.html') { res.setHeader('content-type', 'text/html'); return res.end(pageHtml(false)); }
-  if (u === '/index-viz.html') { res.setHeader('content-type', 'text/html'); return res.end(pageHtml(true)); }
-  const p = path.join(dir, u);
-  if (p.startsWith(dir) && fs.existsSync(p) && fs.statSync(p).isFile()) {
-    res.setHeader('content-type', 'application/javascript');
-    res.setHeader('cache-control', 'no-store');
-    return fs.createReadStream(p).pipe(res);
-  }
-  res.statusCode = 404; res.end();
+const pageHtml = withViz => createModulePageHtml({
+  headHtml: hook,
+  bodyHtml: withViz ? maybeScriptTag(dir, 'viz-global.js', '/viz-global.js') : '',
+  modulePath: `/${file}`,
+  moduleBody: makeRenderModuleBody({ maxSvgSize: 98304 }),
 });
 
-// The PlantUML error image is green on black; a laid-out diagram never is.
-const isErrorImage = svg => svg.includes('#33FF02') && svg.includes('#FF0000');
+const server = createMountedServer({
+  routes: {
+    '/index.html': { contentType: 'text/html', body: pageHtml(false) },
+    '/index-viz.html': { contentType: 'text/html', body: pageHtml(true) },
+  },
+  mounts: [{ prefix: '/', dir }],
+});
 
-let failures = 0;
-function check(label, ok, detail) {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${label}${ok || !detail ? '' : '\n        ' + detail}`);
-  if (!ok) failures++;
-}
+const { check, finish } = createCheckReporter();
 
 const FAMILIES = [
   ['class', ['class Car {', '  +drive(): void', '}', 'class Engine', 'class Wheel', 'Car *-- Engine', 'Car *-- "4" Wheel']],
@@ -94,46 +79,23 @@ const FAMILIES = [
 ];
 const diagram = (body, pragma) => ['@startuml', ...(pragma ? ['!pragma layout smetana'] : []), ...body, '@enduml'];
 
-async function renderOn(page, lines) {
-  return page.evaluate(async ({ lines }) => {
-    const out = document.getElementById('out');
-    out.innerHTML = '';
-    const w0 = window.__wasm;
-    const done = new Promise(res => {
-      const mo = new MutationObserver(() => {
-        if (out.querySelector('svg') || out.textContent) { mo.disconnect(); res(); }
-      });
-      mo.observe(out, { childList: true, subtree: true });
-    });
-    let thrown = null;
-    try { window.__render(lines, 'out'); } catch (e) { thrown = String(e && e.message || e); }
-    if (!thrown) await Promise.race([done, new Promise(r => setTimeout(r, 30000))]);
-    const svg = out.querySelector('svg');
-    return {
-      thrown, svg: svg ? svg.outerHTML : null, text: out.textContent || '',
-      wasm: window.__wasm - w0,
-      shapes: svg ? svg.querySelectorAll('path,polygon,line,rect,ellipse').length : 0,
-      texts: svg ? svg.querySelectorAll('text').length : 0,
-    };
-  }, { lines });
-}
-
 (async () => {
-  await new Promise(r => server.listen(0, '127.0.0.1', r));
-  const port = server.address().port;
+  const port = await startServer(server);
   const browser = await pw.chromium.launch({ headless: true });
 
   // Page 1: engine only, no viz-global.js. The pragma must be enough.
-  const bare = await browser.newPage();
-  const bareErrors = [];
-  bare.on('pageerror', e => bareErrors.push(String(e.message).split('\n')[0]));
-  await bare.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'load' });
-  await bare.waitForFunction('window.__ready && window.__render', null, { timeout: 120000, polling: 200 });
+  const bareReady = await openReadyPage(browser, `http://127.0.0.1:${port}/index.html`, { polling: 200 });
+  const bare = bareReady.page;
+  const bareErrors = bareReady.errors;
 
   for (const [label, body] of FAMILIES) {
-    const r = await renderOn(bare, diagram(body, true));
+    const r = await renderOn(bare, diagram(body, true), {
+      includeWasmCount: true,
+      includeShapeCounts: true,
+      maxTextLength: 120,
+    });
     const ok = !r.thrown && !!r.svg && !isErrorImage(r.svg) && r.shapes > 0 && r.texts > 0 && r.wasm === 0;
-    check(`smetana ${label} diagram renders without viz-global.js`, ok,
+    check(`smetana ${label} diagram renders without \`viz-global.js\``, ok,
       r.thrown || (!r.svg ? 'no svg: ' + r.text.slice(0, 120)
         : isErrorImage(r.svg) ? 'error image'
         : r.wasm !== 0 ? 'unexpected WebAssembly use (' + r.wasm + ')'
@@ -144,20 +106,24 @@ async function renderOn(page, lines) {
   // Page 2 (control): viz-global.js loaded. Without the pragma the Graphviz
   // bridge must still be used (default path unchanged); with the pragma the
   // render must not touch WebAssembly.
-  const ctrl = await browser.newPage();
-  const ctrlErrors = [];
-  ctrl.on('pageerror', e => ctrlErrors.push(String(e.message).split('\n')[0]));
-  await ctrl.goto(`http://127.0.0.1:${port}/index-viz.html`, { waitUntil: 'load' });
-  await ctrl.waitForFunction('window.__ready && window.__render', null, { timeout: 120000, polling: 200 });
+  const ctrlReady = await openReadyPage(browser, `http://127.0.0.1:${port}/index-viz.html`, { polling: 200 });
+  const ctrl = ctrlReady.page;
+  const ctrlErrors = ctrlReady.errors;
 
-  const viaViz = await renderOn(ctrl, diagram(FAMILIES[0][1], false));
+  const viaViz = await renderOn(ctrl, diagram(FAMILIES[0][1], false), {
+    includeWasmCount: true,
+    maxTextLength: 120,
+  });
   check('control: class diagram without the pragma still uses the Graphviz bridge',
     !viaViz.thrown && !!viaViz.svg && !isErrorImage(viaViz.svg) && viaViz.wasm > 0,
     viaViz.thrown || (!viaViz.svg ? 'no svg: ' + viaViz.text.slice(0, 120)
       : viaViz.wasm === 0 ? 'render used no WebAssembly, default path changed' : 'error image'));
 
-  const viaSmetana = await renderOn(ctrl, diagram(FAMILIES[0][1], true));
-  check('control: class diagram with the pragma ignores viz-global.js even when loaded',
+  const viaSmetana = await renderOn(ctrl, diagram(FAMILIES[0][1], true), {
+    includeWasmCount: true,
+    maxTextLength: 120,
+  });
+  check('control: class diagram with the pragma ignores `viz-global.js` even when loaded',
     !viaSmetana.thrown && !!viaSmetana.svg && !isErrorImage(viaSmetana.svg) && viaSmetana.wasm === 0,
     viaSmetana.thrown || (!viaSmetana.svg ? 'no svg: ' + viaSmetana.text.slice(0, 120)
       : viaSmetana.wasm !== 0 ? 'WebAssembly used (' + viaSmetana.wasm + ')' : 'error image'));
@@ -166,6 +132,5 @@ async function renderOn(page, lines) {
 
   await browser.close();
   server.close();
-  console.log(failures === 0 ? 'ALL CHECKS PASSED' : failures + ' CHECK(S) FAILED');
-  process.exit(failures === 0 ? 0 : 1);
+  finish(scriptName, { uppercase: true });
 })().catch(e => { console.error(e); process.exit(2); });
