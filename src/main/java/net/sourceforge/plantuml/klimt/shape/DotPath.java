@@ -36,6 +36,7 @@
  */
 package net.sourceforge.plantuml.klimt.shape;
 
+import net.sourceforge.plantuml.klimt.UShapeKind;
 import java.awt.Graphics2D;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.GeneralPath;
@@ -50,6 +51,7 @@ import net.sourceforge.plantuml.klimt.UPath;
 import net.sourceforge.plantuml.klimt.UShape;
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.geom.BezierUtils;
+import net.sourceforge.plantuml.klimt.UClip;
 import net.sourceforge.plantuml.klimt.geom.EnsureVisible;
 import net.sourceforge.plantuml.klimt.geom.MinFinder;
 import net.sourceforge.plantuml.klimt.geom.MinMax;
@@ -347,10 +349,10 @@ public class DotPath implements UShape, Moveable {
 		g2d.draw(p);
 	}
 
-	public void manageEnsureVisible(double x, double y, EnsureVisible visible) {
+	public void manageEnsureVisible(double x, double y, EnsureVisible visible, UClip clip) {
 		for (XCubicCurve2D bez : beziers) {
-			visible.ensureVisible(x + bez.x1, y + bez.y1);
-			visible.ensureVisible(x + bez.x2, y + bez.y2);
+			visible.ensureVisible(x + bez.x1, y + bez.y1, clip);
+			visible.ensureVisible(x + bez.x2, y + bez.y2, clip);
 		}
 
 	}
@@ -700,6 +702,11 @@ public class DotPath implements UShape, Moveable {
 				return false;
 		}
 		return true;
+	}
+
+	@Override
+	public UShapeKind getShapeKind() {
+		return UShapeKind.DOT_PATH;
 	}
 
 }
