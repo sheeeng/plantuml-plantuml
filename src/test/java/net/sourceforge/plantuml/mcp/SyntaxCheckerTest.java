@@ -3,7 +3,6 @@ package net.sourceforge.plantuml.mcp;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -31,7 +30,7 @@ class SyntaxCheckerTest {
 		assertNotNull(result);
 		assertTrue(result.isOk());
 		assertEquals(1, result.getWarnings().size());
-		assertEquals("[Please use '!option handwritten true' to enable handwritten ]", result.getWarnings().toString());
+		assertEquals("['skinparam handwritten' is deprecated: write '!option handwritten true' instead]", result.getWarnings().toString());
 	}
 
 	// The leading '/' (VMERGE) note-merge syntax predates the Teoz engine

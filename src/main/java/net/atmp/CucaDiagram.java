@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -103,6 +102,7 @@ import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.text.BackSlash;
 import net.sourceforge.plantuml.text.Guillemet;
 import net.sourceforge.plantuml.utils.LineLocation;
+import net.sourceforge.plantuml.utils.MyCollections;
 import net.sourceforge.plantuml.xmi.CucaDiagramXmiMaker;
 import net.sourceforge.plantuml.xmlsc.StateDiagramScxmlMaker;
 
@@ -404,7 +404,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 
 		String aspect = getPragma().getValue(PragmaKey.ASPECT);
 		if (aspect != null) {
-			aspect = aspect.replace(',', '.');
+			aspect = StringUtils.replaceChar(aspect, ',', '.');
 			result.add("aspect=" + aspect + ";");
 		}
 		final String ratio = getPragma().getValue(PragmaKey.RATIO);
@@ -646,7 +646,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 	}
 
 	public final Set<VisibilityModifier> getHidesVisibilityModifier() {
-		return Collections.unmodifiableSet(hideVisibilityModifier);
+		return MyCollections.unmodifiableSet(hideVisibilityModifier);
 	}
 
 	final public boolean isStandalone(Entity ent) {
@@ -687,7 +687,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 			if (link.getEntity1().getLeafType() != LeafType.NOTE && link.getEntity2().getLeafType() != LeafType.NOTE) {
 				result.add(link);
 				if (result.size() == 2)
-					return Collections.unmodifiableList(result);
+					return MyCollections.unmodifiableList(result);
 
 			}
 		}
@@ -778,6 +778,9 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 		for (HideOrShow hide : this.hides2)
 			hidden = hide.apply(hidden, leaf);
 
+		if (hidden == false && isOrphanedTransitionLabel(leaf))
+			hidden = true;
+
 		return hidden;
 	}
 
@@ -793,7 +796,31 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 		for (HideOrShow hide : this.removed)
 			result = hide.apply(result, leaf);
 
+		if (result == false && isOrphanedTransitionLabel(leaf))
+			result = true;
+
 		return result;
+	}
+
+	// A "stateDiagramEdgeLabelStyle node" transition label (see
+	// CommandLinkStateCommon.createTransitionWithIntermediateNode) is a node
+	// synthesized between a transition's real source and target; it carries
+	// none of their tags, so a 'remove'/'hide' that only matches one of those
+	// two endpoints would otherwise leave the label floating with a dangling
+	// arrow to nowhere. Once either real endpoint is gone, drop the label too.
+	private boolean isOrphanedTransitionLabel(Entity leaf) {
+		if (leaf.getLeafType() != LeafType.STATE_TRANSITION_LABEL)
+			return false;
+
+		for (Link link : getLinks()) {
+			if (link.contains(leaf) == false)
+				continue;
+			final Entity other = link.getOther(leaf);
+			if (other != leaf && (other.isRemoved() || other.isHidden()))
+				return true;
+		}
+
+		return false;
 	}
 
 	private Entity isNoteWithSingleLinkAttachedTo(Entity note) {
@@ -864,7 +891,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 			if (data != null && data.isGroup() == false)
 				result.add(data);
 		}
-		return Collections.unmodifiableCollection(result);
+		return MyCollections.unmodifiableCollection(result);
 
 	}
 
@@ -878,7 +905,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 			if (data != null && data.isGroup())
 				result.add(data);
 		}
-		return Collections.unmodifiableCollection(result);
+		return MyCollections.unmodifiableCollection(result);
 	}
 
 	public final Collection<Entity> groupsAndRoot() {
@@ -888,7 +915,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 			if (data != null && data.isGroup())
 				result.add(data);
 		}
-		return Collections.unmodifiableCollection(result);
+		return MyCollections.unmodifiableCollection(result);
 	}
 
 	public void incRawLayout() {
@@ -896,7 +923,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 	}
 
 	public final List<Link> getLinks() {
-		return Collections.unmodifiableList(this.links);
+		return MyCollections.unmodifiableList(this.links);
 	}
 
 	public void addLink(Link link) {

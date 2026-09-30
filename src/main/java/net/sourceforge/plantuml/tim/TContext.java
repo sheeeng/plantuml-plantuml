@@ -43,7 +43,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -173,8 +172,11 @@ import net.sourceforge.plantuml.tim.iterator.CodeIteratorShortComment;
 import net.sourceforge.plantuml.tim.iterator.CodeIteratorSub;
 import net.sourceforge.plantuml.tim.iterator.CodeIteratorWhile;
 import net.sourceforge.plantuml.utils.LineLocation;
+import net.sourceforge.plantuml.utils.MyCollections;
 
 public class TContext {
+
+	private static final Pattern NEWLINE = Pattern.compile("\n");
 
 	private final List<StringLocated> resultList = new ArrayList<>();
 	private final List<StringLocated> debug = new ArrayList<>();
@@ -193,7 +195,7 @@ public class TContext {
 	private PathSystem pathSystem;
 
 	public Set<File> getFilesUsedCurrent() {
-		return Collections.unmodifiableSet(filesUsedCurrent);
+		return MyCollections.unmodifiableSet(filesUsedCurrent);
 	}
 
 	private void addStandardFunctions(Defines defines) {
@@ -510,7 +512,7 @@ public class TContext {
 			return null;
 
 		if (Pragma.legacyReplaceBackslashNByNewline()) {
-			final String[] splited = result.split("\n");
+			final String[] splited = NEWLINE.split(result);
 			final StringLocated[] tab = new StringLocated[splited.length];
 			for (int i = 0; i < splited.length; i++)
 				tab[i] = new StringLocated(splited[i], located.getLocation());
@@ -607,8 +609,13 @@ public class TContext {
 			_import.analyze(this, memory);
 
 			try {
-				final SFile file = FileSystem.getInstance().getFile(
-						applyFunctionsAndVariables(memory, new StringLocated(_import.getWhat(), s.getLocation())));
+				final String what = applyFunctionsAndVariables(memory,
+						new StringLocated(_import.getWhat(), s.getLocation()));
+				// Same lookup as !include (relative to the directory of the current diagram)
+				// and only then the historical one, based on the global current directory.
+				final boolean special = what.startsWith("<") || what.startsWith("http://") || what.startsWith("https://");
+				final InputFile found = special ? null : pathSystem.getInputFile(what);
+				final SFile file = found instanceof SFile ? (SFile) found : FileSystem.getInstance().getFile(what);
 				if (file.exists() && file.isDirectory() == false) {
 					pathSystem.addImportFile(file);
 					return;

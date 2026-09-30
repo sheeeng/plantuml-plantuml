@@ -36,7 +36,6 @@
 package net.sourceforge.plantuml;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -46,8 +45,14 @@ import net.sourceforge.plantuml.asciiart.Wcwidth;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
+import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.Direction;
 import net.sourceforge.plantuml.utils.Log;
+import net.sourceforge.plantuml.utils.MyCollections;
+
+// ::comment when JAVA8
+import org.teavm.jso.JSBody;
+// ::done
 
 // Do not move
 public class StringUtils {
@@ -226,7 +231,7 @@ public class StringUtils {
 	}
 
 	public static String manageArrowForSequence(String s) {
-		s = s.replace('=', '-').toLowerCase();
+		s = StringUtils.replaceChar(s, '=', '-').toLowerCase();
 		return s;
 	}
 
@@ -244,7 +249,7 @@ public class StringUtils {
 
 	public static String manageArrowForCuca(String s) {
 		final Direction dir = getArrowDirection(s);
-		s = s.replace('=', '-');
+		s = StringUtils.replaceChar(s, '=', '-');
 		s = s.replaceAll("\\w*", "");
 		if (dir == Direction.LEFT || dir == Direction.RIGHT)
 			s = s.replaceAll("-+", "-");
@@ -257,7 +262,7 @@ public class StringUtils {
 
 	public static String manageQueueForCuca(String s) {
 		final Direction dir = getQueueDirection(s);
-		s = s.replace('=', '-');
+		s = StringUtils.replaceChar(s, '=', '-');
 		s = s.replaceAll("\\w*", "");
 		if (dir == Direction.LEFT || dir == Direction.RIGHT)
 			s = s.replaceAll("-+", "-");
@@ -441,7 +446,7 @@ public class StringUtils {
 		while (m.find())
 			result.add(eventuallyRemoveStartingAndEndingDoubleQuote(m.group(0)));
 
-		return Collections.unmodifiableList(result);
+		return MyCollections.unmodifiableList(result);
 	}
 
 	public static String getUid(String uid1, int uid2) {
@@ -451,7 +456,7 @@ public class StringUtils {
 	public static <O> List<O> merge(List<O> l1, List<O> l2) {
 		final List<O> result = new ArrayList<>(l1);
 		result.addAll(l2);
-		return Collections.unmodifiableList(result);
+		return MyCollections.unmodifiableList(result);
 	}
 
 	public static boolean endsWithBackslash(final String s) {
@@ -544,41 +549,68 @@ public class StringUtils {
 
 	// Builds "[-]intPart[.fracPart]" from an already-rounded, non-negative int
 	// (x scaled by 10^decimal), trimming useless trailing fractional zeros.
+	//
+	// The digits are written right to left straight into a single char[], so the
+	// native string is created only once (Integer.toString followed by a StringBuilder
+	// would copy the characters twice, which is costly under TeaVM). Trailing zeros are
+	// dropped arithmetically, before writing anything.
 	private static String buildFixedDecimal(int rounded, int decimal, boolean negative) {
 		if (rounded == 0)
 			return "0";
 
-		final String digits = Integer.toString(rounded);
-		final int len = digits.length();
+		while (decimal > 0 && rounded % 10 == 0) {
+			rounded /= 10;
+			decimal--;
+		}
 
-		final StringBuilder sb = new StringBuilder(len + 2);
+		// Worst case: '-' + "0." + 15 fractional digits = 18 chars
+		final char[] buf = new char[20];
+		int pos = buf.length;
+
+		for (int i = 0; i < decimal; i++) {
+			buf[--pos] = (char) ('0' + rounded % 10);
+			rounded /= 10;
+		}
+		if (decimal > 0)
+			buf[--pos] = '.';
+
+		if (rounded == 0)
+			buf[--pos] = '0';
+		else
+			while (rounded > 0) {
+				buf[--pos] = (char) ('0' + rounded % 10);
+				rounded /= 10;
+			}
+
 		if (negative)
-			sb.append('-');
+			buf[--pos] = '-';
 
-		if (decimal == 0) {
-			sb.append(digits);
-			return sb.toString();
-		}
-
-		if (len <= decimal) {
-			sb.append('0').append('.');
-			for (int i = len; i < decimal; i++)
-				sb.append('0');
-			sb.append(digits);
-		} else {
-			sb.append(digits, 0, len - decimal).append('.').append(digits, len - decimal, len);
-		}
-
-		int end = sb.length() - 1;
-		while (sb.charAt(end) == '0')
-			end--;
-
-		if (sb.charAt(end) == '.')
-			end--;
-
-		sb.setLength(end + 1);
-		return sb.toString();
+		return new String(buf, pos, buf.length - pos);
 	}
+
+	// Same as s.replace(from, to), but returns s itself when it does not contain `from`.
+	// The JDK already does that, but TeaVM's String.replace(char, char) always copies
+	// the string, even when the char is absent (the common case for the rare markers
+	// of Jaws, for instance). Under TeaVM, the job is delegated to the native
+	// JavaScript String.replaceAll(), which returns the string itself when there is
+	// nothing to replace.
+	public static String replaceChar(String s, char from, char to) {
+		// ::comment when JAVA8
+		if (TeaVM.isTeaVM()) {
+			return replaceCharNative(s, from, to);
+		}
+		// ::done
+		return s.replace(from, to);
+	}
+
+	// ::comment when JAVA8
+	// The chars are passed as ints (their UTF-16 code units), so that they cross the
+	// Java/JavaScript boundary as plain numbers whatever the JSO version. Both patterns
+	// are plain one-char strings: no regex escaping is needed, and a lone "$" is a
+	// literal in a replacement string.
+	@JSBody(params = { "s", "from", "to" }, script = "return s.replaceAll(String.fromCharCode(from), String.fromCharCode(to));")
+	private static native String replaceCharNative(String s, int from, int to);
+	// ::done
 
 	// Removes useless trailing zeros (and the dot if it becomes orphan)
 	public static String trimZeros(String s) {
@@ -601,6 +633,17 @@ public class StringUtils {
 		return s;
 	}
 
+	/**
+	 * The blanks {@link #trin(String)} removes: every control character, the space, and the
+	 * non-breaking space U+00A0. The last one is there because {@code %s} in a command pattern
+	 * accepts it too, and because it usually comes from a copy-paste rather than from any wish to
+	 * keep it: treating it as a blank here is what lets a line starting with it be read like any
+	 * other.
+	 */
+	public static boolean isTrimmable(char c) {
+		return c <= ' ' || c == '\u00A0';
+	}
+
 	public static String trin(String arg) {
 		final int len = arg.length();
 		if (len == 0)
@@ -611,13 +654,13 @@ public class StringUtils {
 
 		while (start <= end) {
 			final char cStart = arg.charAt(start);
-			if (cStart <= ' ') {
+			if (isTrimmable(cStart)) {
 				start++;
 				continue;
 			}
 
 			final char cEnd = arg.charAt(end);
-			if (cEnd <= ' ') {
+			if (isTrimmable(cEnd)) {
 				end--;
 				continue;
 			}
@@ -643,13 +686,13 @@ public class StringUtils {
 
 	    while (start <= end) {
 	        final char cStart = s.charAt(start);
-	        if (cStart <= ' ') {
+	        if (isTrimmable(cStart)) {
 	            start++;
 	            continue;
 	        }
 
 	        final char cEnd = s.charAt(end);
-	        if (cEnd <= ' ') {
+	        if (isTrimmable(cEnd)) {
 	            end--;
 	            continue;
 	        }

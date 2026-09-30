@@ -36,9 +36,9 @@
 package net.sourceforge.plantuml.sequencediagram;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import net.sourceforge.plantuml.StringUtils;
 
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.creole.Display;
@@ -49,6 +49,7 @@ import net.sourceforge.plantuml.style.StyleBuilder;
 import net.sourceforge.plantuml.style.StyleQueries;
 import net.sourceforge.plantuml.style.StyleQuery;
 import net.sourceforge.plantuml.url.Url;
+import net.sourceforge.plantuml.utils.MyCollections;
 import net.sourceforge.plantuml.warning.Warning;
 
 public class Reference extends AbstractEvent implements EventWithNote {
@@ -117,7 +118,7 @@ public class Reference extends AbstractEvent implements EventWithNote {
 		for (Participant p : all)
 			if (result.contains(p) == false)
 				result.add(p);
-		return Collections.unmodifiableList(result);
+		return MyCollections.unmodifiableList(result);
 	}
 
 	public List<Participant> getParticipant() {
@@ -165,7 +166,8 @@ public class Reference extends AbstractEvent implements EventWithNote {
 	@Override
 	public final Warning addNote(Note note) {
 		if (note.getPosition() != NotePosition.LEFT && note.getPosition() != NotePosition.RIGHT)
-			return new Warning("This position is ignored: " + note.getPosition());
+			return new Warning("'note " + StringUtils.goLowerCase(note.getPosition().name())
+					+ "' is not supported on a 'ref': this note is ignored. Use 'note left' or 'note right'");
 
 		this.noteOnMessages.add(note);
 		return null;

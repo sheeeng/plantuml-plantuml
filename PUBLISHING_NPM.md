@@ -29,7 +29,7 @@ excluded from the MIT flavor.
 ## What gets published
 
 The Gradle `:plantuml-mit:npmPackage` task assembles a small, self-contained
-package in `plantuml-mit/build/npm-plantuml/`. It contains:
+package in `license-variants/plantuml-mit/build/npm-plantuml/`. It contains:
 
 - `plantuml.js` -- the TeaVM-compiled MIT engine. The TeaVM plugin names the
   raw output after the subproject artifact (`plantuml-mit.js`); the task copies
@@ -40,13 +40,18 @@ package in `plantuml-mit/build/npm-plantuml/`. It contains:
   renaming at copy time is sufficient.
 - `viz-global.js` -- the Graphviz / Viz.js layout engine (required at runtime)
 - `emoji.js`, `openiconic.js`
+- `themes.js`
 - the demo pages: `index.html`, `index-basic.html`, `index-basic-dark.html`,
   `index-collection.html`, `main.js`, `main.css`, the two
   `github-integration-*-poc.html` files and `GITHUB_INTEGRATION.md`
+- what the `index.html` playground needs besides the engine: `plantuml-codec.js`
+  and `zoom.js` (imported by `main.js`) and `vendor/fflate-*.min.js` with its
+  license
 - generated `package.json` and `README.md`
 
 The companion files (everything except `plantuml.js`) are copied verbatim from
-the shared `src/main/resources/teavm` tree in the root project, so the MIT and
+the shared `src/main/teavm` tree (`web/`, `generated/`, `vendor/`) in the root
+project, so the MIT and
 GPL bundles stay in sync automatically.
 
 The heavy optional sprite bundles (`ibm.min.js`, `tupadr3.min.js`,
@@ -98,11 +103,11 @@ The task prints the resolved name, version and the exact publish command.
 ### 2. Preview the tarball (publishes nothing)
 
 ```powershell
-cd plantuml-mit\build\npm-plantuml
+cd license-variants\plantuml-mit\build\npm-plantuml
 npm pack --dry-run
 ```
 
-Check the file list (should be ~17 files, no heavy `*.min.js` stdlib bundles),
+Check the file list (should be ~23 files, no heavy `*.min.js` stdlib bundles),
 that `plantuml.js` is present (not `plantuml-mit.js`), and the resulting
 filename / version.
 
@@ -165,7 +170,7 @@ The CDNs sync from npm within a few minutes:
 - **Overrides:** `-PnpmName=...` changes the package name, `-PnpmVersion=...`
   changes the published version. Both are optional; the defaults are
   `@plantuml/core` and the Gradle-derived version.
-- The output directory `plantuml-mit/build/npm-plantuml/` is under `build/`,
+- The output directory `license-variants/plantuml-mit/build/npm-plantuml/` is under `build/`,
   which is git-ignored, so nothing is committed.
 
 ## Public API (quick reference)
@@ -189,5 +194,5 @@ be loaded as a classic script first.
   `onSuccess(svg)`; errors go to `onError(message)`.
 
 Rendering is asynchronous: `render()` returns immediately and writes the SVG
-into the target element later. See `src/main/resources/teavm/GITHUB_INTEGRATION.md`
+into the target element later. See `src/main/teavm/web/GITHUB_INTEGRATION.md`
 for the full integration guide.

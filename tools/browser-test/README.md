@@ -9,8 +9,9 @@ behaviour and exit non-zero when it is wrong.
 Checks that `!theme <name>` works in the browser.
 
 Themes live in `src/main/resources/themes` as `.puml` files, which the browser build cannot read
-because it has no classpath. They are shipped to it instead through the generated
-`teavm/themes.js`, loaded on demand the same way `emoji.js` is. This check covers that path end
+because it has no classpath. They are shipped to it instead through
+`src/main/teavm/generated/themes.js` (written by `ThemesJsGenerator`, deployed next to
+`plantuml.js`), loaded on demand the same way `emoji.js` is. This check covers that path end
 to end:
 
 - a theme changes the drawing, and changes it to that theme's own colours;
@@ -93,7 +94,7 @@ accident, no real bundle is needed, and no layout engine is involved.
 ```
 gradlew :plantuml-mit:npmPackage -Pci
 cd tools/browser-test && npm ci && npx playwright install --with-deps --only-shell chromium
-node check-themes.js target=../../plantuml-mit/build/npm-plantuml
+node check-themes.js target=../../license-variants/plantuml-mit/build/npm-plantuml
 ```
 
 `target` also accepts a path to the engine `.js` itself, and any directory holding a published

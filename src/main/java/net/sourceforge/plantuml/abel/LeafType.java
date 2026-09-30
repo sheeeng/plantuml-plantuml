@@ -57,6 +57,7 @@ public enum LeafType {
 	ACTIVITY, BRANCH, SYNCHRO_BAR, CIRCLE_START, CIRCLE_END, POINT_FOR_ASSOCIATION, ACTIVITY_CONCURRENT,
 
 	STATE, STATE_CONCURRENT, PSEUDO_STATE, DEEP_HISTORY, STATE_CHOICE, STATE_FORK_JOIN, STATE_TRANSITION_LABEL,
+	JUNCTION,
 
 	BLOCK, ENTITY,
 
@@ -97,7 +98,7 @@ public enum LeafType {
 
 
 	public String toHtml() {
-		final String html = StringUtils.goLowerCase(toString().replace('_', ' '));
+		final String html = StringUtils.goLowerCase(StringUtils.replaceChar(toString(), '_', ' '));
 		return StringUtils.capitalize(html);
 	}
 

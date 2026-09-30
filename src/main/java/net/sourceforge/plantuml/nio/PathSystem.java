@@ -40,7 +40,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import net.sourceforge.plantuml.json.Json;
@@ -66,19 +68,26 @@ public class PathSystem {
 	public static PathSystem fetch() {
 		// ::comment when JAVA8
 		if (TeaVM.isTeaVM())
-			return new PathSystem(null);
+			return new PathSystem(null, new ArrayList<NFolderZip>());
 		// ::done
-		return new PathSystem(new NFolderRegular(Paths.get("")));
+		return new PathSystem(new NFolderRegular(Paths.get("")), new ArrayList<NFolderZip>());
 	}
 
+	// Same resolution as for !include (see loadTeaVMStdlib): a library such as
+	// material7 only carries a link to the versioned one that holds the data.
 	public JsonValue getTeaVMStdlibJson(String path) {
 		// ::revert when JAVA8
 		// return null;
 		path = path.replaceAll("\\.json$", "");
 		final String full = path.toLowerCase();
-		final String libname = full.substring(0, full.indexOf('/'));
-		final String filepath = full.substring(libname.length() + 1);
-		TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
+		final int slash = full.indexOf('/');
+		if (slash == -1)
+			return null;
+
+		final String filepath = full.substring(slash + 1);
+		final String libname = loadTeaVMStdlib(full.substring(0, slash));
+		if (libname == null)
+			return null;
 
 		final JSObject data = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB_JSON(libname, filepath);
 		if (data == null)
@@ -92,18 +101,14 @@ public class PathSystem {
 		// ::revert when JAVA8
 		// return null;
 		final String full = path.substring(1, path.length() - 1).toLowerCase();
-		String libname = full.substring(0, full.indexOf('/'));
-		final String filepath = full.substring(libname.length() + 1);
-		TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
+		final int slash = full.indexOf('/');
+		if (slash == -1)
+			return null;
 
-		final Map<String, String> infos = getInfo(libname);
-		final String link = infos.get("link");
-
-		if (link != null) {
-			libname = link;
-			BrowserLog.consoleLog(getClass(), "Following link to " + libname);
-			TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
-		}
+		final String filepath = full.substring(slash + 1);
+		final String libname = loadTeaVMStdlib(full.substring(0, slash));
+		if (libname == null)
+			return null;
 
 		final JSObject data = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB(libname, filepath);
 		if (data == null)
@@ -114,6 +119,44 @@ public class PathSystem {
 	}
 
 	// ::comment when JAVA8
+	/**
+	 * Loads the bundle <code>&lt;libname&gt;.min.js</code> and, when its info
+	 * carries a <code>link</code> (e.g. material7 -&gt; material7.4.47), the
+	 * bundle it points to.
+	 *
+	 * @param libname the library name, lower case
+	 * @return the name of the library that actually holds the data, or
+	 *         <code>null</code> if a bundle could not be loaded (unknown library,
+	 *         network error, refused by a PLANTUML_STDLIB_LOADER hook). The
+	 *         caller then reports an ordinary "cannot include" error instead of
+	 *         letting the loader's exception abort the whole rendering.
+	 */
+	private String loadTeaVMStdlib(String libname) {
+		if (loadTeaVMStdlibBundle(libname) == false)
+			return null;
+
+		final String link = getInfo(libname).get("link");
+		if (link == null)
+			return libname;
+
+		BrowserLog.consoleLog(getClass(), "Following link to " + link);
+		if (loadTeaVMStdlibBundle(link) == false)
+			return null;
+
+		return link;
+	}
+
+	private boolean loadTeaVMStdlibBundle(String libname) {
+		try {
+			TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
+			return true;
+		} catch (RuntimeException e) {
+			TeaVmScriptLoader
+					.consoleWarn("PlantUML: cannot load stdlib bundle " + libname + ".min.js: " + e.getMessage());
+			return false;
+		}
+	}
+
 	private Map<String, String> getInfo(final String libname) {
 		final JSObject info = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB_INFO(libname);
 		final Map<String, String> map = new HashMap<>();
@@ -133,8 +176,17 @@ public class PathSystem {
 
 	private final NFolder currentFolder;
 
-	private PathSystem(NFolder currentFolder) {
+	/**
+	 * Archives registered with <code>!import</code>. The list is deliberately
+	 * shared between all the PathSystem derived from the same root (when the
+	 * current directory changes while including a file), so that an import stays
+	 * effective for the rest of the diagram, whatever the include depth.
+	 */
+	private final List<NFolderZip> importedFolders;
+
+	private PathSystem(NFolder currentFolder, List<NFolderZip> importedFolders) {
 		this.currentFolder = currentFolder;
+		this.importedFolders = importedFolders;
 	}
 
 	public PathSystem changeCurrentDirectory(NFolder newCurrentDir) {
@@ -143,7 +195,7 @@ public class PathSystem {
 			return this;
 		// ::done
 
-		return new PathSystem(newCurrentDir);
+		return new PathSystem(newCurrentDir, importedFolders);
 	}
 
 	public PathSystem changeCurrentDirectory(SFile newCurrentDir) throws IOException {
@@ -160,7 +212,7 @@ public class PathSystem {
 			return this;
 
 		final NFolder folder = currentFolder.getSubfolder(path);
-		return new PathSystem(folder);
+		return new PathSystem(folder, importedFolders);
 	}
 
 	public PathSystem withCurrentDir(NFolder parentFile) {
@@ -169,7 +221,7 @@ public class PathSystem {
 			return this;
 		// ::done
 
-		return new PathSystem(parentFile);
+		return new PathSystem(parentFile, importedFolders);
 	}
 
 	public NFolder getCurrentDir() {
@@ -222,7 +274,22 @@ public class PathSystem {
 			return null;
 		}
 
-		return currentFolder.getInputFile(Paths.get(path));
+		final InputFile result = currentFolder.getInputFile(Paths.get(path));
+		// NFolderZip never returns null, so check that the entry really exists
+		final boolean missingInCurrentArchive = currentFolder instanceof NFolderZip
+				&& ((NFolderZip) currentFolder).contains(Paths.get(path)) == false;
+		if (result != null && missingInCurrentArchive == false)
+			return result;
+
+		// Not found from the current directory: look inside the archives given to
+		// !import, using the path as is (relative to the root of each archive).
+		for (NFolderZip imported : importedFolders)
+			if (imported.contains(Paths.get(path)))
+				return imported.getInputFile(Paths.get(path));
+
+		// null for a regular folder; for an archive, an InputFile that reports the
+		// missing entry when read
+		return result;
 	}
 
 	public static void main(String[] args) {
@@ -230,8 +297,11 @@ public class PathSystem {
 	}
 
 	public void addImportFile(SFile file) {
-		// Nothing right now
-
+		final NFolderZip zip = new NFolderZip(file.conv());
+		for (NFolderZip already : importedFolders)
+			if (already.toString().equals(zip.toString()))
+				return;
+		importedFolders.add(zip);
 	}
 
 }

@@ -36,9 +36,7 @@
 package net.sourceforge.plantuml.activitydiagram3.gtile;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import net.sourceforge.plantuml.activitydiagram3.ftile.Swimlane;
@@ -51,6 +49,7 @@ import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.StyleQueries;
 import net.sourceforge.plantuml.style.StyleQuery;
+import net.sourceforge.plantuml.utils.MyCollections;
 
 public class GtileRepeat extends GtileTopDown3 {
 
@@ -121,7 +120,7 @@ public class GtileRepeat extends GtileTopDown3 {
 		}
 
 		// final List<GConnection> result = Arrays.asList(arrow1, arrow2, arrow3);
-		return Collections.unmodifiableList(result);
+		return MyCollections.unmodifiableList(result);
 	}
 
 }

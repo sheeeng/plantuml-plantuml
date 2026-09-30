@@ -13,6 +13,14 @@ defaults:
 
 jobs:
 
+  lint:
+    name: Super-Linter
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+    uses: ./.github/workflows/super-linter.yml
+
   jdk8:
     name: Build & Run with Ant (Java 8)
     runs-on: ubuntu-latest
@@ -74,6 +82,9 @@ jobs:
       - name: Build (GPL only) & Test
         run: ./gradlew test -Pfast --no-daemon -i
 
+      - name: Check Javadoc (fails on warnings)
+        run: ./gradlew javadoc --no-daemon
+
       - name: Test Summary
         if: always()
         run: .github/scripts/test-summary.sh
@@ -95,4 +106,4 @@ jobs:
           retention-days: 30
 
       - name: Add Gradle title to Summary
-        run: echo "## Gradle" >> $GITHUB_STEP_SUMMARY
+        run: echo "## Gradle" >> "$GITHUB_STEP_SUMMARY"

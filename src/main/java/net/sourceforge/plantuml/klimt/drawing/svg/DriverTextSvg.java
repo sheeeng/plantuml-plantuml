@@ -109,7 +109,7 @@ public class DriverTextSvg implements UDriver<UText, SvgGraphics> {
 
 		String text = shape.getText();
 		if (text.matches("^\\s*$"))
-			text = text.replace(' ', (char) 160);
+			text = StringUtils.replaceChar(text, ' ', (char) 160);
 
 		if (text.startsWith(" ")) {
 			final double space = stringBounder.calculateDimension(font, " ").getWidth();
@@ -118,7 +118,9 @@ public class DriverTextSvg implements UDriver<UText, SvgGraphics> {
 				text = text.substring(1);
 			}
 		}
-		text = StringUtils.trin(text);
+		// Not StringUtils.trin(), which removes U+00A0 as well: a blank-only text has just been
+		// turned into non-breaking spaces precisely so that it survives this trim.
+		text = text.trim();
 		final XDimension2D dim = stringBounder.calculateDimension(font, text);
 		final double width = dim.getWidth();
 		final double height = dim.getHeight();

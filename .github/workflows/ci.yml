@@ -1,9 +1,9 @@
 name: CI
 
 on:
+  # Note: the `create` event does not support filters (it fires for every
+  # branch or tag creation); .github/scripts/workflow-config.sh checks ref_type.
   create:
-    tags:
-      - '*'
   pull_request:
     types: [ opened, synchronize, reopened ]
     branches: [ master ]
@@ -58,7 +58,7 @@ jobs:
             echo "::error::Unexpected exit code (expected 16, got $CODE)"
             exit 1
           fi
-        
+
       - name: Upload plantuml.jar
         if: always()
         uses: actions/upload-artifact@v7
@@ -66,8 +66,8 @@ jobs:
           name: plantuml-jdk8-jar
           path: plantuml.jar
           if-no-files-found: error
-          retention-days: 30 
-                 
+          retention-days: 30
+
       - name: Run sample diagram test (ASCII)
         run: |
           echo "Alice -> Bob : it works!" | java -jar plantuml.jar -pipe -ttxt
@@ -133,6 +133,10 @@ jobs:
         if: needs.workflow_config.outputs.do_test_linux == 'true'
         run: gradle test --no-daemon -i
 
+      - name: Check Javadoc (fails on warnings)
+        if: needs.workflow_config.outputs.do_test_linux == 'true'
+        run: gradle javadoc --no-daemon
+
       - name: Test Summary
         if: needs.workflow_config.outputs.do_test_linux == 'true' && always()
         run: .github/scripts/test-summary.sh
@@ -155,7 +159,7 @@ jobs:
           retention-days: 30
 
       - name: Add Gradle title to Summary
-        run: echo "## Gradle" >> $GITHUB_STEP_SUMMARY
+        run: echo "## Gradle" >> "$GITHUB_STEP_SUMMARY"
 
   build_artifacts:
     needs: [ workflow_config ]
@@ -194,31 +198,31 @@ jobs:
           gradle -i signMavenPublication
           echo "::group::[List LIBS]"
           ls -l build/libs
-          ls -l plantuml-asl/build/libs
-          ls -l plantuml-bsd/build/libs
-          ls -l plantuml-epl/build/libs
-          ls -l plantuml-lgpl/build/libs
-          ls -l plantuml-mit/build/libs
-          ls -l plantuml-mit-light/build/libs
-          ls -l plantuml-gplv2/build/libs
+          ls -l license-variants/plantuml-asl/build/libs
+          ls -l license-variants/plantuml-bsd/build/libs
+          ls -l license-variants/plantuml-epl/build/libs
+          ls -l license-variants/plantuml-lgpl/build/libs
+          ls -l license-variants/plantuml-mit/build/libs
+          ls -l license-variants/plantuml-mit-light/build/libs
+          ls -l license-variants/plantuml-gplv2/build/libs
           echo "::endgroup::"
       - name: Get release version
         id: version
         run: |
-          echo "release_version=$(gradle properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_OUTPUT
+          echo "release_version=$(gradle properties -q | grep "version:" | awk '{print $2}')" >> "$GITHUB_OUTPUT"
       - name: Cache libs
         uses: actions/cache/save@v6
         with:
           path: |
             build/libs
             build/publications
-            plantuml-asl/build/libs
-            plantuml-bsd/build/libs
-            plantuml-epl/build/libs
-            plantuml-lgpl/build/libs
-            plantuml-mit/build/libs
-            plantuml-mit-light/build/libs
-            plantuml-gplv2/build/libs
+            license-variants/plantuml-asl/build/libs
+            license-variants/plantuml-bsd/build/libs
+            license-variants/plantuml-epl/build/libs
+            license-variants/plantuml-lgpl/build/libs
+            license-variants/plantuml-mit/build/libs
+            license-variants/plantuml-mit-light/build/libs
+            license-variants/plantuml-gplv2/build/libs
           key: "libs-${{ github.run_id }}"
           enableCrossOsArchive: true
 
@@ -346,13 +350,13 @@ jobs:
           path: |
             build/libs
             build/publications
-            plantuml-asl/build/libs
-            plantuml-bsd/build/libs
-            plantuml-epl/build/libs
-            plantuml-lgpl/build/libs
-            plantuml-mit/build/libs
-            plantuml-mit-light/build/libs
-            plantuml-gplv2/build/libs
+            license-variants/plantuml-asl/build/libs
+            license-variants/plantuml-bsd/build/libs
+            license-variants/plantuml-epl/build/libs
+            license-variants/plantuml-lgpl/build/libs
+            license-variants/plantuml-mit/build/libs
+            license-variants/plantuml-mit-light/build/libs
+            license-variants/plantuml-gplv2/build/libs
           key: "libs-${{ github.run_id }}"
           fail-on-cache-miss: true
           enableCrossOsArchive: true
@@ -365,13 +369,13 @@ jobs:
           path: |
             build/libs/*
             build/publications/maven/*
-            plantuml-asl/build/libs
-            plantuml-bsd/build/libs
-            plantuml-epl/build/libs
-            plantuml-lgpl/build/libs
-            plantuml-mit/build/libs
-            plantuml-mit-light/build/libs
-            plantuml-gplv2/build/libs
+            license-variants/plantuml-asl/build/libs
+            license-variants/plantuml-bsd/build/libs
+            license-variants/plantuml-epl/build/libs
+            license-variants/plantuml-lgpl/build/libs
+            license-variants/plantuml-mit/build/libs
+            license-variants/plantuml-mit-light/build/libs
+            license-variants/plantuml-gplv2/build/libs
 
       - name: Create snapshot
         if: needs.workflow_config.outputs.do_snapshot_release == 'true'
@@ -546,6 +550,8 @@ jobs:
         run: |
           # Build the multi-arch manifest for each image name (Docker Hub + GHCR).
           for image in "${{ github.repository }}" "ghcr.io/${{ github.repository }}"; do
+            # Word splitting of the two $(...) below is intended
+            # shellcheck disable=SC2046
             docker buildx imagetools create \
               $(jq -cr '.tags | map(select(startswith("'"$image"'")) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
               $(printf "${image}@sha256:%s " *)
