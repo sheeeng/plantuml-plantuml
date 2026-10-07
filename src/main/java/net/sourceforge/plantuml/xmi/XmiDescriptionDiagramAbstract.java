@@ -49,7 +49,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sourceforge.plantuml.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -151,10 +150,10 @@ public abstract class XmiDescriptionDiagramAbstract implements XmlDiagramTransfo
 	}
 
 	public static String forXMI(String s) {
-		return StringUtils.replaceChar(s, ':', ' ');
+		return s.replace(':', ' ');
 	}
 
 	public static String forXMI(Display s) {
-		return StringUtils.replaceChar(s.get(0).toString(), ':', ' ');
+		return s.get(0).toString().replace(':', ' ');
 	}
 }

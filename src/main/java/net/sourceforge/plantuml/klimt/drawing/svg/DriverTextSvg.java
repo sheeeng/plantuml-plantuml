@@ -37,7 +37,6 @@ package net.sourceforge.plantuml.klimt.drawing.svg;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.klimt.UClip;
 import net.sourceforge.plantuml.klimt.UParam;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
@@ -109,7 +108,7 @@ public class DriverTextSvg implements UDriver<UText, SvgGraphics> {
 
 		String text = shape.getText();
 		if (text.matches("^\\s*$"))
-			text = StringUtils.replaceChar(text, ' ', (char) 160);
+			text = text.replace(' ', (char) 160);
 
 		if (text.startsWith(" ")) {
 			final double space = stringBounder.calculateDimension(font, " ").getWidth();

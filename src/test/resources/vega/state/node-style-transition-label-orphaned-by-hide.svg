@@ -11,11 +11,6 @@
       <line style="stroke:#181818;stroke-width:0.5;" x1="6" x2="82.875" y1="182" y2="182"/>
       <text fill="#000" font-size="14" textLength="56.875" x="16" y="173.889">Charging</text>
     </g>
-    <g class="entity" data-qualified-name="Faulted" data-source-line="8" id="ent0003">
-      <rect fill="#F1F1F1" height="50" rx="12.5" ry="12.5" style="stroke:#181818;stroke-width:0.5;" width="66.725" x="88" y="12"/>
-      <line style="stroke:#181818;stroke-width:0.5;" x1="88" x2="154.725" y1="36" y2="36"/>
-      <text fill="#000" font-size="14" textLength="46.725" x="98" y="27.889">Faulted</text>
-    </g>
     <rect fill="none" height="21" rx="2.5" ry="2.5" style="stroke:none;" width="33.188" x="28" y="98"/>
     <text fill="#000" font-size="13" textLength="25.188" x="32" y="112.111">start</text>
     <g class="link" data-entity-1="ent0001" data-entity-2="ent0004" data-link-type="association" id="lnk5">

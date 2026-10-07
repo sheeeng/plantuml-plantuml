@@ -35,7 +35,6 @@
  */
 package net.sourceforge.plantuml.klimt;
 
-import net.sourceforge.plantuml.StringUtils;
 
 public enum UGroupType {
 	
@@ -58,6 +57,6 @@ public enum UGroupType {
 	DATA_LINK_TYPE;
 
 	public String getSvgKeyAttributeName() {
-		return StringUtils.replaceChar(name().toLowerCase(), '_', '-');
+		return name().toLowerCase().replace('_', '-');
 	}
 }

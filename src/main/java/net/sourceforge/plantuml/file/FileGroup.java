@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.cli.CliOptions;
 import net.sourceforge.plantuml.cli.GlobalConfig;
 import net.sourceforge.plantuml.cli.GlobalConfigKey;
@@ -125,7 +124,7 @@ public class FileGroup {
 	}
 
 	private static String getNormalizedPath(File f) {
-		return StringUtils.replaceChar(f.getPath(), '\\', '/');
+		return f.getPath().replace('\\', '/');
 	}
 
 	private final static Pattern2 noStarInDirectory = Pattern2.cmpile("^(?:([^*?]*)[/\\\\])?([^/\\\\]*)$");

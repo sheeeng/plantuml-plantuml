@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.preproc.Stdlib;
 
 public class InputFileStdlib implements InputFile {
@@ -65,7 +64,7 @@ public class InputFileStdlib implements InputFile {
 
 	@Override
 	public String toString() {
-		return stdlib.getName() + "!" + StringUtils.replaceChar(stdlibPath.toString(), '\\', '/');
+		return stdlib.getName() + "!" + stdlibPath.toString().replace('\\', '/');
 	}
 
 }

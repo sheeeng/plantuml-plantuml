@@ -2,7 +2,6 @@ package net.sourceforge.plantuml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 
 
 import java.util.Locale;
@@ -94,6 +93,28 @@ class StringUtilsTest {
 	})
 	void test_formatDecimal_fallbackPath(double x, int decimal, String expected) {
 		assertEquals(expected, StringUtils.formatDecimal(x, decimal));
+	}
+
+	// A value that is an exact multiple of 2^-(decimal+1) is exactly on a rounding
+	// boundary when its last bit is set (30.5625 with 3 decimals); formatDecimal
+	// resolves it without String.format and must give what String.format gives (half up).
+	@Test
+	void test_formatDecimal_exactTies() {
+		assertEquals("30.563", StringUtils.formatDecimal(30.5625, 3));
+		assertEquals("-30.563", StringUtils.formatDecimal(-30.5625, 3));
+		assertEquals("3", StringUtils.formatDecimal(2.5, 0));
+		assertEquals("1", StringUtils.formatDecimal(0.5, 0));
+		assertEquals("0.13", StringUtils.formatDecimal(0.125, 2));
+
+		for (int decimal = 0; decimal <= 7; decimal++) {
+			final double step = 1.0 / (1L << (decimal + 1));
+			for (int j = -2000; j <= 2000; j++) {
+				final double x = j * step;
+				final String reference = x == 0.0 ? "0"
+						: StringUtils.trimZeros(String.format(Locale.US, "%." + decimal + "f", x));
+				assertEquals(reference, StringUtils.formatDecimal(x, decimal), "x=" + x + " decimal=" + decimal);
+			}
+		}
 	}
 
 	// formatDecimal writes its digits right to left into a single char[]; these cases
@@ -219,38 +240,6 @@ class StringUtilsTest {
 		assertEquals("foo\u00A0bar", StringUtils.trin("\u00A0foo\u00A0bar\t"));
 		assertEquals("", StringUtils.trin("\u00A0\u00A0"));
 		assertEquals("foo", StringUtils.trim2("\u00A0foo \u00A0").toString());
-	}
-
-	@ParameterizedTest
-	@CsvSource(value = {
-			" 'a,b,c'  , ',' , '.' , 'a.b.c' ",
-			" ',,'     , ',' , ';' , ';;'    ",
-			" ',a'     , ',' , '.' , '.a'    ",
-			" 'a,'     , ',' , '.' , 'a.'    ",
-			" 'abc'    , 'x' , 'y' , 'abc'   ",
-			" ''       , 'x' , 'y' , ''      ",
-			" 'aaa'    , 'a' , 'a' , 'aaa'   ",
-			" 'a b'    , ' ' , '_' , 'a_b'   ",
-	})
-	void test_replaceChar(String s, char from, char to, String expected) {
-		assertEquals(expected, StringUtils.replaceChar(s, from, to));
-		assertEquals(s.replace(from, to), StringUtils.replaceChar(s, from, to));
-	}
-
-	@Test
-	void test_replaceChar_returnsSameInstanceWhenAbsent() {
-		final String s = new String("hello world");
-		assertSame(s, StringUtils.replaceChar(s, 'z', 'y'));
-		assertSame("", StringUtils.replaceChar("", 'z', 'y'));
-	}
-
-	@Test
-	void test_replaceChar_specialChars() {
-		assertEquals("a/b/c", StringUtils.replaceChar("a\\b\\c", '\\', '/'));
-		assertEquals("a b", StringUtils.replaceChar("a\tb", '\t', ' '));
-		assertEquals("a\u00A0b", StringUtils.replaceChar("a b", ' ', (char) 160));
-		assertEquals("a\u21b5b", StringUtils.replaceChar("a\uE100b", '\uE100', '\u21b5'));
-		assertEquals("x\uD83D\uDE00", StringUtils.replaceChar("a\uD83D\uDE00", 'a', 'x'));
 	}
 
 }

@@ -45,14 +45,9 @@ import net.sourceforge.plantuml.asciiart.Wcwidth;
 import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.regex.Matcher2;
 import net.sourceforge.plantuml.regex.Pattern2;
-import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.Direction;
 import net.sourceforge.plantuml.utils.Log;
 import net.sourceforge.plantuml.utils.MyCollections;
-
-// ::comment when JAVA8
-import org.teavm.jso.JSBody;
-// ::done
 
 // Do not move
 public class StringUtils {
@@ -119,9 +114,6 @@ public class StringUtils {
 
 	public static final char BOLD_START = '\uEEF2';
 	public static final char BOLD_END = '\uEEF1';
-
-	// Used in BackSlash
-	public static final char PRIVATE_BLOCK = '\uE000';
 
 	public static final char INTERNAL_BOLD = '\uE100';
 
@@ -231,7 +223,7 @@ public class StringUtils {
 	}
 
 	public static String manageArrowForSequence(String s) {
-		s = StringUtils.replaceChar(s, '=', '-').toLowerCase();
+		s = s.replace('=', '-').toLowerCase();
 		return s;
 	}
 
@@ -249,7 +241,7 @@ public class StringUtils {
 
 	public static String manageArrowForCuca(String s) {
 		final Direction dir = getArrowDirection(s);
-		s = StringUtils.replaceChar(s, '=', '-');
+		s = s.replace('=', '-');
 		s = s.replaceAll("\\w*", "");
 		if (dir == Direction.LEFT || dir == Direction.RIGHT)
 			s = s.replaceAll("-+", "-");
@@ -262,7 +254,7 @@ public class StringUtils {
 
 	public static String manageQueueForCuca(String s) {
 		final Direction dir = getQueueDirection(s);
-		s = StringUtils.replaceChar(s, '=', '-');
+		s = s.replace('=', '-');
 		s = s.replaceAll("\\w*", "");
 		if (dir == Direction.LEFT || dir == Direction.RIGHT)
 			s = s.replaceAll("-+", "-");
@@ -540,6 +532,16 @@ public class StringUtils {
 					final int rounded = (int) floor + (frac < 0.5 ? 0 : 1);
 					return buildFixedDecimal(rounded, decimal, negative);
 				}
+				// A true tie: abs is an exact multiple of 2^-(decimal+1) (the scaling by a
+				// power of two is exact), so abs is exactly the decimal number
+				// (2k+1)/(2*10^decimal), scaled is exact, and String.format rounds it half up.
+				// Common with coordinates like 30.5625. Unlike a near-tie (1.005, 0.145...),
+				// there is nothing to decide, so the slow path is not needed.
+				final double dyadic = abs * (double) (1L << (decimal + 1));
+				if (dyadic == Math.floor(dyadic) && frac == 0.5) {
+					final int rounded = (int) floor + 1;
+					return buildFixedDecimal(rounded, decimal, negative);
+				}
 			}
 		}
 
@@ -587,30 +589,6 @@ public class StringUtils {
 
 		return new String(buf, pos, buf.length - pos);
 	}
-
-	// Same as s.replace(from, to), but returns s itself when it does not contain `from`.
-	// The JDK already does that, but TeaVM's String.replace(char, char) always copies
-	// the string, even when the char is absent (the common case for the rare markers
-	// of Jaws, for instance). Under TeaVM, the job is delegated to the native
-	// JavaScript String.replaceAll(), which returns the string itself when there is
-	// nothing to replace.
-	public static String replaceChar(String s, char from, char to) {
-		// ::comment when JAVA8
-		if (TeaVM.isTeaVM()) {
-			return replaceCharNative(s, from, to);
-		}
-		// ::done
-		return s.replace(from, to);
-	}
-
-	// ::comment when JAVA8
-	// The chars are passed as ints (their UTF-16 code units), so that they cross the
-	// Java/JavaScript boundary as plain numbers whatever the JSO version. Both patterns
-	// are plain one-char strings: no regex escaping is needed, and a lone "$" is a
-	// literal in a replacement string.
-	@JSBody(params = { "s", "from", "to" }, script = "return s.replaceAll(String.fromCharCode(from), String.fromCharCode(to));")
-	private static native String replaceCharNative(String s, int from, int to);
-	// ::done
 
 	// Removes useless trailing zeros (and the dot if it becomes orphan)
 	public static String trimZeros(String s) {
@@ -713,7 +691,6 @@ public class StringUtils {
 		return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\0';
 	}
 
-	// ::comment when __TEAVM__
 	public static int getWcWidth(Display stringsToDisplay) {
 		int result = 1;
 		for (CharSequence s : stringsToDisplay) {
@@ -727,7 +704,6 @@ public class StringUtils {
 		}
 		return result;
 	}
-	// ::done
 
 	// http://docs.oracle.com/javase/tutorial/i18n/format/dateFormat.html
 }

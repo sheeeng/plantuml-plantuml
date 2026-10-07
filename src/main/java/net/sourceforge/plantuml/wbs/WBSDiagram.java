@@ -44,7 +44,6 @@ import java.util.Map;
 
 import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.api.ImageDataSimple;
 import net.sourceforge.plantuml.asciiverse.InfinitePlan;
@@ -191,7 +190,7 @@ public class WBSDiagram extends TitledDiagram implements TextBlock {
 			first = type;
 			return 0;
 		}
-		type = StringUtils.replaceChar(type, '\t', ' ');
+		type = type.replace('\t', ' ');
 		if (type.contains(" ") == false)
 			return type.length() - 1;
 

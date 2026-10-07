@@ -43,7 +43,6 @@ import java.util.StringTokenizer;
 
 import net.atmp.PixelImage;
 import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.UgDiagram;
 import net.sourceforge.plantuml.code.AsciiEncoder;
 import net.sourceforge.plantuml.code.CompressionBrotli;
@@ -159,7 +158,7 @@ public class PSystemDonors extends UgDiagram {
 		final Transcoder t = TranscoderImpl.utf8(new AsciiEncoder(), new StringCompressorNone(),
 				new CompressionBrotli());
 		try {
-			final String s = StringUtils.replaceChar(t.decode(DONORS), '*', '.');
+			final String s = t.decode(DONORS).replace('*', '.');
 			final StringTokenizer st = new StringTokenizer(s, BackSlash.NEWLINE);
 			while (st.hasMoreTokens()) {
 				lines.add(st.nextToken());

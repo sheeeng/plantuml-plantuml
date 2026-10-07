@@ -40,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.preproc.Stdlib;
 
 public final class NFolderStdlib implements NFolder {
@@ -71,7 +70,7 @@ public final class NFolderStdlib implements NFolder {
 
 	@Override
 	public String toString() {
-		final String prefix = StringUtils.replaceChar(pathInsideStdlib.toString(), '\\', '/');
+		final String prefix = pathInsideStdlib.toString().replace('\\', '/');
 		return stdlib.getName() + "!" + prefix;
 	}
 

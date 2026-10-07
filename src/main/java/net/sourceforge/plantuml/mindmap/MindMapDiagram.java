@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.sourceforge.plantuml.FileFormatOption;
-import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.TitledDiagram;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.core.DiagramDescription;
@@ -139,9 +138,9 @@ public class MindMapDiagram extends TitledDiagram {
 			first = type;
 
 		if (type.endsWith("**"))
-			type = StringUtils.replaceChar(type, '\t', ' ').trim();
+			type = type.replace('\t', ' ').trim();
 
-		type = StringUtils.replaceChar(type, '\t', ' ');
+		type = type.replace('\t', ' ');
 		if (type.contains(" ") == false)
 			return type.length() - 1;
 

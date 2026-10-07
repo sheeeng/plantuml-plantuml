@@ -42,7 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import net.sourceforge.plantuml.StringUtils;
 
 public class FontStack {
 
@@ -185,7 +184,7 @@ public class FontStack {
 		case MONOSPACE:
 			return "monospace";
 		}
-		return StringUtils.replaceChar(fullDefinition, '\"', '\'');
+		return fullDefinition.replace('\"', '\'');
 	}
 
 }
