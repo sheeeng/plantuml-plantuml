@@ -81,7 +81,7 @@ import net.sourceforge.plantuml.security.SFile;
 import net.sourceforge.plantuml.security.SURL;
 import net.sourceforge.plantuml.skin.Pragma;
 import net.sourceforge.plantuml.teavm.TeaVM;
-import net.sourceforge.plantuml.teavm.browser.BrowserLog;
+import net.sourceforge.plantuml.teavm.js.browser.BrowserLog;
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.text.TLineType;
 import net.sourceforge.plantuml.theme.Theme;
@@ -506,7 +506,7 @@ public class TContext {
 				final String filename = what.substring(0, idx);
 				final String blocname = what.substring(idx + 1);
 				try {
-					final InputFile f2 = pathSystem.getFile(filename, null);
+					final InputFile f2 = pathSystem.getInputFile(filename, PathSystem.KIND_INCLUDESUB);
 					if (f2 != null) {
 						saveImportedFiles = this.pathSystem;
 						this.pathSystem = this.pathSystem.withCurrentDir(f2.getParentFolder());

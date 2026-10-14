@@ -472,7 +472,7 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 			// fallback of the JVM branch below (the pragma short-circuits, so the
 			// probe and its one-time console note only run on the default path).
 			// ::revert when JAVA8
-			maker = (this.isUseSmetana() || net.sourceforge.plantuml.teavm.GraphVizjsTeaVMEngine.vizMissingFallback()) ? new CucaDiagramFileMakerSmetana(this) : new CucaDiagramFileMakerTeaVM(this);
+			maker = (TeaVM.isC() || this.isUseSmetana() || net.sourceforge.plantuml.teavm.js.GraphVizEngineJs.vizMissingFallback()) ? new CucaDiagramFileMakerSmetana(this) : new CucaDiagramFileMakerTeaVM(this);
 		// maker = new CucaDiagramFileMakerSmetana(this);
 		// ::done
 		else if (this.isUseElk())
@@ -481,6 +481,15 @@ public abstract class CucaDiagram extends TitledDiagram implements GroupHierarch
 			maker = new CucaDiagramFileMakerSmetana(this);
 		else
 			maker = new CucaDiagramFileMakerSvek(this);
+
+		// ::comment when JAVA8
+		// The browser build renders the diagram again once the Viz.js instance is
+		// ready (PendingResources): an attempt made before is discarded, so it stops
+		// here instead of computing a layout for nothing.
+		if (TeaVM.isJavaScript() && maker instanceof CucaDiagramFileMakerTeaVM
+				&& net.sourceforge.plantuml.teavm.js.GraphVizEngineJs.isAvailable() == false)
+			throw new IOException("Viz is loading");
+		// ::done
 
 		return maker.getTextBlock(getDotStrings(), fileFormatOption);
 	}

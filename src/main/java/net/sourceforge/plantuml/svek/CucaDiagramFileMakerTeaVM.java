@@ -48,10 +48,12 @@ import net.sourceforge.plantuml.crash.GraphvizCrash;
 import net.sourceforge.plantuml.dot.CucaDiagramSimplifierActivity;
 import net.sourceforge.plantuml.dot.CucaDiagramSimplifierState;
 import net.sourceforge.plantuml.dot.DotData;
+import net.sourceforge.plantuml.klimt.drawing.font.StringBounderEmbeddedFont;
 import net.sourceforge.plantuml.klimt.drawing.font.StringBounderFromWidthTable;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
-import net.sourceforge.plantuml.teavm.StringBounderTeaVM;
+import net.sourceforge.plantuml.teavm.TeaVM;
+import net.sourceforge.plantuml.teavm.js.StringBounderTeaVM;
 
 public final class CucaDiagramFileMakerTeaVM extends CucaDiagramFileMaker {
 	// ::remove file when JAVA8
@@ -67,6 +69,8 @@ public final class CucaDiagramFileMakerTeaVM extends CucaDiagramFileMaker {
 		final StringBounder stringBounder;
 		if (fileFormatOption.getFileFormat() == FileFormat.SVG_DETERMINISTIC)
 			stringBounder = new StringBounderFromWidthTable(FileFormat.SVG_DETERMINISTIC);
+		else if (TeaVM.isC())
+			stringBounder = new StringBounderEmbeddedFont(fileFormatOption.getFileFormat());
 		else
 			stringBounder = new StringBounderTeaVM();
 

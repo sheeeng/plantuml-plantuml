@@ -54,9 +54,9 @@ import net.sourceforge.plantuml.security.SURL;
 //::comment when JAVA8
 import org.teavm.jso.JSObject;
 import net.sourceforge.plantuml.teavm.TeaVM;
-import net.sourceforge.plantuml.teavm.browser.BrowserLog;
-import net.sourceforge.plantuml.teavm.browser.TeaVmFileLoader;
-import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
+import net.sourceforge.plantuml.teavm.js.browser.BrowserLog;
+import net.sourceforge.plantuml.teavm.js.browser.FileLoaderJs;
+import net.sourceforge.plantuml.teavm.js.browser.ScriptLoaderJs;
 //::done
 
 // Replacement for FileSystem
@@ -65,6 +65,14 @@ import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
 //See PreprocessorUtils
 
 public class PathSystem {
+
+	/**
+	 * Request kinds reported to the browser host's file loader. These values are
+	 * part of the <code>PLANTUML_FILE_LOADER</code> contract (<code>request.kind</code>).
+	 */
+	public static final String KIND_INCLUDE = "include";
+	public static final String KIND_INCLUDESUB = "includesub";
+	public static final String KIND_THEME = "theme";
 
 	public static PathSystem fetch() {
 		// ::comment when JAVA8
@@ -79,6 +87,8 @@ public class PathSystem {
 	public JsonValue getTeaVMStdlibJson(String path) {
 		// ::revert when JAVA8
 		// return null;
+		if (TeaVM.isC())
+			return null;
 		path = path.replaceAll("\\.json$", "");
 		final String full = path.toLowerCase();
 		final int slash = full.indexOf('/');
@@ -90,10 +100,10 @@ public class PathSystem {
 		if (libname == null)
 			return null;
 
-		final JSObject data = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB_JSON(libname, filepath);
+		final JSObject data = ScriptLoaderJs.getRaw_PLANTUML_STDLIB_JSON(libname, filepath);
 		if (data == null)
 			return null;
-		final String json = TeaVmScriptLoader.stringify(data);
+		final String json = ScriptLoaderJs.stringify(data);
 		return Json.parse(json);
 		// ::done
 	}
@@ -101,6 +111,8 @@ public class PathSystem {
 	public InputStream getTeaVMStdlibInputStream(String path) {
 		// ::revert when JAVA8
 		// return null;
+		if (TeaVM.isC())
+			return null;
 		final String full = path.substring(1, path.length() - 1).toLowerCase();
 		final int slash = full.indexOf('/');
 		if (slash == -1)
@@ -111,10 +123,10 @@ public class PathSystem {
 		if (libname == null)
 			return null;
 
-		final JSObject data = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB(libname, filepath);
+		final JSObject data = ScriptLoaderJs.getRaw_PLANTUML_STDLIB(libname, filepath);
 		if (data == null)
 			return null;
-		final String content = TeaVmScriptLoader.joinLines(data);
+		final String content = ScriptLoaderJs.joinLines(data);
 		return new ByteArrayInputStream(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 		// ::done
 	}
@@ -128,10 +140,10 @@ public class PathSystem {
 	public String getTeaVMFileId(InputFile file) {
 		// ::revert when JAVA8
 		// return null;
-		if (TeaVM.isTeaVM() == false)
+		if (TeaVM.isC())
 			return null;
 
-		return TeaVmFileLoader.getId(file);
+		return FileLoaderJs.getId(file);
 		// ::done
 	}
 
@@ -176,22 +188,23 @@ public class PathSystem {
 
 	private boolean loadTeaVMStdlibBundle(String libname) {
 		try {
-			TeaVmScriptLoader.loadOnceSync(libname + ".min.js");
-			return true;
+			// Never waits: when the bundle is not loaded yet, this rendering attempt
+			// fails the include and is rendered again once it is (PendingResources).
+			return ScriptLoaderJs.require(libname + ".min.js");
 		} catch (RuntimeException e) {
-			TeaVmScriptLoader
+			ScriptLoaderJs
 					.consoleWarn("PlantUML: cannot load stdlib bundle " + libname + ".min.js: " + e.getMessage());
 			return false;
 		}
 	}
 
 	private Map<String, String> getInfo(final String libname) {
-		final JSObject info = TeaVmScriptLoader.getRaw_PLANTUML_STDLIB_INFO(libname);
+		final JSObject info = ScriptLoaderJs.getRaw_PLANTUML_STDLIB_INFO(libname);
 		final Map<String, String> map = new HashMap<>();
 		if (info != null) {
-			final String keys = TeaVmScriptLoader.getObjectKeys(info);
+			final String keys = ScriptLoaderJs.getObjectKeys(info);
 			for (String key : keys.split(",")) {
-				final String value = TeaVmScriptLoader.getStringProperty(info, key);
+				final String value = ScriptLoaderJs.getStringProperty(info, key);
 				BrowserLog.consoleLog(getClass(), "info[" + libname + "] " + key + " = " + value);
 				map.put(key, value);
 			}
@@ -259,26 +272,36 @@ public class PathSystem {
 		return currentFolder;
 	}
 
-	public InputFile getFile(String filename, String suffix) throws IOException {
-		return getInputFile(filename);
-	}
-
 	@Override
 	public String toString() {
 		return currentFolder.toString();
 	}
 
 	public InputFile getInputFile(String path) throws IOException {
+		return getInputFile(path, KIND_INCLUDE);
+	}
+
+	/**
+	 * Reads a file, telling the browser host whether it is requested by an
+	 * include, an includesub or a theme. The kind is informational: the host
+	 * returns the whole file and the engine applies the directive to it.
+	 * <p>
+	 * Outside the browser build there is no host to tell, so the kind is ignored.
+	 *
+	 * @param kind {@link #KIND_INCLUDE}, {@link #KIND_INCLUDESUB} or
+	 *             {@link #KIND_THEME}
+	 */
+	public InputFile getInputFile(String path, String kind) throws IOException {
 		// ::comment when JAVA8
 		// The browser build has no file system: a local file is whatever the host's
 		// file loader delivers, or null when there is none. A URL and a
 		// standard-library path keep their own routes (TContext handles both
 		// before coming here), and the engine's own files have no host to ask.
 		if (TeaVM.isTeaVM()) {
-			if (hostFiles == false || path.startsWith("http://") || path.startsWith("https://")
+			if (TeaVM.isC() || hostFiles == false || path.startsWith("http://") || path.startsWith("https://")
 					|| (path.startsWith("<") && path.endsWith(">")))
 				return null;
-			return TeaVmFileLoader.getInputFile(path, currentFolder);
+			return FileLoaderJs.getInputFile(path, currentFolder, kind);
 		}
 		// ::done
 

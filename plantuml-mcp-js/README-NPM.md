@@ -184,7 +184,7 @@ exposes the same kind of tools but requires a Java runtime.
 ## Architecture
 
 ```
-plantuml (root project)                 net.sourceforge.plantuml.teavm.headless.PlantUMLHeadless
+plantuml (root project)                 net.sourceforge.plantuml.teavm.js.headless.PlantUMLHeadless
         │                               a minimal, DOM-free entry point (@JSExport)
         ▼
 plantuml-mcp-js (this subproject)        TeaVM compiles the engine to ES2015 JavaScript
@@ -199,9 +199,20 @@ MCP client (LM Studio, Claude Desktop, ...)
 Unlike the root project's TeaVM *browser* build (`PlantUMLBrowser`), the
 headless entry point stays minimal: `plantuml_version`, `check_syntax` and
 `explain_diagram` are synchronous and return plain strings. `render_diagram`
-is asynchronous — it runs on a TeaVM worker thread and uses the Viz.js
-(`@viz-js/viz`) WASM build for Graphviz-dependent layouts — and delivers its
-result JSON through a callback that `server.js` wraps in a Promise.
+is asynchronous — it uses the Viz.js (`@viz-js/viz`) WASM build for
+Graphviz-dependent layouts, whose instance is only created asynchronously —
+and delivers its result JSON through a callback that `server.js` wraps in a
+Promise.
+
+`check_syntax` and `explain_diagram` cannot wait: what a diagram loads
+asynchronously (a theme, a standard library bundle, a file of
+`PLANTUML_FILE_LOADER`) counts as missing for them, while `render_diagram`
+renders the diagram again once it is there. This server provides none of
+these resources to the engine, so today the three tools agree: `!theme` is
+ignored with a warning on stderr, and `!include <lib/...>` or a local
+`!include` is reported as `cannot include`. A host that provides them
+asynchronously (`PLANTUML_STDLIB_LOADER`, `PLANTUML_FILE_LOADER`) would get
+them in `render_diagram` only, and a false error from the two others.
 
 
 ## Links

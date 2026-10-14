@@ -71,7 +71,7 @@ repositories {
 
 teavm {
 	js {
-		mainClass.set("net.sourceforge.plantuml.teavm.browser.PlantUMLBrowser")
+		mainClass.set("net.sourceforge.plantuml.teavm.js.browser.PlantUMLBrowser")
 		moduleType.set(org.teavm.gradle.api.JSModuleType.ES2015)
 		obfuscated.set(true)
 		optimization.set(org.teavm.gradle.api.OptimizationLevel.BALANCED)
@@ -79,6 +79,48 @@ teavm {
 		// optimization.set(org.teavm.gradle.api.OptimizationLevel.NONE)
 		// outputDir defaults to build/generated/teavm/js
 	}
+	// Experimental: Java to C (gradlew generateC), see src/teavm-c/README.md
+	c {
+		// -PteavmCMainClass=PngDemoC generates another entry point (see src/teavm-c/README.md).
+		// A simple name is looked up in the teavm.c packages: PowerShell splits an
+		// unquoted argument at its first dot, so a full name needs quotes there.
+		mainClass.set(providers.gradleProperty("teavmCMainClass").map { name ->
+			if (name.contains('.'))
+				name
+			else
+				listOf("net.sourceforge.plantuml.teavm.c.", "net.sourceforge.plantuml.teavm.c.demo.")
+					.map { it + name }
+					.firstOrNull { project.file("src/main/java/" + it.replace('.', '/') + ".java").exists() }
+					?: throw GradleException("teavmCMainClass: no class $name in the teavm.c packages")
+		}.orElse("net.sourceforge.plantuml.teavm.c.MainC"))
+		// Easier to read while experimenting
+		obfuscated.set(false)
+		shortFileNames.set(false)
+		// TeaVM C defaults to AGGRESSIVE (heavy inlining), which makes the coroutine
+		// transformation of async methods fail with an ArrayIndexOutOfBoundsException
+
+		optimization.set(org.teavm.gradle.api.OptimizationLevel.BALANCED)
+		// Heap size in MB (TeaVM default: 1 to 16)
+		maxHeapSize.set(64)
+		// outputDir defaults to build/generated/teavm/c
+	}
+}
+
+// TeaVM only writes the C sources: add a CMakeLists.txt next to them so the
+// native build is just "cmake + build" (Windows: MSVC or clang-cl, see README),
+// and the hand-written C they link with (plutovg, PNG facade, fonts) in native/
+val copyNativeSources = tasks.register<Copy>("copyNativeSources") {
+	from("src/teavm-c/CMakeLists.txt")
+	from("src/teavm-c/native") {
+		into("native")
+	}
+	into(layout.buildDirectory.dir("generated/teavm/c"))
+}
+tasks.matching { it.name == "generateC" }.configureEach {
+	finalizedBy(copyNativeSources)
+}
+copyNativeSources.configure {
+	mustRunAfter("generateC")
 }
 
 tasks.compileJava {
@@ -99,7 +141,7 @@ configurations.compileClasspath {
 // TeaVM 0.15+ must RUN on Java 17+, but it can still consume Java 11 bytecode.
 // So the JAR stays compiled with --release 11 (see javacRelease above), and only
 // the JavaScript generation needs a JDK 17+ running Gradle.
-tasks.matching { it.name == "generateJavaScript" }.configureEach {
+tasks.matching { it.name == "generateJavaScript" || it.name == "generateC" }.configureEach {
 	doFirst {
 		check(JavaVersion.current() >= JavaVersion.VERSION_17) {
 			"TeaVM requires running Gradle on JDK 17+ (current: ${JavaVersion.current()}). " +
@@ -155,6 +197,8 @@ tasks.named<Jar>("jar") {
 
 tasks.named("check") {
     dependsOn(checkJarEntries)
+    // Checkstyle (tools/linters/checkstyle.xml, same as the CI), no Docker needed
+    dependsOn("checkstyleLint")
 }
 
 
@@ -792,7 +836,7 @@ tasks.register("teavm") {
 		// existing files). The sources are split by origin under src/main/teavm
 		// (see its README.md and issue #2870), but the deployed layout stays
 		// FLAT: <lib>.min.js, themes.js, viz-global.js... sit next to
-		// plantuml.js, which is what TeaVmScriptLoader, PLANTUML_STDLIB_BASE,
+		// plantuml.js, which is what ScriptLoaderJs, PLANTUML_STDLIB_BASE,
 		// PLANTUML_STDLIB_LOADER hooks and the integration docs rely on.
 		copy {
 			from(teavmSrcDir.dir("web"))        // hand-written pages/scripts (keeps preview/)
@@ -962,7 +1006,11 @@ tasks.register("npmPackage") {
 			  "exports": {
 			    ".": "./plantuml.js",
 			    "./plantuml.js": "./plantuml.js",
-			    "./viz-global.js": "./viz-global.js"
+			    "./viz-global.js": "./viz-global.js",
+			    "./emoji.js": "./emoji.js",
+			    "./openiconic.js": "./openiconic.js",
+			    "./themes.js": "./themes.js",
+			    "./package.json": "./package.json"
 			  },
 			  "files": [
 			    "plantuml.js",
@@ -1006,7 +1054,7 @@ tasks.register("npmPackage") {
 			  },
 			  "author": "Arnaud Roques",
 			  "license": "GPL-3.0-or-later",
-			  "sideEffects": false
+			  "sideEffects": ["./viz-global.js", "./emoji.js", "./openiconic.js", "./themes.js"]
 			}
 		""".trimIndent()
 		file("$pkgDir/package.json").writeText(packageJson + "\n")

@@ -49,7 +49,6 @@ import java.util.TreeMap;
 import org.teavm.jso.JSBody;
 // ::done
 
-import net.sourceforge.plantuml.utils.MyCollections;
 import net.sourceforge.plantuml.emoji.data.Dummy;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
@@ -57,7 +56,8 @@ import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.svg.parser.ISvgSpriteParser;
 import net.sourceforge.plantuml.svg.parser.SvgSpriteParserFactory;
 import net.sourceforge.plantuml.teavm.TeaVM;
-import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
+import net.sourceforge.plantuml.teavm.js.browser.ScriptLoaderJs;
+import net.sourceforge.plantuml.utils.MyCollections;
 
 
 // Emojji from https://twemoji.twitter.com/
@@ -110,8 +110,10 @@ public class Emoji {
 
 	public static Emoji retrieve(String name) {
 		// ::comment when JAVA8
-		if (TeaVM.isTeaVM())
+		if (TeaVM.isJavaScript())
 			return retrieveFromJs(name.toLowerCase());
+		else if (TeaVM.isC())
+			return null;
 		else
 			// ::done
 			return ALL.get(name.toLowerCase());
@@ -136,17 +138,32 @@ public class Emoji {
 		// ::comment when JAVA8
 		if (emojiJsLoaded)
 			return;
-		TeaVmScriptLoader.loadOnceSync("emoji.js");
+		// Same as themes (ThemeUtils.loadJsTheme): data that is already registered, by a
+		// bundler that inlined emoji.js or by the host (inside a Web Worker, say), is
+		// used as is, and emoji.js is only fetched when nothing is there.
+		// Never waits: when emoji.js is not loaded yet, this rendering attempt goes on
+		// without emoji and is rendered again once it is (PendingResources).
+		if (jsHasEmoji() == false && ScriptLoaderJs.require("emoji.js") == false)
+			return;
 		emojiJsLoaded = true;
 		// ::done
 	}
 
 	// ::comment when JAVA8
-	@JSBody(params = "name", script = "var s = window.PLANTUML_EMOJI_SHORTCUT;"
+	// The data is read from the global object rather than from window, so that it
+	// can be registered where there is no window (a Web Worker). Same lookup as
+	// ScriptLoaderJs.getTheme().
+	private static final String GLOBAL = "var g = (typeof globalThis !== 'undefined') ? globalThis"
+			+ " : ((typeof self !== 'undefined') ? self : this);";
+
+	@JSBody(script = GLOBAL + "return !!(g && g.PLANTUML_EMOJI);")
+	private static native boolean jsHasEmoji();
+
+	@JSBody(params = "name", script = GLOBAL + "var s = g && g.PLANTUML_EMOJI_SHORTCUT;"
 			+ "return (s && s[name]) ? s[name] : null;")
 	private static native String jsGetShortcut(String name);
 
-	@JSBody(params = "unicode", script = "var e = window.PLANTUML_EMOJI;"
+	@JSBody(params = "unicode", script = GLOBAL + "var e = g && g.PLANTUML_EMOJI;"
 			+ "return (e && e[unicode]) ? e[unicode] : null;")
 	private static native String jsGetEmojiSvg(String unicode);
 	// ::done
@@ -156,7 +173,9 @@ public class Emoji {
 			return;
 
 		final List<String> data = new ArrayList<String>();
-		if (TeaVM.isTeaVM()) {
+		if (TeaVM.isC()) {
+			// No emoji data with TeaVM C
+		} else if (TeaVM.isTeaVM()) {
 			// ::comment when JAVA8
 			final String svgData = jsGetEmojiSvg(unicode);
 			if (svgData != null)

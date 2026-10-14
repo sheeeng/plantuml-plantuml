@@ -60,7 +60,7 @@ import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.teavm.TeaVM;
-import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
+import net.sourceforge.plantuml.teavm.js.browser.ScriptLoaderJs;
 
 public class OpenIconic {
 
@@ -72,8 +72,10 @@ public class OpenIconic {
 
 	public static OpenIconic retrieve(String name) {
 		// ::comment when JAVA8
-		if (TeaVM.isTeaVM())
+		if (TeaVM.isJavaScript())
 			return retrieveFromJs(name);
+		if (TeaVM.isC())
+			return null;
 		// ::done
 		final InputStream is = getResource(name);
 		if (is == null)
@@ -110,11 +112,25 @@ public class OpenIconic {
 	private static void loadOpeniconicJsIfNeeded() {
 		if (openiconicJsLoaded)
 			return;
-		TeaVmScriptLoader.loadOnceSync("openiconic.js");
+		// Same as themes (ThemeUtils.loadJsTheme): data that is already registered, by a
+		// bundler that inlined openiconic.js or by the host, is used as is, and
+		// openiconic.js is only fetched when nothing is there.
+		// Never waits: when openiconic.js is not loaded yet, this rendering attempt
+		// goes on without icons and is rendered again once it is (PendingResources).
+		if (jsHasOpeniconic() == false && ScriptLoaderJs.require("openiconic.js") == false)
+			return;
 		openiconicJsLoaded = true;
 	}
 
-	@JSBody(params = "name", script = "var o = window.PLANTUML_OPENICONIC;" + "return (o && o[name]) ? o[name] : null;")
+	// Read from the global object rather than from window (see Emoji).
+	private static final String GLOBAL = "var g = (typeof globalThis !== 'undefined') ? globalThis"
+			+ " : ((typeof self !== 'undefined') ? self : this);";
+
+	@JSBody(script = GLOBAL + "return !!(g && g.PLANTUML_OPENICONIC);")
+	private static native boolean jsHasOpeniconic();
+
+	@JSBody(params = "name", script = GLOBAL + "var o = g && g.PLANTUML_OPENICONIC;"
+			+ "return (o && o[name]) ? o[name] : null;")
 	private static native String jsGetPathLine(String name);
 	// ::done
 

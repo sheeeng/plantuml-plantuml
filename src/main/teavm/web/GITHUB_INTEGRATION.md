@@ -20,6 +20,17 @@ The entire public surface is two exported functions:
 | `render(lines, targetId)` | Render a diagram into the DOM element with the given `id`. `lines` is an `Array<string>`. |
 | `render(lines, targetId, { dark: true })` | Same, but produces a dark-mode SVG. |
 | `renderToString(lines, onSuccess, onError)` | Render and deliver the SVG as a string via the `onSuccess(svg)` callback. Errors go to `onError(message)`. |
+| `renderToString(lines, onSuccess, onError, { dark: true, maxSvgSize: 8192 })` | Same, with the optional fourth `options` argument (see below). |
+
+Both functions accept the same optional `options` object as their last argument:
+
+| Option | Default | Effect |
+|--------|---------|--------|
+| `dark` | `false` | Produce a dark-mode SVG. |
+| `maxSvgSize` | `8192` | A diagram whose width or height exceeds this many pixels fails with an error (`onError` for `renderToString`) instead of producing a huge SVG. A larger number raises the limit, `0` disables the check. |
+
+Pass `null` or omit `options` to get the defaults. To get a dark SVG from
+`renderToString`, the fourth argument is required: `renderToString(lines, ok, err, { dark: true })`.
 
 `plantuml.js` is an ES2015 module loaded via `<script type="module">`.
 `viz-global.js` is a classic script loaded via a plain `<script>` tag and
@@ -35,13 +46,20 @@ DOM element **asynchronously**.  This has two consequences:
 1. You cannot read `targetElement.innerHTML` right after calling `render()`
    — the SVG is not there yet.
 2. When rendering multiple diagrams in the same page (same JS context),
-   you must **serialize** renders: wait for the first SVG to appear in the
-   DOM before starting the next render.  The engine uses shared internal
-   state and will silently overwrite the previous result otherwise.
+   you must **serialize** `render()` calls: wait for the first SVG to appear
+   in the DOM before starting the next one.  The engine keeps only the latest
+   waiting `render()` request (that is what a user typing needs), and will
+   silently overwrite the previous one otherwise.
 
 If you need the SVG as a string instead of a DOM element, use
 `renderToString(lines, onSuccess, onError)` — the callback receives the
-fully-formed SVG once rendering completes.
+fully-formed SVG once rendering completes.  Unlike `render()`, nothing is
+overwritten: calls may overlap, each one is queued, and exactly one of its two
+callbacks is called, once, in the order of the calls.  A host that renders
+several diagrams at the same time (a note with many code blocks, say) can call
+`renderToString` for each one without waiting.  If it only wants the latest
+result while the user types, it has to ignore the older ones itself, or use
+`render()`.
 
 In the iframe-per-diagram architecture described below, the serialization
 issue does not apply because each iframe has its own isolated engine instance.
@@ -255,6 +273,33 @@ data but not executing remote code) and for a Web Worker (no document to
 append a script tag to). With neither global set, behaviour is unchanged.
 `tools/browser-test/check-stdlib-loader.js` pins the whole contract.
 
+## Graphviz When Bundled
+
+Loading `viz-global.js` with a script tag defines a global `Viz`, which is what
+the engine uses. A host that bundles `viz-global.js` into its own file gets no
+global: the UMD attaches `Viz` to the bundle's exports. Such a host passes it
+explicitly, before the first render:
+
+```js
+globalThis.PLANTUML_VIZ = Viz; // e.g. from @viz-js/viz
+```
+
+`PLANTUML_VIZ` takes precedence over a global `Viz`. Without either, diagrams
+that need Graphviz fall back to the Smetana layout engine.
+
+## Debug Logging
+
+The engine is silent by default: it prints nothing to the console and does not
+touch the host page's DOM. To get the step-by-step trace (and the timing text
+that `render()` writes into the element with `id="status"`), set a global before
+rendering:
+
+```js
+globalThis.PLANTUML_DEBUG = true;
+```
+
+Only the value `true` enables it. The demo pages in this directory set it.
+
 ## Local Files
 
 A local `!include` names a file rather than a library or a URL:
@@ -306,15 +351,42 @@ the one a selector chooses (`file!1`, `file!ID`), or of its first diagram.
 An unmatched or invalid selector is an include error. A file with no diagram
 is included whole. `!includesub file!PART` takes its `!startsub PART` sections.
 
+The engine also passes a fifth argument, `request`, with a `kind` field:
+
+| `request.kind` | Directive |
+| --- | --- |
+| `"include"` | `!include`, `!include_once`, `!include_many` |
+| `"includesub"` | `!includesub FILE!PART` |
+| `"theme"` | `!theme NAME from DIR` for a local folder |
+
+A host can use this to apply resource policies or identify a failed request
+without parsing PlantUML or guessing from a filename. The same file can be
+requested as an include or as a theme. Existing four-parameter functions,
+including the example above, may ignore this argument. A host supporting an
+older engine should allow for it to be absent.
+
+This is the kind of the immediate request: an `!include` inside a local theme
+has kind `"include"`. It does not report an applied theme, a selected section
+or whether a repeated include will be skipped. Always deliver the whole file;
+the engine selects diagrams and sub sections and applies include strategies.
+
 The loader may answer synchronously or later, or be an `async` function: the
 rejection of the promise it returns fails the include, while a fulfilled value
 delivers nothing, so the file must still come through `ok`. The first outcome
 wins; a later callback or rejection is ignored. Returning `false` (strictly),
 without calling either callback, declines the file, which then fails as if no
-loader were set. The engine has no timeout: a loader that neither calls a
-callback, returns `false`, nor rejects leaves the rendering waiting, so a host
-that performs network I/O should enforce its own timeout and call `err` when
-it expires.
+loader were set. A loader that neither calls a callback, returns `false`, nor
+rejects within 60 seconds makes the include fail, with a message on the
+console; a later answer is ignored. A host that performs network I/O may still
+enforce a shorter timeout of its own and call `err` when it expires.
+
+The engine never waits for the loader. It renders the diagram, notes the files
+it did not have yet, asks the loader for them, and renders the diagram again
+once every answer is in, as many times as the include depth requires (at most
+20). So during one rendering the loader is called once per file (path, `from`
+and kind), and it is called again at the next rendering, which is how an
+edited file is seen. Nothing of a discarded rendering reaches the page: not
+the drawing, not its console warnings.
 
 The loader is only asked for local names. Standard-library includes, URL
 includes, `!includedef` and a `!theme` from a library or a URL keep their

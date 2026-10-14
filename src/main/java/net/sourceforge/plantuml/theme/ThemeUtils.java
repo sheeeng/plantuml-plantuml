@@ -57,7 +57,7 @@ import net.sourceforge.plantuml.preproc2.PreprocessorUtils;
 import net.sourceforge.plantuml.security.SURL;
 import net.sourceforge.plantuml.teavm.TeaVM;
 // ::comment when JAVA8
-import net.sourceforge.plantuml.teavm.browser.TeaVmScriptLoader;
+import net.sourceforge.plantuml.teavm.js.browser.ScriptLoaderJs;
 // ::done
 import net.sourceforge.plantuml.text.StringLocated;
 import net.sourceforge.plantuml.tim.EaterException;
@@ -86,7 +86,7 @@ public class ThemeUtils {
 			// regular "Cannot load theme" error instead of silently ignoring the
 			// directive.
 			if (from == null)
-				return loadJsTheme(name);
+				return TeaVM.isJavaScript() ? loadJsTheme(name) : null;
 			if (isLocalFolder(from) == false)
 				return null;
 		}
@@ -123,33 +123,35 @@ public class ThemeUtils {
 	 * <p>
 	 * The map is consulted before the script is fetched, so that a host which has
 	 * registered the themes itself (for instance inside a Web Worker, where
-	 * TeaVmScriptLoader has no document to append a script tag to) does not need
+	 * ScriptLoaderJs has no document to append a script tag to) does not need
 	 * themes.js to be reachable.
 	 */
 	private static Theme loadJsTheme(String name) {
 		Log.info(() -> "Loading theme " + name + " from " + THEMES_JS);
-		String content = TeaVmScriptLoader.getTheme(name);
+		String content = ScriptLoaderJs.getTheme(name);
 		if (content == null) {
 			try {
-				TeaVmScriptLoader.loadOnceSync(THEMES_JS);
+				// Never waits: when themes.js is not loaded yet, this rendering attempt
+				// goes on unthemed and is rendered again once it is (PendingResources).
+				ScriptLoaderJs.require(THEMES_JS);
 			} catch (RuntimeException fetchFailed) {
 				// hasThemes() decides below; a failed fetch and a fetch that did not
 				// define the map are the same situation.
 			}
-			if (!TeaVmScriptLoader.hasThemes()) {
+			if (!ScriptLoaderJs.hasThemes()) {
 				// themes.js is not deployed where the page can fetch it. The diagram is
 				// published content viewed by someone who cannot fix that, so it keeps
 				// rendering unthemed, exactly as it did when !theme was ignored; the
 				// missing file is reported on the console, where the page author looks.
 				// An unknown name in a loaded themes.js stays an error (null, below),
 				// like the desktop build.
-				TeaVmScriptLoader.consoleWarn("PlantUML: " + THEMES_JS + " could not be loaded, so '!theme " + name
+				ScriptLoaderJs.consoleWarn("PlantUML: " + THEMES_JS + " could not be loaded, so '!theme " + name
 						+ "' was ignored. Serve " + THEMES_JS + " next to the page"
 						+ " or register globalThis.PLANTUML_THEMES (importing " + THEMES_JS
 						+ " as a module does this).");
 				return new Theme(ReadLineReader.create(new byte[0], "<missing " + THEMES_JS + ">"));
 			}
-			content = TeaVmScriptLoader.getTheme(name);
+			content = ScriptLoaderJs.getTheme(name);
 		}
 		if (content == null)
 			return null;
@@ -170,7 +172,7 @@ public class ThemeUtils {
 		}
 
 		// Then try local file
-		final InputFile localFile = pathSystem.getInputFile(getFilename(name));
+		final InputFile localFile = pathSystem.getInputFile(getFilename(name), PathSystem.KIND_THEME);
 		if (localFile != null) {
 			final Reader br = localFile.getReader(UTF_8);
 			if (br != null)
@@ -210,7 +212,7 @@ public class ThemeUtils {
 	}
 
 	private static Theme loadFileTheme(PathSystem pathSystem, String name, String from) throws IOException {
-		final InputFile file = pathSystem.getInputFile(getFullPath(from, name));
+		final InputFile file = pathSystem.getInputFile(getFullPath(from, name), PathSystem.KIND_THEME);
 		if (file == null)
 			return null;
 

@@ -63,12 +63,8 @@ import net.sourceforge.plantuml.ditaa.PSystemDitaaFactory;
 import net.sourceforge.plantuml.donors.PSystemDonorsFactory;
 import net.sourceforge.plantuml.donors.PSystemSkinparameterListFactory;
 import net.sourceforge.plantuml.ebnf.PSystemEbnfFactory;
-import net.sourceforge.plantuml.eggs.PSystemAppleTwoFactory;
-import net.sourceforge.plantuml.eggs.PSystemCharlieFactory;
 import net.sourceforge.plantuml.eggs.PSystemColorsFactory;
-import net.sourceforge.plantuml.eggs.PSystemEggFactory;
 import net.sourceforge.plantuml.eggs.PSystemPathFactory;
-import net.sourceforge.plantuml.eggs.PSystemRIPFactory;
 import net.sourceforge.plantuml.eggs.PSystemWelcomeFactory;
 import net.sourceforge.plantuml.emoji.PSystemListEmojiFactory;
 import net.sourceforge.plantuml.error.PSystemError;
@@ -171,13 +167,8 @@ public class PSystemBuilder {
 		factories.add(new PSystemMathFactory());
 		factories.add(new PSystemLatexFactory());
 		factories.add(new PSystemCreoleFactory());
-		factories.add(new PSystemEggFactory());
-		factories.add(new PSystemAppleTwoFactory());
-		factories.add(new PSystemRIPFactory());
 		if (SecurityUtils.getSecurityProfile() == SecurityProfile.INSECURE)
 			factories.add(new PSystemPathFactory());
-
-		factories.add(new PSystemCharlieFactory());
 
 		factories.add(new GanttDiagramFactory());
 		// factories.add(new ChronologyDiagramFactory());
@@ -227,7 +218,7 @@ public class PSystemBuilder {
 
 	}
 
-	@DuplicateCode(reference = "PSystemBuilder2")
+	@DuplicateCode(reference = "PSystemBuilderJs")
 	final public Diagram createPSystem(PathSystem pathSystem, List<StringLocated> source, List<StringLocated> rawSource,
 			Previous previous, PreprocessingArtifact preprocessing) {
 

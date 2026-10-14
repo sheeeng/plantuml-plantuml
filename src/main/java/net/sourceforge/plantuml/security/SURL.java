@@ -624,13 +624,13 @@ public class SURL {
 	}
 
 	public InputStream openStream() {
+		// No URL is read by the TeaVM builds (JavaScript and C). java.net.URL goes
+		// through TeaVM's XHR connection, an @Async method: reachable from here, it
+		// would turn most of PlantUML into coroutines (see tools/teavm-coroutines).
+		// Nothing calls this at run time anyway: !include, !includesub, !theme, sprite
+		// and <img> of a URL are refused before getting here in the TeaVM builds.
 		if (TeaVM.isTeaVM()) {
-			try {
-				return internal.openStream();
-			} catch (IOException e) {
-				System.err.println("SURL::openStream " + e);
-				return null;
-			}
+			return null;
 		} else {
 			if (isUrlOk()) {
 				final byte[] data = getBytes();
