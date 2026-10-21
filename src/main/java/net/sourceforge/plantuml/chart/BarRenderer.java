@@ -136,6 +136,8 @@ public class BarRenderer {
 		final UStroke stroke = UStroke.withThickness(lineThickness);
 
 		for (int i = 0; i < Math.min(values.size(), categoryCount); i++) {
+			if (values.get(i) == null)
+				continue;
 			final double value = values.get(i);
 			final double x = i * categoryWidth + barOffset;
 
@@ -205,13 +207,17 @@ public class BarRenderer {
 		final UStroke stroke = UStroke.withThickness(lineThickness);
 
 		for (int i = 0; i < Math.min(values.size(), categoryCount); i++) {
+			if (values.get(i) == null)
+				continue;
 			final double value = values.get(i);
 			final double y = i * categoryHeight + barOffset;
 			final double barWidth = Math.abs((value - axis.getMin()) / (axis.getMax() - axis.getMin()) * plotWidth);
 			final double x = 0; // Start from left
 
-			final URectangle rect = URectangle.build(barWidth, barHeight);
-			ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+			if (barHeight > 0) {
+				final URectangle rect = URectangle.build(barWidth, barHeight);
+				ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+			}
 
 			// Draw label if enabled
 			if (series.isShowLabels()) {
@@ -247,7 +253,7 @@ public class BarRenderer {
 				final HColor color = colors.get(seriesIndex);
 				final List<Double> values = series.getValues();
 
-				if (categoryIndex >= values.size())
+				if (categoryIndex >= values.size() || values.get(categoryIndex) == null)
 					continue;
 
 				final double value = values.get(categoryIndex);
@@ -275,8 +281,10 @@ public class BarRenderer {
 					lineColor = color; // Use fill color if no line color specified
 				}
 
-				final URectangle rect = URectangle.build(barWidth, barHeight);
-				ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+				if (barHeight > 0) {
+					final URectangle rect = URectangle.build(barWidth, barHeight);
+					ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+				}
 
 				// Draw label if enabled
 				if (series.isShowLabels()) {
@@ -334,7 +342,7 @@ public class BarRenderer {
 				final HColor color = colors.get(seriesIndex);
 				final List<Double> values = series.getValues();
 
-				if (categoryIndex >= values.size())
+				if (categoryIndex >= values.size() || values.get(categoryIndex) == null)
 					continue;
 
 				final double value = values.get(categoryIndex);
@@ -362,8 +370,10 @@ public class BarRenderer {
 					lineColor = color; // Use fill color if no line color specified
 				}
 
-				final URectangle rect = URectangle.build(barWidth, barHeight);
-				ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+				if (barHeight > 0) {
+					final URectangle rect = URectangle.build(barWidth, barHeight);
+					ug.apply(lineColor).apply(stroke).apply(color.bg()).apply(UTranslate.dx(x).compose(UTranslate.dy(y))).draw(rect);
+				}
 
 				// Draw label if enabled
 				if (series.isShowLabels()) {

@@ -184,7 +184,7 @@ public class PlantUMLBrowser {
 					removeAllChildren(out);
 					appendSvgElement(out, svg.getSvgRoot());
 				} else {
-					out.setTextContent(String.valueOf(failure));
+					out.setTextContent(describe(failure));
 				}
 			}
 			BrowserLog.jsStatusDuration();
@@ -240,7 +240,7 @@ public class PlantUMLBrowser {
 			if (svg != null)
 				PlantUMLBrowser.deliver(onSuccess, svg);
 			else
-				PlantUMLBrowser.deliver(onError, String.valueOf(failure));
+				PlantUMLBrowser.deliver(onError, describe(failure));
 		}
 
 		@Override
@@ -458,6 +458,33 @@ public class PlantUMLBrowser {
 		} catch (Throwable t) {
 			RenderQueue.consoleError("PlantUML: callback threw: " + t);
 		}
+	}
+
+	/**
+	 * Human-readable description of a rendering failure, never {@code null}.
+	 *
+	 * <p>
+	 * {@code Throwable} (not only {@code Exception}) is caught by the callers so
+	 * that an {@code Error} (e.g. {@code StackOverflowError}) reports a message
+	 * instead of silently killing the worker thread. With {@code PLANTUML_DEBUG},
+	 * the stack trace is also printed to the browser console.
+	 */
+	private static String describe(Throwable e) {
+		// Not possible in Java, but seen on the Wasm GC build: TeaVM 0.16.0
+		// miscompiled some try/finally blocks into a "throw null".
+		if (e == null)
+			return "Rendering error: null exception";
+
+		if (BrowserLog.isDebug())
+			e.printStackTrace();
+
+		// With an obfuscated build, toString() may return null when the class name is
+		// not kept and the exception has no message.
+		final String s = e.toString();
+		if (s != null)
+			return s;
+		final String message = e.getMessage();
+		return "Rendering error (" + (message == null ? "no message" : message) + ")";
 	}
 
 	// =========================================================================
