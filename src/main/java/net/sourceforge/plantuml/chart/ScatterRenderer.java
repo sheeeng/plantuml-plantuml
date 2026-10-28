@@ -35,6 +35,7 @@
 package net.sourceforge.plantuml.chart;
 
 import java.util.List;
+import java.util.Locale;
 
 import net.sourceforge.plantuml.klimt.UTranslate;
 import net.sourceforge.plantuml.klimt.color.HColor;
@@ -98,17 +99,10 @@ public class ScatterRenderer {
 		// Get scatter style (with stereotype support)
 		final Style scatterStyle = getScatterStyle(series);
 
-		// Extract marker color from style - priority: MarkerColor > LineColor > explicit color
+		// Marker color - priority: explicit color > MarkerColor > LineColor (given by ChartRenderer)
 		HColor markerColor = color;
-		HColor styleMarkerColor = scatterStyle.value(PName.MarkerColor).asColor(skinParam.getIHtmlColorSet());
-		if (styleMarkerColor != null) {
-			markerColor = styleMarkerColor;
-		} else {
-			HColor styleLineColor = scatterStyle.value(PName.LineColor).asColor(skinParam.getIHtmlColorSet());
-			if (styleLineColor != null && color == null) {
-				markerColor = styleLineColor;
-			}
-		}
+		if (series.getColor() == null && scatterStyle.hasValue(PName.MarkerColor))
+			markerColor = scatterStyle.value(PName.MarkerColor).asColor(skinParam.getIHtmlColorSet());
 
 		// Extract marker size from style (default 8)
 		double markerSize = 8.0;
@@ -235,9 +229,9 @@ public class ScatterRenderer {
 
 	private String formatValue(double value) {
 		if (Math.abs(value) < 0.01 && value != 0)
-			return String.format("%.2e", value);
+			return String.format(Locale.ROOT, "%.2e", value);
 		if (value == (long) value)
-			return String.format("%d", (long) value);
-		return String.format("%.2f", value);
+			return String.format(Locale.ROOT, "%d", (long) value);
+		return String.format(Locale.ROOT, "%.2f", value);
 	}
 }

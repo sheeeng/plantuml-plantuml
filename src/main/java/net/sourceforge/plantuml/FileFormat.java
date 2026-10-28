@@ -138,6 +138,10 @@ public enum FileFormat {
 	 * @return a string starting by a point.
 	 */
 	public String getFileSuffix() {
+		// Also in the TeaVM builds: the name() fallback below would give ".svg_deterministic"
+		if (this == SVG_DETERMINISTIC)
+			return ".svg";
+
 		if (!TeaVM.isTeaVM()) {
 			if (name().startsWith("XMI_CUSTOM"))
 				return ".xmi_custom";
@@ -269,7 +273,6 @@ public enum FileFormat {
 		}
 	}
 
-	// ::comment when __TEAVM__
 	static public XDimension2D getJavaDimension(UFont font, String text) {
 		if (text.length() == 0)
 			return new XDimension2D(0, 0);
@@ -382,6 +385,5 @@ public enum FileFormat {
 		}
 		return false;
 	}
-	// ::done
 
 }
