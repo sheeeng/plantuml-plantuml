@@ -24,7 +24,7 @@ is a fully working fallback and needs no network access:
 ant dist          # compiles src/main/java and produces ./plantuml.jar
 ```
 
-`.clide/` holds the committed compile-only stubs (TeaVM, OpenPDF, Ant, opentest4j).
+`.clide/` holds the committed compile-only stubs (TeaVM, Ant, opentest4j; OpenPDF is part of the sources, in `src/main/java/org/openpdf`).
 The test jars themselves (JUnit 5, JUnit Pioneer, XMLUnit) are **not** committed:
 clide unpacks them into the gitignored `.clide/tmp/jar-junit/` the first time it
 opens this project, and they can also be copied from a clide checkout (`lib/`).
@@ -128,4 +128,5 @@ git clone --depth 1 https://github.com/plantuml/plantuml
 - `jcckit` - external charting library
 - `zext` - external library
 - `org.stathissideris` - external library (ditaa)
+- `org.scilab.forge.jlatexmath` - external library (JLaTeXMath 1.0.7, vendored; the drawing is being replaced by a canvas in phase 2 of `PLAN.md`, see its `readme.md` for what is modified)
 

@@ -22,8 +22,8 @@ but they only print "... is not available in the C build":
   JVM: the C build prints the help instead), `--ftp-server`, `--http-server`,
   `--clipboard`, `-printfonts`, `-license`, the statistics, `--encode-sprite`,
   `--check-graphviz` (there is no Graphviz: Smetana computes the layout);
-- the output formats other than SVG, PNG and `--preproc` (they need AWT or
-  other libraries);
+- the output formats other than SVG, PNG, text (`-ttxt`, `-tutxt`) and `--preproc`
+  (PDF, EPS, LaTeX, HTML5, VDX, XMI... need AWT or other libraries);
 - the extraction of the source of a PNG file (`--extract-source`; it works for
   an SVG file) and the check of the metadata of a PNG file (`--skip-fresh`: the
   PNG is always generated again).
@@ -32,6 +32,25 @@ The splash screen, the progress bar and `--threads` are ignored (the files are
 processed one after the other), and the PNG is not split (`split` pages).
 The exit codes of the help are those of the JVM (`exit` of the C library, as
 `System.exit` does not exist in the classlib of the TeaVM C backend).
+
+The security profile works as on the JVM: `-DPLANTUML_SECURITY_PROFILE=SANDBOX`
+(or the environment variable) decides which local files a diagram may read
+(`!include`, `!include_once`, `!include_many`, `!includesub`, `!import`,
+`!theme ... from`, `%file_exists`), and `-Dplantuml.include.path=DIR` and
+`-Dplantuml.allowlist.path=DIR` list the folders that stay readable in the
+modes that restrict files. The profile of the browser build is unchanged (no
+file system).
+
+`!include`, `!include_once`, `!include_many` and `!includesub` read an
+`http(s)` URL, with the same rules as the JVM: refused in SANDBOX, filtered by
+`-Dplantuml.allowlist.url=URL1;URL2` (a URL starting with one of them), ports 80
+and 443 only in INTERNET, no redirection except in INSECURE, and no host that
+resolves to a loopback, link-local or private address (except in INSECURE or
+for an allowlisted URL). The decision is taken in Java (`UrlPolicy`); the
+transfer is a blocking native call (`plantuml_http.c`: WinHTTP on Windows,
+libcurl on Linux and macOS), so there is no coroutine. A build made without
+the libcurl development files (`libcurl4-openssl-dev`) still works, but refuses
+every URL. The themes, `%load_json` and the images of a URL are not covered.
 
 The help is the one of the JVM: it is built from the annotations of `CliFlag`,
 which TeaVM cannot read, so `CliFlagDocTable` holds their values as plain code
@@ -105,13 +124,24 @@ cmake --build build/c-native
 build/generated/teavm/c/bin/plantuml -tsvg mindmap.puml
 ```
 
+**gcc 15 needs `-fno-optimize-crc`.** gcc 15 has a new pass, `-foptimize-crc`, that recognizes the loops computing
+a CRC. On the loop that fills the table of `com.jcraft.jzlib.CRC32` (as TeaVM generates it) it replaces the whole
+function by `__builtin_unreachable ()`: without the option the executable crashes (segmentation fault, or
+`NullPointerException`) at the first use of `java.util.zip.CRC32`, which `-tpng` needs for the chunks of the PNG.
+`CMakeLists.txt` adds `-fno-optimize-crc` when the compiler knows it (gcc 15 and later). It was found in the CI when
+`ubuntu-latest` became Ubuntu 26.04 (gcc 15.2); the story, the minimal test case and the CI are in
+https://github.com/plantuml/gcc-2. The same pass has another wrong-code bug,
+[GCC PR 127984](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127984), still open in gcc 15.3, 16 and 17: the option
+is needed for now.
+
 ## Continuous integration
 
 `.github/workflows/teavm-c.yml` is called by `ci.yml` on every push to `master`: it generates
-the C sources once on Linux, then builds and smoke-tests (small mindmap to SVG and PNG, help, exit code) `plantuml.exe` on
-Windows x64 and Windows ARM64. The executables are available as workflow
-artifacts (`plantuml-c-windows-x64`, `plantuml-c-windows-arm64`), and the x64
-one is attached to the snapshot release.
+the C sources once on Linux, then builds and smoke-tests (small mindmap to SVG and PNG, help, exit code) the
+executable on Windows (MSVC), Linux and macOS, for x64 and arm64 each. The executables are available as
+workflow artifacts (`plantuml-windows-x64`, `plantuml-windows-arm64`, `plantuml-linux-x64`,
+`plantuml-linux-arm64`, `plantuml-macos-x64`, `plantuml-macos-arm64`), and they are all attached to the
+snapshot release (`plantuml-{windows,linux,macos}-{amd64,arm64}-SNAPSHOT.zip`).
 
 ## Expected output
 
@@ -154,7 +184,8 @@ Java2D: the PNG must be the one of `-tpng`, pixel for pixel.
 
 Not supported yet: shadows, patterns (stripes...), images and sprites, circled
 characters, the image map of links, the watermark; text is always drawn with
-Liberation Sans (no serif nor monospaced font embedded yet). TeaVM's
+Liberation Sans, and the fonts of the machine for the characters it lacks (see
+"Fonts of the machine"; no serif nor monospaced font embedded yet). TeaVM's
 `System.getenv` always returns null, so `PLANTUML_LIMIT_SIZE` is not read: the
 size of the image is limited to 4096 pixels.
 
@@ -185,14 +216,25 @@ Native sources (`native/`, copied by Gradle next to the generated C):
 - `plantuml_png.h` / `.c`: the PNG encoder (see above).
 - `miniz/`: miniz 3.1.2 (MIT), the amalgamated release (`miniz.c`, `miniz.h`),
   unmodified: deflate and CRC of the PNG encoder only.
-- `plutovg/`: plutovg 1.3.3, unmodified (MIT; its rasterizer and stroker come
-  from FreeType, see `source/FTL.TXT`). It brings `stb_truetype` for fonts (its
-  `stb_image_write` is not used). Built as a static library, without its
-  system font loading: the output must not depend on the machine.
+- `plutovg/`: plutovg 1.3.3 (MIT; its rasterizer and stroker come
+  from FreeType, see `source/FTL.TXT`), with one function added,
+  `plutovg_font_face_glyph_outline_size` (marked "PlantUML addition" in
+  `plutovg.h` and `source/plutovg-font.c`). It brings `stb_truetype` for fonts
+  (its `stb_image_write` is not used). Built as a static library, without its
+  system font loading: the output must not depend on the machine (see "Fonts of
+  the machine" for the only exception).
+- `plantuml_fonts.h` / `.c`: the fallback to the fonts of the machine.
 - `fonts/`: Liberation Sans 2.1.5 (SIL Open Font License 1.1), metric
   compatible with Arial, i.e. with what Java's "SansSerif" is on Windows.
   `embed_font.cmake` turns the 4 TTF files (regular, bold, italic, bold italic)
   into C arrays when CMake configures.
+
+## Text output (`-ttxt`, `-tutxt`)
+
+No native code: the sequence diagrams use their own text renderer (`asciiverse`, called
+by `SequenceDiagram.exportTxt`), the other diagrams are drawn by `UGraphicTxt` (only their
+texts, as on the JVM). Text is measured in character cells (`TextStringBounder`), not with
+the embedded fonts: `FileFormat.getDefaultStringBounder` picks it for these two formats.
 
 ## Text measurement with the embedded fonts
 
@@ -228,6 +270,40 @@ java tools/font-metrics/GenerateFontMetrics.java
 TTF files and the measured widths (any OS), and the whole bounder against
 `StringBounderAwt` on Windows.
 
+## Fonts of the machine
+
+The embedded Liberation Sans has no Chinese, Japanese, Korean or Arabic, no
+symbols (✓, ☃...) and no emoji: they were drawn as the empty box of the missing
+glyph. `plantuml_fonts.c` now looks for them in the fonts of the machine, glyph by
+glyph, only for the code points Liberation Sans has no outline for:
+
+- Text that Liberation Sans covers is measured and drawn by plutovg as a whole,
+  exactly as before: its PNG does not depend on the machine (the Vega tests
+  stay the same).
+- The fonts are looked for in `/usr/share/fonts`, `/usr/local/share/fonts`,
+  `~/.fonts` and `~/.local/share/fonts` (Linux), `/System/Library/Fonts`,
+  `/Library/Fonts` and `~/Library/Fonts` (macOS), `%WINDIR%\Fonts` and
+  `%LOCALAPPDATA%\Microsoft\Windows\Fonts` (Windows), after the folders of the
+  `PLANTUML_FONT_DIRS` environment variable (separated by `:`, or `;` on
+  Windows), which win. In a Docker image, install a font package such as
+  `fonts-noto-cjk`.
+- The fonts with the widest coverage (Noto Sans CJK, Source Han Sans, Noto Sans,
+  DejaVu Sans, Arial Unicode, the Windows and macOS CJK fonts...) are tried
+  first, regular before bold or light; the others follow, `unifont` last. A file
+  is read at most once, and the answer for a code point is kept. Up to 192 MB of
+  fonts are read; with no suitable font, the box of the missing glyph is drawn as
+  before.
+- Regular weight only: bold and italic text uses the regular fallback glyphs.
+  Color emoji fonts (bitmaps) are skipped, as plutovg only draws outlines: emoji
+  stay boxes unless a font with outlines has them (DejaVu Sans has a few
+  symbols).
+- No shaping and no right-to-left layout (plutovg has none): Arabic letters are
+  drawn isolated and left to right.
+- The layout is not changed: it is measured in Java (see above), with widths that
+  do not depend on the machine. A fallback glyph keeps the advance of the font it
+  comes from, which can differ slightly from the width reserved for it (full width
+  CJK characters match).
+
 ## What differs from the JavaScript build
 
 - `TeaVM.isTeaVM()` is true for every TeaVM target, C included. Code that only
@@ -242,6 +318,12 @@ TTF files and the measured widths (any OS), and the whole bounder against
   calls).
 - Input: the command line reads the file with `ReadLineReader`, as on the JVM
   (byte order mark removed, U+2013 replaced by `-`).
+- Standard input (`-pipe`, `-pipemap`, `--syntax`): the `System.in` of the TeaVM C
+  classlib (`ConsoleInputStream`) throws on every `read`, which aborted the process
+  (exit code 134) before the first byte. `Run` uses `StdinStream` instead, which
+  calls `read(0, ...)` of the C library through `native/plantuml_stdin.c`
+  (binding: `NativeStdin`). The CI checks it on Linux and macOS (pipe, and input
+  redirected from a file).
 - Async code: TeaVM turns a method into "async" code (fibers) when it can reach
   an `@Async` method of its classlib, and its coroutine transformation then fails
   with an `ArrayIndexOutOfBoundsException` on some methods. Plain locks are not
@@ -280,3 +362,45 @@ library) are embedded in the executable, since the C build has no classpath:
 
 To embed more files, add `name=path` pairs to `RESOURCE_PAIRS` in
 `CMakeLists.txt` and have Gradle copy them.
+
+## Formulas (`@startmath`, `@startlatex`, `<math>`, `<latex>`)
+
+JLaTeXMath (`org.scilab.forge.jlatexmath`, vendored) draws a formula as paths on
+a `UGraphic`, so the SVG, PNG and PDF of the C build get the same shapes as the
+JVM (see `PLAN.md`). The library has no `java.awt`, no `javax.*`, no reflection and
+no `Character.UnicodeBlock`, none of which the C class library has. The text that
+no TeX font can draw (CJK...) is measured with the `StringBounder` of the diagram and
+drawn as a `UText`.
+
+It reads 71 files (68 XML files and 3 `glyphs.bin`), through `TeXResources`: there is no
+class loader in the C build, and TeaVM's resource support crashes its coroutine
+transformation. `copyNativeSources` copies them from
+`src/main/resources/org/scilab/forge/jlatexmath` into `native/resources/jlatexmath`,
+CMake embeds them, and `MathResources` gives the library a `JlatexmathResources`,
+which reads the embedded files (`jlatexmath/...`); on the JVM, the class loaders are
+used. About 2 MB are added to the executable. The XML files are read by `XmlReader`
+(no `javax.xml` either).
+
+`PSystemBuilderC` has `PSystemMathFactory` and `PSystemLatexFactory`, and the
+`TeaVM.isTeaVM() == false || TeaVM.isC()` tests of the Creole parser let `<math>` and
+`<latex>` through (the browser build still shows them as text). Not in the C build:
+the TikZ output of a formula, and EPS.
+
+Test it with `python tools/vega-c/run_vega_c.py math`: 216 of the 221 tests of
+`vega/math` are SVG or PDF ones that the script checks (the others are TikZ and
+text outputs); `decimal:` is given to `plantuml.exe` as `--decimal`.
+
+## PDF
+
+PDF output goes through the OpenPDF sources, pruned and kept in
+`src/main/java/org/openpdf` (no AWT, no `Font`, `TextLayout`, `Bidi`, image
+decoders, ICC profiles, ...): there are no stand-in classes to maintain. Keep it
+that way when touching OpenPDF: a new JDK dependency in `org/openpdf` shows up as
+a `generateC` error.
+
+OpenPDF has no class loader to read its resources (AFM font metrics, glyph list,
+messages) in the C build, and TeaVM's resource support crashes its coroutine
+transformation. `BaseFont.setResourceProvider` is given `OpenPdfResources`, which
+reads the embedded files (`openpdf/...`, copied from `src/main/resources/org/openpdf`
+by `copyNativeSources`); on the JVM, `ClassLoaderResources` is used. `OpenPdfSetup`
+chooses one, once, before the first use of a font.

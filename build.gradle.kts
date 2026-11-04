@@ -23,6 +23,7 @@ plugins {
 	alias(libs.plugins.gorylenko.gradle.git.properties)
 //	alias(libs.plugins.adarshr.test.logger)
 	alias(libs.plugins.teavm)
+	alias(libs.plugins.sonarqube)
 }
 
 group = "net.sourceforge.plantuml"
@@ -45,12 +46,10 @@ dependencies {
 
 	testImplementation(libs.xmlunit.core)
 	testImplementation(libs.junit.pioneer)
-	implementation(libs.jlatexmath)
     implementation(libs.elk.core)
     implementation(libs.elk.alg.layered)
     implementation(libs.elk.alg.mrtree)
     implementation(libs.xtext.xbase.lib)
-	implementation(libs.openpdf)
 
 	// JDepend for package metrics
 	jdependConfig(libs.jdepend)
@@ -173,10 +172,15 @@ val copyNativeSources = tasks.register<Copy>("copyNativeSources") {
 		include("**/*.svg")
 		into("native/resources/sprites")
 	}
-	// The OpenIconic icons (<&name>)
+	// The OpenIconic icons (<&name>), and their list (listopeniconic)
 	from("src/main/resources/openiconic") {
-		include("*.svg")
+		include("*.svg", "all.txt")
 		into("native/resources/openiconic")
+	}
+	// The emoji (<:name:>): the list and one SVG file per emoji
+	from("src/main/resources/net/sourceforge/plantuml/emoji/data") {
+		include("emoji.txt", "*.svg")
+		into("native/resources/emoji")
 	}
 	// The standard library: its list, and for each library its description, its
 	// puml, json, sprite and svg files; image.spm (raster images)
@@ -184,6 +188,20 @@ val copyNativeSources = tasks.register<Copy>("copyNativeSources") {
 		include("home.spm", "*/info.spm", "*/puml.spm", "*/json.spm", "*/sprite.spm", "*/svg.spm",
 				"*/image.spm")
 		into("native/resources/stdlib")
+	}
+	// The resources JLaTeXMath reads (the XML files of the font metrics, the symbols and the
+	// macros, and the glyph outlines): there is no class loader in the C build, see JlatexmathResources
+	from("src/main/resources/org/scilab/forge/jlatexmath") {
+		include("**/*.xml", "**/glyphs.bin")
+		into("native/resources/jlatexmath")
+	}
+	// The resources OpenPDF reads (AFM font metrics, glyph list, messages): there is no
+	// class loader in the C build, see OpenPdfResources
+	from("src/main/resources") {
+		include("org/openpdf/text/pdf/fonts/*.afm", "org/openpdf/text/pdf/fonts/glyphlist.txt",
+				"org/openpdf/text/error_messages/en.lng")
+		includeEmptyDirs = false
+		into("native/resources/openpdf")
 	}
 	into(layout.buildDirectory.dir("generated/teavm/c"))
 }
@@ -202,21 +220,23 @@ tasks.compileJava {
 apply(from = "tools/linters/superlinter.gradle.kts")
 
 // teavm-classlib 0.15+ is published for JVM 17+ only, and the TeaVM plugin adds it
-// to compileClasspath. With --release 11 Gradle refuses to resolve it. The Java
-// sources only need the JSO/interop APIs (Java 11 compatible), never the classlib
-// (it is only needed by the TeaVM compiler itself, which has its own classpath).
+// to compileClasspath: with -PjavacRelease=11 Gradle refuses to resolve it. The Java
+// sources never need the classlib (only the TeaVM compiler does, on its own classpath).
 configurations.compileClasspath {
 	exclude(group = "org.teavm", module = "teavm-classlib")
 }
 
-// TeaVM 0.15+ must RUN on Java 17+, but it can still consume Java 11 bytecode.
-// So the JAR stays compiled with --release 11 (see javacRelease above), and only
-// the JavaScript / WebAssembly / C generation needs a JDK 17+ running Gradle.
+// teavm-classlib 0.15+ is published for JVM 17+ only: with --release 21 (see
+// javacRelease above), Gradle resolves it on the compile classpath without trouble.
+// The Java sources only need the JSO/interop APIs, never the classlib.
+
+// TeaVM 0.15+ must RUN on Java 17+: the JavaScript / WebAssembly / C generation
+// needs a JDK 17+ running Gradle.
 tasks.matching { it.name == "generateJavaScript" || it.name == "generateWasmGC" || it.name == "generateC" }.configureEach {
 	doFirst {
 		check(JavaVersion.current() >= JavaVersion.VERSION_17) {
 			"TeaVM requires running Gradle on JDK 17+ (current: ${JavaVersion.current()}). " +
-				"The Java bytecode itself remains --release $javacRelease."
+				"The Java bytecode itself is --release $javacRelease."
 		}
 	}
 }
@@ -243,7 +263,7 @@ tasks.withType<Jar>().configureEach {
 
 
 
-val checkJarEntries by tasks.registering {
+val checkJarEntries = tasks.register("checkJarEntries") {
     dependsOn(tasks.named("jar"))
     doLast {
         val jarFile = tasks.named<Jar>("jar").get().archiveFile.get().asFile
@@ -824,7 +844,7 @@ tasks.named("generateGitProperties") {
 // tree contains uncommitted changes -- this is expected in CI (ephemeral runner),
 // but if you ever need to run it locally, remember to `git restore` the file
 // afterwards, or use `-PpatchCompilationInfo` workflows carefully.
-val patchCompilationInfo by tasks.registering {
+val patchCompilationInfo = tasks.register("patchCompilationInfo") {
 	group = "build"
 	description = "Patches src/main/java/.../CompilationInfo.java in place with version, git commit id and compile timestamp. NOT wired automatically -- call explicitly (typically from CI)."
 
@@ -911,7 +931,7 @@ tasks.register("teavm") {
 		// PLANTUML_STDLIB_LOADER hooks and the integration docs rely on.
 		copy {
 			from(teavmSrcDir.dir("web"))        // hand-written pages/scripts (keeps preview/)
-			from(teavmSrcDir.dir("generated"))  // themes.js, emoji.js, openiconic.js
+			from(teavmSrcDir.dir("generated"))  // themes.js, emoji.js, openiconic.js, jlatexmath.js (GPL: not in the other license variants)
 			from(teavmSrcDir.dir("stdlib"))     // <lib>.min.js from plantuml-stdlib
 			from(teavmSrcDir.dir("vendor")) {   // third-party code
 				// viz-global.js is historically loaded from the root
@@ -1097,6 +1117,7 @@ tasks.register("npmPackage") {
 			"plantuml.js",
 			"viz-global.js",
 			"emoji.js",
+			"jlatexmath.js",
 			"openiconic.js",
 			"themes.js",
 			"main.js",
@@ -1136,6 +1157,7 @@ tasks.register("npmPackage") {
 			    "./plantuml.js": "./plantuml.js",
 			    "./viz-global.js": "./viz-global.js",
 			    "./emoji.js": "./emoji.js",
+			    "./jlatexmath.js": "./jlatexmath.js",
 			    "./openiconic.js": "./openiconic.js",
 			    "./themes.js": "./themes.js",
 			    "./package.json": "./package.json"
@@ -1144,6 +1166,7 @@ tasks.register("npmPackage") {
 			    "plantuml.js",
 			    "viz-global.js",
 			    "emoji.js",
+			    "jlatexmath.js",
 			    "openiconic.js",
 			    "themes.js",
 			    "main.js",
@@ -1182,7 +1205,7 @@ tasks.register("npmPackage") {
 			  },
 			  "author": "Arnaud Roques",
 			  "license": "GPL-3.0-or-later",
-			  "sideEffects": ["./viz-global.js", "./emoji.js", "./openiconic.js", "./themes.js"]
+			  "sideEffects": ["./viz-global.js", "./emoji.js", "./jlatexmath.js", "./openiconic.js", "./themes.js"]
 			}
 		""".trimIndent()
 		file("$pkgDir/package.json").writeText(packageJson + "\n")
@@ -1322,4 +1345,14 @@ if (fastBuild) {
     tasks.named("check") {
         enabled = false
     }
+}
+
+// ===============
+// Sonar analysis (CI: .github/workflows/build-for-sonar.yml runs `gradle build sonar -PjavacRelease=21`)
+// ===============
+sonar {
+	properties {
+		property("sonar.projectKey", "plantuml_plantuml")
+		property("sonar.organization", "plantuml")
+	}
 }

@@ -59,6 +59,7 @@ import net.sourceforge.plantuml.file.FileGroup;
 import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.preproc.Defines;
 import net.sourceforge.plantuml.security.SFile;
+import net.sourceforge.plantuml.security.SecurityUtils;
 import net.sourceforge.plantuml.teavm.TeaVM;
 import net.sourceforge.plantuml.utils.MyCollections;
 
@@ -100,6 +101,14 @@ public class CliOptions {
 		final String limitSize = defines().get("PLANTUML_LIMIT_SIZE");
 		if (limitSize != null && !TeaVM.isC())
 			System.setProperty("PLANTUML_LIMIT_SIZE", limitSize);
+
+		// No System.setProperty in the C classlib: -DPLANTUML_SECURITY_PROFILE=...,
+		// -Dplantuml.include.path=..., -Dplantuml.allowlist.path=... are given to
+		// SecurityUtils, as the GraalVM build reads them as system properties.
+		if (TeaVM.isC())
+			for (Entry<String, String> ent : defines().entrySet())
+				if (ent.getKey().toLowerCase().startsWith("plantuml"))
+					SecurityUtils.setCommandLineProperty(ent.getKey(), ent.getValue());
 
 		for (String key : flags.getMap(CliFlag.INCLUDE, CliFlag.INCLUDE_LONG).keySet())
 			initInclude(key);
@@ -227,7 +236,7 @@ public class CliOptions {
 
 	public Defines getDefaultDefines(SFile f) {
 		final Defines result = Defines.createWithFileName(f);
-		if (isTrue(CliFlag.T_SVG_VEGA))
+		if (isTrue(CliFlag.T_SVG_VEGA) || isTrue(CliFlag.T_PDF_VEGA))
 			result.overrideFilename(Defines.VEGA_FILENAME);
 		for (Map.Entry<String, String> ent : defines().entrySet())
 			result.define(ent.getKey(), ent.getValue());
@@ -237,7 +246,7 @@ public class CliOptions {
 
 	public Defines getDefaultDefines(java.io.File f) {
 		final Defines result = Defines.createWithFileName(f);
-		if (isTrue(CliFlag.T_SVG_VEGA))
+		if (isTrue(CliFlag.T_SVG_VEGA) || isTrue(CliFlag.T_PDF_VEGA))
 			result.overrideFilename(Defines.VEGA_FILENAME);
 		for (Map.Entry<String, String> ent : defines().entrySet())
 			result.define(ent.getKey(), ent.getValue());
@@ -294,7 +303,24 @@ public class CliOptions {
 		if (flags.isTrue(CliFlag.DARK_MODE))
 			this.fileFormatOption = this.fileFormatOption.withColorMapper(ColorMapper.DARK_MODE);
 
+		final int decimal = getDecimal();
+		if (decimal >= 0)
+			this.fileFormatOption = this.fileFormatOption.withDecimal(decimal);
+
 		return fileFormatOption;
+	}
+
+	/** The number of decimals asked by --decimal, or -1 (not asked, or not a number: the default). */
+	private int getDecimal() {
+		final String value = flags.getString(CliFlag.DECIMAL);
+		if (value == null)
+			return -1;
+		try {
+			final int result = Integer.parseInt(value.trim());
+			return result >= 0 ? result : -1;
+		} catch (NumberFormatException e) {
+			return -1;
+		}
 	}
 
 	public final int getNbThreads() {

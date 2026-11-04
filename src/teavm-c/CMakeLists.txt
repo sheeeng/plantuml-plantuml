@@ -12,6 +12,16 @@ endif()
 
 project(plantuml_c C)
 
+# gcc 15 miscompiles the loop that fills the table of the CRC32 (the static initializer of
+# com.jcraft.jzlib.CRC32): its new pass -foptimize-crc replaces the whole function by
+# __builtin_unreachable(), and the executable crashes at the first use of java.util.zip.CRC32
+# (-tpng). See GCC PR 127984 (same pass, another symptom) and https://github.com/plantuml/gcc-2
+# Remove this when a fixed gcc is what ubuntu-latest has.
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	include(CheckCCompilerFlag)
+	check_c_compiler_flag(-fno-optimize-crc PLANTUML_HAS_NO_OPTIMIZE_CRC)
+endif()
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -28,6 +38,9 @@ else()
 	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2")
 	# No fused multiply-add: the images must be scaled bit for bit like the JVM
 	add_compile_options(-w -ffp-contract=off)
+	if (PLANTUML_HAS_NO_OPTIMIZE_CRC)
+		add_compile_options(-fno-optimize-crc)
+	endif()
 endif()
 if (APPLE)
 	add_compile_definitions(_DARWIN_C_SOURCE)
@@ -100,7 +113,10 @@ file(GLOB_RECURSE RESOURCE_FILES CONFIGURE_DEPENDS
 	${PROJECT_SOURCE_DIR}/native/resources/themes/*.puml
 	${PROJECT_SOURCE_DIR}/native/resources/svg/*.min.*
 	${PROJECT_SOURCE_DIR}/native/resources/sprites/*.svg
-	${PROJECT_SOURCE_DIR}/native/resources/openiconic/*.svg
+	${PROJECT_SOURCE_DIR}/native/resources/openiconic/*
+	${PROJECT_SOURCE_DIR}/native/resources/openpdf/*
+	${PROJECT_SOURCE_DIR}/native/resources/jlatexmath/*
+	${PROJECT_SOURCE_DIR}/native/resources/emoji/*
 	${PROJECT_SOURCE_DIR}/native/resources/stdlib/*.spm)
 set(RESOURCE_PAIRS)
 foreach(RESOURCE_FILE IN LISTS RESOURCE_FILES)
@@ -130,9 +146,23 @@ foreach(G RANGE 1 ${TEAVM_GEN_GROUPS})
 endforeach()
 message(STATUS "Generated C: ${TEAVM_GEN_GROUPS} groups of files with distinct names")
 
-add_executable(plantuml ${TEAVM_GEN_OBJECTS} native/plantuml_canvas.c native/plantuml_png.c native/plantuml_resources.c
+add_executable(plantuml ${TEAVM_GEN_OBJECTS} native/plantuml_canvas.c native/plantuml_fonts.c native/plantuml_png.c native/plantuml_resources.c
+	native/plantuml_stdin.c native/plantuml_http.c
 	${RESOURCES_SOURCE} ${FONT_SOURCES})
 target_include_directories(plantuml PRIVATE native)
+
+# HTTP client of !include https://...: WinHTTP on Windows (part of the system), libcurl
+# elsewhere. Without the libcurl development files the executable is still built, but
+# a URL cannot be read (plantuml_http.c then only reports it).
+if (NOT WIN32)
+	find_package(CURL QUIET)
+	if (CURL_FOUND)
+		target_compile_definitions(plantuml PRIVATE PLANTUML_HAVE_CURL)
+		message(STATUS "libcurl found: !include of a URL is available")
+	else()
+		message(WARNING "libcurl not found: !include of a URL will not work in this build")
+	endif()
+endif()
 
 # Windows gives the main thread 1 MB of stack only. The regular expressions of
 # the Java runtime recurse for each character of a long path (a 13 KB sprite
@@ -143,9 +173,12 @@ elseif (WIN32)
 	target_link_options(plantuml PRIVATE -Wl,--stack,67108864)
 endif()
 if (WIN32)
-	target_link_libraries(plantuml plutovg miniz brotlidec)
+	target_link_libraries(plantuml plutovg miniz brotlidec winhttp ws2_32)
 elseif (APPLE)
 	target_link_libraries(plantuml plutovg miniz brotlidec m)
 else()
 	target_link_libraries(plantuml plutovg miniz brotlidec m rt)
+endif()
+if (CURL_FOUND)
+	target_link_libraries(plantuml CURL::libcurl)
 endif()

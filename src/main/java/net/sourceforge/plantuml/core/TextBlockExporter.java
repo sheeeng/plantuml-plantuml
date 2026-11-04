@@ -196,6 +196,18 @@ public class TextBlockExporter {
 		if (format == FileFormat.PNG)
 			return exportPngTo(os, PngCanvas::new);
 
+		if (format == FileFormat.ATXT || format == FileFormat.UTXT)
+			return exportTxtTo(os);
+
+		// PDF through OpenPDF (the sources in org.openpdf)
+		if (format == FileFormat.PDF || format == FileFormat.PDF_DETERMINISTIC) {
+			final XDimension2D dim = calculateFinalDimension();
+			final double scaleFactor = computeScaleFactor(dim);
+			checkScaleFactor(scaleFactor);
+			final Pragma p = pragma != null ? pragma : Pragma.createEmpty();
+			return draw(createUGraphicPDF(scaleFactor, dim, p), os, dim, scaleFactor);
+		}
+
 		throw new UnsupportedOperationException("Format " + format + " is not available in the C build");
 	}
 	// ::done
@@ -241,6 +253,24 @@ public class TextBlockExporter {
 		final double scaleFactor = computeScaleFactor(dim);
 		checkScaleFactor(scaleFactor);
 		return draw(createUGraphicRaster(scaleFactor, dim, factory), os, dim, scaleFactor);
+	}
+
+	/**
+	 * Exports the {@link TextBlock} as text (ATXT or UTXT) with {@link UGraphicTxt},
+	 * exactly as {@link #exportTo} does, but without {@link #createUGraphic}, which
+	 * references the drivers of every format (and AWT): for the TeaVM C build. The
+	 * diagrams that have their own text renderer (sequence diagrams) do not come
+	 * here, see {@code UgDiagram#exportDiagramC}.
+	 *
+	 * @param os the output stream to write to
+	 * @return image metadata (dimensions)
+	 * @throws IOException if an I/O error occurs
+	 */
+	private ImageData exportTxtTo(OutputStream os) throws IOException {
+		final XDimension2D dim = calculateFinalDimension();
+		final double scaleFactor = computeScaleFactor(dim);
+		checkScaleFactor(scaleFactor);
+		return draw(new UGraphicTxt(fileFormatOption.getFileFormat()), os, dim, scaleFactor);
 	}
 
 	private static void checkScaleFactor(double scaleFactor) {
@@ -331,6 +361,7 @@ public class TextBlockExporter {
 			return createUGraphicSVG(scaleFactor, dim, p);
 		// ::comment when JAVA8
 		case PDF:
+		case PDF_DETERMINISTIC:
 			return createUGraphicPDF(scaleFactor, dim, p);
 		// ::done
 		case EPS:
@@ -399,6 +430,7 @@ public class TextBlockExporter {
 //		option = option.withHoverPathColorRGB(getHoverPathColorRGB());
 //		option = option.withMinDim(dim);
 		option = option.withBackgroundColor(backcolor);
+		option = option.withDeterministic(fileFormatOption.getFileFormat() == FileFormat.PDF_DETERMINISTIC);
 //		option = option.withScale(scaleFactor);
 //		option = option.withColorMapper(fileFormatOption.getColorMapper());
 //		option = option.withLinkTarget(getSvgLinkTarget());
