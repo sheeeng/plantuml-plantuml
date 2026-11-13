@@ -44,8 +44,8 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.ScaleSimple;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.core.TextBlockExporter;
-import net.sourceforge.plantuml.klimt.awt.XColor;
 import net.sourceforge.plantuml.klimt.color.HColor;
+import net.sourceforge.plantuml.klimt.color.HColorSet;
 import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
@@ -57,6 +57,17 @@ import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.utils.Log;
 
 public class ScientificEquationSafe {
+
+	/** Formula: black, white in dark mode. */
+	public static final HColor DEFAULT_FOREGROUND = HColors.BLACK.withDark(HColors.WHITE);
+
+	/**
+	 * Box and page behind a formula: white, and in dark mode the same #1B1B1B as the
+	 * background of the other diagrams (document, in the dark part of plantuml.skin),
+	 * not pure black.
+	 */
+	public static final HColor DEFAULT_BACKGROUND = HColors.WHITE
+			.withDark(HColorSet.instance().getColorOrWhite("#1B1B1B"));
 
 	private final ScientificEquation equation;
 	private final String formula;
@@ -155,15 +166,14 @@ public class ScientificEquationSafe {
 		return GraphicStrings.createBlackOnWhiteMonospaced(Arrays.asList(formula));
 	}
 
-	public ImageData export(OutputStream os, FileFormatOption fileFormat, float scale, XColor foregroundColor,
-			XColor backgroundColor) throws IOException {
+	public ImageData export(OutputStream os, FileFormatOption fileFormat, float scale, HColor foregroundColor,
+			HColor backgroundColor) throws IOException {
 		final FileFormat format = fileFormat.getFileFormat();
 		if (format == FileFormat.PNG || format == FileFormat.SVG || format == FileFormat.SVG_DETERMINISTIC
 				|| format == FileFormat.EPS || format == FileFormat.PDF || format == FileFormat.PDF_DETERMINISTIC) {
-			final TextBlock block = getTextBlock(HColors.simple(foregroundColor),
-					backgroundColor == null ? null : HColors.simple(backgroundColor));
-			return TextBlockExporter.builder(block, fileFormat, false).scale(new ScaleSimple(scale)).build()
-					.exportTo(os);
+			final TextBlock block = getTextBlock(foregroundColor, backgroundColor);
+			return TextBlockExporter.builder(block, fileFormat, false).backcolor(DEFAULT_BACKGROUND)
+					.scale(new ScaleSimple(scale)).build().exportTo(os);
 		}
 		throw new UnsupportedOperationException();
 	}

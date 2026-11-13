@@ -4,6 +4,31 @@ Functional checks for the PlantUML browser (TeaVM) engine, run in headless Chrom
 real build. Unlike `perf-bench`, which measures speed and never fails a build, these assert
 behaviour and exit non-zero when it is wrong.
 
+## Running it
+
+### Requirement: `plantuml.js` and `playwright`
+```
+gradle :plantuml-mit:npmPackage -Pci
+cd tools/browser-test && npm ci && npx playwright install --with-deps --only-shell chromium
+```
+
+### Run checks
+To launch individually:
+```
+node check-<name>.js target=../../license-variants/plantuml-mit/build/npm-plantuml
+```
+or to run all checks:
+```
+node run-all-checks.js target=../../license-variants/plantuml-mit/build/npm-plantuml
+```
+
+`target` also accepts a path to the engine `.js` itself, and any directory holding a published
+package works, so a release can be checked with `npm pack @plantuml/core && node check-themes.js
+target=package`.
+
+Running it against an engine built before themes were wired up fails 8 of the 12 checks, with
+every bundled theme reported as leaving the drawing unchanged.
+
 ## check-themes.js
 
 Checks that `!theme <name>` works in the browser.
@@ -137,21 +162,6 @@ The files live in an in-memory map on the page, keyed by an absolute path the pa
 resolves itself, so no file system is involved and no layout engine either.
 `node check-file-loader.js target=...`.
 
-## Running it
-
-```
-gradlew :plantuml-mit:npmPackage -Pci
-cd tools/browser-test && npm ci && npx playwright install --with-deps --only-shell chromium
-node check-themes.js target=../../license-variants/plantuml-mit/build/npm-plantuml
-```
-
-`target` also accepts a path to the engine `.js` itself, and any directory holding a published
-package works, so a release can be checked with `npm pack @plantuml/core && node check-themes.js
-target=package`.
-
-Running it against an engine built before themes were wired up fails 8 of the 12 checks, with
-every bundled theme reported as leaving the drawing unchanged.
-
 ## check-viz-fallback.js
 
 Checks that a page which loads only the engine, with no viz-global.js and no
@@ -175,6 +185,12 @@ diagram is rendered again. The check pins that:
 - a callback is never called before `renderToString` returns;
 - an include chain 13 files deep renders, one level per round, and the host is asked once per
   file during a rendering, and again at the next one (so an edited file is seen);
+- the includes of one level are asked for in the same round: 60 includes side by side take one
+  round, and 30 files that each include another take two (issue #2943: a rendering used to stop
+  at the first missing include, so each file took a round of its own and more than 20 includes
+  failed);
+- a file chosen by an `!if` on a value from a file not loaded yet renders with the right branch;
+  the other branch's file is asked for once, and its failure is not reported;
 - rendering again is invisible: the same source gives the same SVG, a console warning is written
   once rather than once per round, and `render()` writes its target only with the final result;
 - `render()` keeps "latest wins" while a request waits for its resources (the engine built with

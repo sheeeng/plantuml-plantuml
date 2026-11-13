@@ -30,119 +30,25 @@
  *
  *
  * Original Author:  Arnaud Roques
- * 
+ * Contribution: The-Lum
  *
  */
 package net.sourceforge.plantuml.timingdiagram.command;
 
-import java.util.Arrays;
-import java.util.Collection;
-
-import net.sourceforge.plantuml.annotation.Explain;
-import net.sourceforge.plantuml.command.CommandExecutionResult;
-import net.sourceforge.plantuml.command.ParserPass;
-import net.sourceforge.plantuml.command.SingleLineCommand2;
-import net.sourceforge.plantuml.regex.IRegex;
-import net.sourceforge.plantuml.regex.RegexConcat;
-import net.sourceforge.plantuml.regex.RegexLeaf;
-import net.sourceforge.plantuml.regex.RegexOptional;
-import net.sourceforge.plantuml.regex.RegexOr;
-import net.sourceforge.plantuml.regex.RegexResult;
 import net.sourceforge.plantuml.stereo.Stereotype;
-import net.sourceforge.plantuml.stereo.StereotypePattern;
-import net.sourceforge.plantuml.timingdiagram.PlayerAnalog;
+import net.sourceforge.plantuml.timingdiagram.AbstractNumericPlayer;
 import net.sourceforge.plantuml.timingdiagram.TimingDiagram;
-import net.sourceforge.plantuml.utils.LineLocation;
 
-public class CommandAnalog extends SingleLineCommand2<TimingDiagram> {
-
-	private static final Collection<String> FIRST_TOKENS = Arrays.asList("analog", "compact");
+public final class CommandAnalog extends CommandNumericPlayer {
 
 	public CommandAnalog() {
-		super(getRegexConcat());
-	}
-
-	private static IRegex getRegexConcat() {
-		return RegexConcat.build(CommandAnalog.class.getName(), RegexLeaf.start(), //
-				new RegexOptional( //
-						new RegexConcat( //
-								new RegexLeaf(1, "COMPACT", "(compact)"), //
-								RegexLeaf.spaceOneOrMore())), //
-				new RegexLeaf("analog"), //
-				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf(1, "FULL", "[%g]([^%g]+)[%g]"), //
-				StereotypePattern.optional("STEREOTYPE"), //
-				new RegexOptional(//
-						new RegexConcat( //
-								new RegexOr(new RegexLeaf("between"), new RegexLeaf("from")), //
-								RegexLeaf.spaceOneOrMore(), //
-								new RegexLeaf(1, "START", "(-?[0-9]*\\.?[0-9]+)"), //
-								RegexLeaf.spaceOneOrMore(), //
-								new RegexOr(new RegexLeaf("and"), new RegexLeaf("to")), //
-								RegexLeaf.spaceOneOrMore(), //
-								new RegexLeaf(1, "END", "(-?[0-9]*\\.?[0-9]+)"), //
-								RegexLeaf.spaceOneOrMore())), //
-				new RegexLeaf("as"), //
-				RegexLeaf.spaceOneOrMore(), //
-				new RegexLeaf(1, "CODE", "([%pLN_.@]+)"), //
-				StereotypePattern.optional("STEREOTYPE2"), //
-				RegexLeaf.end());
+		super("analog");
 	}
 
 	@Override
-	@Explain
-	protected String explainArg(LineLocation location, RegexResult arg) {
-		final String compact = arg.get("COMPACT", 0);
-		final String code = arg.get("CODE", 0);
-		final String full = arg.get("FULL", 0);
-		// The two stereotype slots are mutually exclusive in practice; STEREOTYPE takes priority over STEREOTYPE2
-		String stereotype = arg.get("STEREOTYPE", 0);
-		if (stereotype == null)
-			stereotype = arg.get("STEREOTYPE2", 0);
-		final String start = arg.get("START", 0);
-		final String end = arg.get("END", 0);
-
-		final StringBuilder sb = new StringBuilder();
-		if (compact != null)
-			sb.append("Creating a compact analog timing player '");
-		else
-			sb.append("Creating an analog timing player '");
-		sb.append(code).append("'");
-		if (full != null)
-			sb.append(" displayed as \"").append(full).append("\"");
-		if (stereotype != null)
-			sb.append(" stereotyped ").append(stereotype);
-		// Bounds are only applied when both START and END are present
-		if (start != null && end != null)
-			sb.append(" with bounds from ").append(start).append(" to ").append(end);
-		return sb.toString();
-	}
-
-	@Override
-	final protected CommandExecutionResult executeArg(TimingDiagram diagram, LineLocation location, RegexResult arg,
-			ParserPass currentPass) {
-		final String compact = arg.get("COMPACT", 0);
-		final String code = arg.get("CODE", 0);
-		final String full = arg.get("FULL", 0);
-
-		Stereotype stereotype = null;
-		if (arg.get("STEREOTYPE", 0) != null)
-			stereotype = Stereotype.build(arg.get("STEREOTYPE", 0));
-		else if (arg.get("STEREOTYPE2", 0) != null)
-			stereotype = Stereotype.build(arg.get("STEREOTYPE2", 0));
-
-		final PlayerAnalog player = diagram.createPlayerAnalog(code, full, compact != null, stereotype);
-		final String start = arg.get("START", 0);
-		final String end = arg.get("END", 0);
-		if (start != null && end != null)
-			player.setBounds(start, end);
-
-		return CommandExecutionResult.ok();
-	}
-
-	@Override
-	public Collection<String> mandatoryFirstTokensFast() {
-		return FIRST_TOKENS;
+	protected AbstractNumericPlayer createPlayer(TimingDiagram diagram, String code, String full, boolean compact,
+			Stereotype stereotype) {
+		return diagram.createPlayerAnalog(code, full, compact, stereotype);
 	}
 
 }

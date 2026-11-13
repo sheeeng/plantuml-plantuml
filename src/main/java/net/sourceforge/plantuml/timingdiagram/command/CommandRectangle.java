@@ -32,10 +32,22 @@
  * Original Author:  Arnaud Roques
  *
  */
-package net.sourceforge.plantuml.timingdiagram;
+package net.sourceforge.plantuml.timingdiagram.command;
 
-public enum TimingStyle {
+import net.sourceforge.plantuml.klimt.color.HColor;
+import net.sourceforge.plantuml.stereo.Stereotype;
+import net.sourceforge.plantuml.timingdiagram.TimingDiagram;
 
-	ROBUST, CONCISE, RECTANGLE
+public final class CommandRectangle extends CommandStatePlayer {
+
+	public CommandRectangle() {
+		super("rectangle");
+	}
+
+	@Override
+	protected void createPlayer(TimingDiagram diagram, String code, String full, boolean compact,
+			Stereotype stereotype, HColor backColor) {
+		diagram.createPlayerRectangle(code, full, compact, stereotype, backColor);
+	}
 
 }

@@ -30,152 +30,36 @@
  *
  *
  * Original Author:  Arnaud Roques
+ * Contribution: The-Lum
  *
  */
 package net.sourceforge.plantuml.timingdiagram.graphic;
 
 import java.util.List;
-import java.util.Map;
 
 import net.sourceforge.plantuml.klimt.UTranslate;
-import net.sourceforge.plantuml.klimt.creole.Display;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
-import net.sourceforge.plantuml.klimt.font.StringBounder;
-import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
-import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-import net.sourceforge.plantuml.klimt.geom.XPoint2D;
-import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.klimt.shape.ULine;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.Style;
 import net.sourceforge.plantuml.timingdiagram.TimeConstraint;
 import net.sourceforge.plantuml.timingdiagram.TimeSeries;
-import net.sourceforge.plantuml.timingdiagram.TimeTick;
 import net.sourceforge.plantuml.timingdiagram.TimingRuler;
 
-public class PanelsAnalog extends Panels {
-
-	private final TimeSeries timeSeries;
-	private final Double initialState;
-	private final Integer ticksEvery;
+/**
+ * Joins two samples with a straight line (linear interpolation).
+ */
+public final class PanelsAnalog extends PanelsNumeric {
 
 	public PanelsAnalog(TimingRuler ruler, ISkinParam skinParam, int suggestedHeight, Style style, TimeSeries timeSeries,
 			List<TimeConstraint> constraints, Double initialState, Integer ticksEvery) {
-		super(ruler, skinParam, suggestedHeight, style, null, constraints);
-
-		this.timeSeries = timeSeries;
-		this.initialState = initialState;
-		this.ticksEvery = ticksEvery;
+		super(ruler, skinParam, suggestedHeight, style, timeSeries, constraints, initialState, ticksEvery);
 	}
 
 	@Override
-	public double getFullHeight(StringBounder stringBounder) {
-		return getHeightForConstraints(stringBounder) + suggestedHeight;
-	}
-
-	@Override
-	public IntricatedPoint getTimeProjection(StringBounder stringBounder, TimeTick tick) {
-		if (tick == null)
-			return null;
-		final double x = ruler.getPosInPixel(tick);
-		final double value = timeSeries.getValueAt(tick);
-		return new IntricatedPoint(new XPoint2D(x, getYpos(stringBounder, value)),
-				new XPoint2D(x, getYpos(stringBounder, value)));
-	}
-
-	private double getYpos(StringBounder stringBounder, double value) {
-		final double y = (value - timeSeries.getMin()) * (suggestedHeight - 2 * MARGIN_Y)
-				/ (timeSeries.getMax() - timeSeries.getMin());
-		return getHeightForConstraints(stringBounder) + suggestedHeight - MARGIN_Y - y;
-	}
-
-	@Override
-	public void drawLeftPanel(UGraphic ug, double fullAvailableWidth) {
-		if (ticksEvery == null) {
-			drawScaleLabel(ug, timeSeries.getMin(), fullAvailableWidth);
-			drawScaleLabel(ug, timeSeries.getMax(), fullAvailableWidth);
-		} else {
-			final int first = (int) Math.ceil(timeSeries.getMin());
-			final int last = (int) Math.floor(timeSeries.getMax());
-			for (int i = first; i <= last; i++)
-				if (i % ticksEvery == 0)
-					drawScaleLabel(ug, i, fullAvailableWidth);
-		}
-	}
-
-	@Override
-	public final double getLeftPanelWidth(StringBounder stringBounder) {
-		return LEFT_PANEL_MIN_WIDTH + getMaxWidthForTicks(stringBounder);
-	}
-
-	private double getMaxWidthForTicks(StringBounder stringBounder) {
-		if (ticksEvery == null)
-			return Math.max(getWidthLabel(stringBounder, timeSeries.getMin()),
-					getWidthLabel(stringBounder, timeSeries.getMax()));
-
-		double result = 0;
-		final int first = (int) Math.ceil(timeSeries.getMin());
-		final int last = (int) Math.floor(timeSeries.getMax());
-		for (int i = first; i <= last; i++)
-			if (i % ticksEvery == 0)
-				result = Math.max(result, getWidthLabel(stringBounder, i));
-
-		return result;
-	}
-
-	private double getWidthLabel(StringBounder stringBounder, double value) {
-		final TextBlock label = getTextBlock(value);
-		final XDimension2D dim = label.calculateDimension(stringBounder);
-		return dim.getWidth();
-	}
-
-	private void drawScaleLabel(UGraphic ug, double value, double fullAvailableWidth) {
-		final TextBlock label = getTextBlock(value);
-		final XDimension2D dim = label.calculateDimension(ug.getStringBounder());
-		ug = ug.apply(UTranslate.dx(fullAvailableWidth - dim.getWidth() - 2));
-		label.drawU(ug.apply(UTranslate.dy(getYpos(ug.getStringBounder(), value) - dim.getHeight() / 2)));
-	}
-
-	private TextBlock getTextBlock(double value) {
-		final String formattedValue = timeSeries.getDisplayValue(value);
-		final Display display = Display.getWithNewlines(skinParam.getPragma(), formattedValue);
-		return display.create(getFontConfiguration(), HorizontalAlignment.LEFT, skinParam);
-	}
-
-	private void drawTickHlines(UGraphic ug) {
-		ug = TimingRuler.applyForVLines(ug, style, skinParam);
-		final int first = (int) Math.ceil(timeSeries.getMin());
-		final int last = (int) Math.floor(timeSeries.getMax());
-		final ULine hline = ULine.hline(ruler.getWidth());
-		for (int i = first; i <= last; i++)
-			if (i % ticksEvery == 0)
-				ug.apply(UTranslate.dy(getYpos(ug.getStringBounder(), i))).draw(hline);
-	}
-
-	@Override
-	public void drawRightPanel(UGraphic ug) {
-		if (ticksEvery != null)
-			drawTickHlines(ug);
-
-		ug = getContext().apply(ug);
-		double lastx = 0;
-		double lastValue = initialState == null ? 0 : initialState;
-		for (Map.Entry<TimeTick, Double> ent : timeSeries.entrySet()) {
-			final double y1 = getYpos(ug.getStringBounder(), lastValue);
-			final double y2 = getYpos(ug.getStringBounder(), ent.getValue());
-			final double x = ruler.getPosInPixel(ent.getKey());
-			ug.apply(new UTranslate(lastx, y1)).draw(new ULine(x - lastx, y2 - y1));
-			lastx = x;
-			lastValue = ent.getValue();
-		}
-		ug.apply(new UTranslate(lastx, getYpos(ug.getStringBounder(), lastValue)))
-				.draw(ULine.hline(ruler.getWidth() - lastx));
-
-		drawConstraints(ug.apply(UTranslate.dy(getHeightForConstraints(ug.getStringBounder()))));
-	}
-
-	public void setBounds(String min, String max) {
-		timeSeries.setBounds(min, max);
+	protected void drawSegment(UGraphic ug, double x1, double y1, double x2, double y2) {
+		// Linear interpolation between two samples
+		ug.apply(new UTranslate(x1, y1)).draw(new ULine(x2 - x1, y2 - y1));
 	}
 
 }

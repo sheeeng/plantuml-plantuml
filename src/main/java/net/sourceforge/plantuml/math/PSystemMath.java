@@ -45,11 +45,8 @@ import net.sourceforge.plantuml.StringUtils;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.core.UmlSource;
-import net.sourceforge.plantuml.klimt.awt.XColor;
-import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.color.HColorSet;
-import net.sourceforge.plantuml.klimt.color.HColors;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.log.Logme;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
@@ -58,8 +55,10 @@ public class PSystemMath extends DirectOsDiagram implements FormulaDiagram {
 
 	private String math = "";
 	private float scale = 1;
-	private XColor color = XColor.BLACK;
-	private XColor backColor = XColor.WHITE;
+	// The defaults have a dark variant (white formula on a dark box). A color given with
+	// "color" or "backgroundcolor" is used as is, in both modes.
+	private HColor color = ScientificEquationSafe.DEFAULT_FOREGROUND;
+	private HColor backColor = ScientificEquationSafe.DEFAULT_BACKGROUND;
 
 	public PSystemMath(UmlSource source, PreprocessingArtifact preprocessing) {
 		super(source, preprocessing);
@@ -77,11 +76,11 @@ public class PSystemMath extends DirectOsDiagram implements FormulaDiagram {
 	}
 
 	public TextBlock getFormulaBlock() {
-		return ScientificEquationSafe.fromAsciiMath(math).getTextBlock(HColors.simple(color), getFormulaBackground());
+		return ScientificEquationSafe.fromAsciiMath(math).getTextBlock(color, getFormulaBackground());
 	}
 
 	public HColor getFormulaBackground() {
-		return backColor == null ? null : HColors.simple(backColor);
+		return backColor;
 	}
 
 	public double getFormulaScale() {
@@ -93,12 +92,12 @@ public class PSystemMath extends DirectOsDiagram implements FormulaDiagram {
 		final String colorParam = "color ";
 		final String backParam = "backgroundcolor ";
 		if (lineLower.startsWith(colorParam)) {
-			final XColor col3 = getColor(line.substring(colorParam.length()));
+			final HColor col3 = getColor(line.substring(colorParam.length()));
 			if (col3 != null) {
 				color = col3;
 			}
 		} else if (lineLower.startsWith(backParam)) {
-			final XColor col3 = getColor(line.substring(backParam.length()));
+			final HColor col3 = getColor(line.substring(backParam.length()));
 			if (col3 != null) {
 				backColor = col3;
 			}
@@ -128,10 +127,8 @@ public class PSystemMath extends DirectOsDiagram implements FormulaDiagram {
 		}
 	}
 
-	private XColor getColor(final String col) {
-		final HColor col2 = col == null ? null : HColorSet.instance().getColorOrWhite(col);
-		final XColor col3 = col2.toColor(ColorMapper.IDENTITY);
-		return col3;
+	private HColor getColor(final String col) {
+		return col == null ? null : HColorSet.instance().getColorOrWhite(col);
 	}
 
 }

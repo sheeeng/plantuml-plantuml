@@ -4,6 +4,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -13,6 +14,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -28,6 +30,7 @@ import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.SourceStringReader;
 import net.sourceforge.plantuml.cli.GlobalConfig;
 import net.sourceforge.plantuml.cli.GlobalConfigKey;
+import net.sourceforge.plantuml.klimt.color.ColorMapper;
 import net.sourceforge.plantuml.core.Diagram;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.ImageData;
@@ -275,12 +278,26 @@ public class VegaInputFile {
 		return path.getFileName().toString();
 	}
 
+	/**
+	 * The time a single file may take, in seconds: 60 by default, or the
+	 * VEGA_TIMEOUT_SECONDS environment variable; 0 disables the limit (to debug
+	 * a test in the IDE, for instance).
+	 */
+	public static final long TIMEOUT_SECONDS = timeoutSeconds();
+
+	private static long timeoutSeconds() {
+		final String value = System.getenv("VEGA_TIMEOUT_SECONDS");
+		if (value == null || value.trim().isEmpty())
+			return 30;
+		return Long.parseLong(value.trim());
+	}
+
 	public void runSingleFile() throws IOException {
 		final boolean allowFailure = "true".equals(this.getYamlString("allow-failure"));
 		final long startTime = System.currentTimeMillis();
 
 		try {
-			doRunSingleFile();
+			doRunSingleFileWithTimeout();
 			recordResult(VegaStatus.PASS, System.currentTimeMillis() - startTime, null, allowFailure);
 		} catch (TestAbortedException e) {
 			recordResult(VegaStatus.SKIPPED, System.currentTimeMillis() - startTime, e, allowFailure);
@@ -294,6 +311,22 @@ public class VegaInputFile {
 				throw e;
 			}
 		}
+	}
+
+	/**
+	 * Runs the file in another thread, stopped after {@link #TIMEOUT_SECONDS}: a
+	 * test that takes too long fails with a message that names its file,
+	 * instead of blocking the whole run. A diagram stuck in a loop may go on
+	 * running in the background (a daemon thread), the next tests run anyway.
+	 */
+	private void doRunSingleFileWithTimeout() throws IOException {
+		if (TIMEOUT_SECONDS <= 0) {
+			doRunSingleFile();
+			return;
+		}
+		assertTimeoutPreemptively(Duration.ofSeconds(TIMEOUT_SECONDS), () -> doRunSingleFile(),
+				() -> "Vega timeout: " + getDisplayPath() + " took more than " + TIMEOUT_SECONDS
+						+ " s (VEGA_TIMEOUT_SECONDS to change the limit)");
 	}
 
 	private void recordResult(VegaStatus status, long durationMs, Throwable e, boolean allowFailure) {
@@ -411,6 +444,9 @@ public class VegaInputFile {
 				final String decimal = getYamlString("decimal");
 				if (decimal != null)
 					fileFormatOption = fileFormatOption.withDecimal(Integer.parseInt(decimal.trim()));
+				// dark: true renders as "--dark-mode" does (ColorMapper.DARK_MODE)
+				if ("true".equals(getYamlString("dark")))
+					fileFormatOption = fileFormatOption.withColorMapper(ColorMapper.DARK_MODE);
 				final DiagramDescription description = renderCapturingStderr(source, baos, imageIndex,
 						fileFormatOption, verbose);
 				checkStderrExpectations(nbImages, imageIndex);

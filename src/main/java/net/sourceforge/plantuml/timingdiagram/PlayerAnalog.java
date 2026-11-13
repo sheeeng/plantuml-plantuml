@@ -30,80 +30,27 @@
  *
  *
  * Original Author:  Arnaud Roques
+ * Contribution: The-Lum
  *
  */
 package net.sourceforge.plantuml.timingdiagram;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.sourceforge.plantuml.klimt.color.Colors;
-import net.sourceforge.plantuml.log.Logme;
-import net.sourceforge.plantuml.skin.ArrowConfiguration;
 import net.sourceforge.plantuml.stereo.Stereotype;
 import net.sourceforge.plantuml.style.ISkinParam;
 import net.sourceforge.plantuml.style.SName;
 import net.sourceforge.plantuml.timingdiagram.graphic.Panels;
 import net.sourceforge.plantuml.timingdiagram.graphic.PanelsAnalog;
 
-public class PlayerAnalog extends Player {
+public final class PlayerAnalog extends AbstractNumericPlayer {
 
-	private final TimeSeries timeSeries = new TimeSeries();
-
-	private final List<TimeConstraint> constraints = new ArrayList<>();
-
-	private Double initialState;
-	private Integer ticksEvery;
-
-	public PlayerAnalog(String code, ISkinParam skinParam, TimingRuler ruler, boolean compact, Stereotype stereotype) {
-		super(code, skinParam, ruler, compact, stereotype, null, SName.analog, 100);
+	public PlayerAnalog(String full, ISkinParam skinParam, TimingRuler ruler, boolean compact, Stereotype stereotype) {
+		super(full, skinParam, ruler, compact, stereotype, SName.analog);
 	}
 
 	@Override
 	protected Panels buildPlayerPanels() {
-		return new PanelsAnalog(getRuler(), getSkinParam(), getSuggestedHeight(), getStyle(), timeSeries, constraints,
-				initialState, ticksEvery);
-
-	}
-
-	@Override
-	public void defineState(String stateCode, String label) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void setState(TimeTick now, String comment, Colors color, String... valueString) {
-		final double value = getState(valueString[0]);
-		if (now == null)
-			this.initialState = value;
-		else
-			this.timeSeries.put(now, value);
-
-		if (this.initialState == null)
-			this.initialState = value;
-
-	}
-
-	private double getState(String value) {
-		try {
-			return Double.parseDouble(value);
-		} catch (Exception e) {
-			Logme.error(e);
-			return 0;
-		}
-	}
-
-	@Override
-	public void createConstraint(TimeTick tick1, TimeTick tick2, String message, ArrowConfiguration config) {
-		this.constraints.add(new TimeConstraint(1, tick1, tick2, message, getSkinParam(), config));
-	}
-
-	public void setBounds(String min, String max) {
-		timeSeries.setBounds(min, max);
-	}
-
-	public void setTicks(int ticksEvery) {
-		this.ticksEvery = ticksEvery;
+		return new PanelsAnalog(getRuler(), getSkinParam(), getSuggestedHeight(), getStyle(), getTimeSeries(),
+				getConstraints(), getInitialState(), getTicksEvery());
 	}
 
 }
