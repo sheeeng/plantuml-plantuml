@@ -100,6 +100,10 @@ public class CommandChartVAxis extends SingleLineCommand2<ChartDiagram> {
 	@Override
 	protected CommandExecutionResult executeArg(ChartDiagram diagram, LineLocation location, RegexResult arg,
 			ParserPass currentPass) {
+		final CommandExecutionResult kindError = diagram.checkKind(arg.get("AXIS", 0), ChartDiagram.Kind.CARTESIAN);
+		if (kindError != null)
+			return kindError;
+
 		final String axisType = arg.get("AXIS", 0);
 		final String title = arg.get("TITLE", 0);
 		final String minStr = arg.get("RANGE", 0);
@@ -109,6 +113,13 @@ public class CommandChartVAxis extends SingleLineCommand2<ChartDiagram> {
 		final String spacingStr = arg.get("SPACING", 0);
 		final String labelTopStr = arg.get("LABELTOP", 0);
 		final String gridStr = arg.get("GRID", 0);
+
+		// Enable grid if grid option is present (before any return: "v-axis [A, B] grid"
+		// asks for one line per category of a horizontal chart)
+		if (gridStr != null) {
+			// Both primary and secondary Y-axis use the same grid mode
+			diagram.setYGridMode(ChartDiagram.GridMode.MAJOR);
+		}
 
 		// If labels are provided, this is for horizontal bar chart mode
 		if (labelsStr != null) {
@@ -190,12 +201,6 @@ public class CommandChartVAxis extends SingleLineCommand2<ChartDiagram> {
 			}
 		}
 
-		// Enable grid if grid option is present
-		if (gridStr != null) {
-			// Both primary and secondary Y-axis use the same grid mode
-			diagram.setYGridMode(ChartDiagram.GridMode.MAJOR);
-		}
-
 		return result;
 	}
 
@@ -220,7 +225,7 @@ public class CommandChartVAxis extends SingleLineCommand2<ChartDiagram> {
 		return result;
 	}
 
-	private Map<Double, String> parseCustomTicks(String ticksStr) {
+	static Map<Double, String> parseCustomTicks(String ticksStr) {
 		final Map<Double, String> ticks = new LinkedHashMap<>();
 		if (ticksStr == null || ticksStr.trim().isEmpty())
 			return ticks;

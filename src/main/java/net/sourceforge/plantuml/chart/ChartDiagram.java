@@ -34,20 +34,35 @@
  */
 package net.sourceforge.plantuml.chart;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
+import net.sourceforge.plantuml.FileFormat;
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.TitledDiagram;
+import net.sourceforge.plantuml.api.ImageDataSimple;
+import net.sourceforge.plantuml.chart.txt.ChartTxt;
 import net.sourceforge.plantuml.command.CommandExecutionResult;
 import net.sourceforge.plantuml.core.DiagramDescription;
 import net.sourceforge.plantuml.core.DiagramType;
+import net.sourceforge.plantuml.core.ImageData;
 import net.sourceforge.plantuml.core.UmlSource;
+import net.sourceforge.plantuml.klimt.color.HColor;
 import net.sourceforge.plantuml.klimt.drawing.UGraphic;
 import net.sourceforge.plantuml.klimt.font.StringBounder;
+import net.sourceforge.plantuml.klimt.geom.NaturalSpline;
+import net.sourceforge.plantuml.klimt.geom.XCubicCurve2D;
 import net.sourceforge.plantuml.klimt.geom.XDimension2D;
+import net.sourceforge.plantuml.klimt.geom.XPoint2D;
 import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.preproc.PreprocessingArtifact;
+import net.sourceforge.plantuml.security.SecurityUtils;
 
 public class ChartDiagram extends TitledDiagram {
 
@@ -67,6 +82,12 @@ public class ChartDiagram extends TitledDiagram {
 		VERTICAL, HORIZONTAL
 	}
 
+	// The family of a keyword: a chart is either drawn on cartesian axes, or is a pie, or a
+	// radar. POLAR is a keyword shared by a pie and a radar (a-axis)
+	public enum Kind {
+		CARTESIAN, PIE, RADAR, POLAR
+	}
+
 	private final List<String> xAxisLabels = new ArrayList<>();
 	private String xAxisTitle;
 	private Integer xAxisTickSpacing;
@@ -82,6 +103,14 @@ public class ChartDiagram extends TitledDiagram {
 	private StackMode stackMode = StackMode.GROUPED;
 	private Orientation orientation = Orientation.VERTICAL;
 	private final List<ChartAnnotation> annotations = new ArrayList<>();
+	// Pie and radar: the categories around the circle (a-axis), and the radial scale (r-axis)
+	private final List<String> angularLabels = new ArrayList<>();
+	private final ChartAxis radialAxis = new ChartAxis();
+	private boolean radarCircleGrid;
+	private Kind kind;
+	private String kindKeyword;
+	// The series written without data, which takes the list items that follow it
+	private ChartSeries openSeries;
 
 	public DiagramDescription getDescription() {
 		return new DiagramDescription("Chart Diagram");
@@ -92,55 +121,313 @@ public class ChartDiagram extends TitledDiagram {
 	}
 
 	private void drawMe(UGraphic ug) {
-		final ChartRenderer renderer = getRenderer();
-		renderer.drawU(ug);
+		if (kind == Kind.PIE)
+			getPieRenderer().drawU(ug);
+		else if (kind == Kind.RADAR)
+			getRadarRenderer().drawU(ug);
+		else
+			getRenderer().drawU(ug);
+	}
+
+	private XDimension2D calculateDimension(StringBounder stringBounder) {
+		if (kind == Kind.PIE)
+			return getPieRenderer().calculateDimension(stringBounder);
+		if (kind == Kind.RADAR)
+			return getRadarRenderer().calculateDimension(stringBounder);
+		return getRenderer().calculateDimension(stringBounder);
+	}
+
+	private PieRenderer getPieRenderer() {
+		return new PieRenderer(getSkinParam(), resolvePie());
+	}
+
+	private RadarRenderer getRadarRenderer() {
+		return new RadarRenderer(getSkinParam(), resolveRadar());
+	}
+
+	/**
+	 * The pie, its slices resolved: see {@link PieChart}.
+	 */
+	public PieChart resolvePie() {
+		return new PieChart(series.get(0), angularLabels, legendPosition);
+	}
+
+	/**
+	 * The radar, its categories, values and scale resolved: see {@link RadarChart}.
+	 */
+	public RadarChart resolveRadar() {
+		return new RadarChart(getRadarCategories(), getRadarValues(), series, getRadialAxis(), radarCircleGrid,
+				legendPosition);
+	}
+
+	public Kind getKind() {
+		return kind;
+	}
+
+	// The categories around a radar: the a-axis labels, else the keys of the first series
+	// with keys, then the keys of the next ones not seen yet, else 1, 2, ..., n
+	private List<String> getRadarCategories() {
+		if (angularLabels.isEmpty() == false)
+			return angularLabels;
+		final List<String> result = new ArrayList<>();
+		for (ChartSeries s : series)
+			if (s.hasKeys())
+				for (String key : s.getKeys())
+					if (result.contains(key) == false)
+						result.add(key);
+		int count = 0;
+		for (ChartSeries s : series)
+			if (s.hasKeys() == false)
+				count = Math.max(count, s.getValues().size());
+		for (int i = result.size() + 1; i <= count; i++)
+			result.add(Integer.toString(i));
+		return result;
+	}
+
+	// The values of each radar series, one per category (null when missing)
+	private List<List<Double>> getRadarValues() {
+		final List<String> categories = getRadarCategories();
+		final List<List<Double>> result = new ArrayList<>();
+		for (ChartSeries s : series) {
+			final List<Double> values = new ArrayList<>();
+			for (int i = 0; i < categories.size(); i++)
+				values.add(null);
+			for (int i = 0; i < s.getValues().size(); i++) {
+				final int index = s.hasKeys() ? categories.indexOf(s.getKeys().get(i)) : i;
+				if (index >= 0 && index < values.size())
+					values.set(index, s.getValues().get(i));
+			}
+			result.add(values);
+		}
+		return result;
+	}
+
+	// Without an r-axis range, the radial scale goes from 0 to a round value above the data
+	private ChartAxis getRadialAxis() {
+		if (radialAxis.isAutoScale() == false)
+			return radialAxis;
+		double min = Double.POSITIVE_INFINITY;
+		double max = Double.NEGATIVE_INFINITY;
+		for (ChartSeries s : series)
+			for (Double value : s.getValues())
+				if (value != null) {
+					min = Math.min(min, value);
+					max = Math.max(max, value);
+				}
+		if (min > max)
+			return radialAxis;
+		return radialAxis.withNiceRange(min, max);
 	}
 
 	private ChartRenderer getRenderer() {
-		// For horizontal orientation, use h-axis data where vertical mode uses y-axis,
-		// and vice versa
-		// User writes: v-axis [labels], h-axis numeric
-		// For horizontal bars: xAxis=numeric (horizontal), yAxisLabels=categories
-		// (vertical)
-		// We need to pass to renderer properly based on what it expects
+		return new ChartRenderer(getSkinParam(), resolveCartesian());
+	}
+
+	/**
+	 * The chart as it is drawn on cartesian axes, every implicit value resolved: see
+	 * {@link CartesianChart}.
+	 */
+	public CartesianChart resolveCartesian() {
 		final ChartAxis hAxis = getHAxis();
 		if (orientation == Orientation.HORIZONTAL) {
-			// For horizontal: pass h-axis numeric as yAxis, v-axis labels as xAxisLabels
-			// This way bars grow along the correct axis
-			return new ChartRenderer(getSkinParam(), getCategories(yAxisLabels), yAxis.getTitle(), null,
-					xAxisLabelPosition, series, hAxis, hAxis, null, legendPosition, yGridMode, xGridMode, stackMode,
-					orientation, annotations);
+			// The categories are given by the v-axis and go down the left side, the
+			// values go along the bottom, against the h-axis range. The grid modes are
+			// swapped: "v-axis [A, B] grid" gives one line per category
+			final List<String> categories = getCategories(yAxisLabels);
+			final List<ChartSeries> resolved = alignKeys(categories);
+			final ChartAxis valueAxis = hasCoordinatePairs() ? hAxis : getValueAxis(xAxis, false, resolved);
+			return new CartesianChart(orientation, categories, yAxis.getTitle(), null, xAxisLabelPosition, hAxis,
+					resolved, valueAxis, null, legendPosition, yGridMode, xGridMode, stackMode, annotations);
 		}
 
-		// For vertical: h-axis=categories (xAxisLabels), v-axis=numeric (yAxis)
-		// Use xAxis title if available (for coordinate-pair mode), otherwise use
-		// xAxisTitle
+		// Vertical: the categories (h-axis) along the bottom, the values (v-axis) on the
+		// left. The h-axis title is the one given with a range, else with the labels
 		final String hAxisTitle = (xAxis != null && xAxis.getTitle() != null && !xAxis.getTitle().isEmpty())
 				? xAxis.getTitle()
 				: xAxisTitle;
 		// A numeric h-axis range (h-axis 0 --> 10) is kept as it is
 		final List<String> categories = xAxis.isAutoScale() ? getCategories(xAxisLabels) : xAxisLabels;
-		return new ChartRenderer(getSkinParam(), categories, hAxisTitle, xAxisTickSpacing, xAxisLabelPosition,
-				getPlottedSeries(), hAxis, yAxis, y2Axis, legendPosition, xGridMode, yGridMode, stackMode, orientation,
-				annotations);
+		final List<ChartSeries> resolved = alignKeys(categories);
+		return new CartesianChart(orientation, categories, hAxisTitle, xAxisTickSpacing, xAxisLabelPosition, hAxis,
+				getPlottedSeries(resolved), getValueAxis(yAxis, false, resolved),
+				y2Axis == null ? null : getValueAxis(y2Axis, true, resolved), legendPosition, xGridMode, yGridMode,
+				stackMode, annotations);
+	}
+
+	// When no range is given for a value axis, it is fitted to the values drawn against it
+	// (see ChartAxis.withNiceRange). This is done here, once every line is parsed, rather
+	// than while the series are added: a "v2-axis" line may come after the series using it,
+	// and stacked bars and areas reach the sum of their values, not each value.
+	// Series are drawn against y2Axis when they ask for it and it exists, as ChartRenderer does
+	private ChartAxis getValueAxis(ChartAxis axis, boolean secondary, List<ChartSeries> series) {
+		if (axis.isAutoScale() == false)
+			return axis;
+
+		double min = Double.POSITIVE_INFINITY;
+		double max = Double.NEGATIVE_INFINITY;
+		// Stacked bars and areas reach the top of their stack (see StackLayout)
+		final List<ChartSeries> bars = new ArrayList<>();
+		final List<ChartSeries> areas = new ArrayList<>();
+		for (ChartSeries s : series)
+			if ((s.isUseSecondaryAxis() && y2Axis != null) == secondary)
+				if (s.getType() == ChartSeries.SeriesType.BAR)
+					bars.add(s);
+				else if (s.getType() == ChartSeries.SeriesType.AREA)
+					areas.add(s);
+		final StackLayout barStack = StackLayout.bars(bars);
+		final StackLayout areaStack = StackLayout.areas(areas);
+		for (ChartSeries s : series) {
+			if ((s.isUseSecondaryAxis() && y2Axis != null) != secondary)
+				continue;
+			final List<Double> values = s.getValues();
+			for (int i = 0; i < values.size(); i++) {
+				final Double value = values.get(i);
+				if (value == null)
+					continue;
+				final double reached;
+				if (s.getType() == ChartSeries.SeriesType.AREA)
+					reached = areaStack.getTop(areas.indexOf(s), i);
+				else if (s.getType() == ChartSeries.SeriesType.BAR && stackMode == StackMode.STACKED)
+					reached = barStack.getTop(bars.indexOf(s), i);
+				else
+					reached = value;
+				min = Math.min(min, reached);
+				max = Math.max(max, reached);
+			}
+			if (s.getType() == ChartSeries.SeriesType.LINE && s.isInterpolate())
+				for (XCubicCurve2D curve : NaturalSpline.through(valuePoints(s)))
+					for (int k = 1; k < CURVE_SAMPLES; k++) {
+						final double y = bezierY(curve, (double) k / CURVE_SAMPLES);
+						min = Math.min(min, y);
+						max = Math.max(max, y);
+					}
+		}
+		if (min > max)
+			return axis;
+
+		// Annotations are placed against the primary value axis. An arrow is drawn
+		// downwards from its text only when it has about 55 px (text + 40) above the
+		// point, that is 19% of the 300 px plot, otherwise it is flipped below the point
+		// (see ChartRenderer.drawAnnotations). Asking for the point plus 25% of its
+		// distance to the bottom keeps the arrow above it even when the point is the
+		// maximum, as in annotation "Peak" at (B, 40) over a bar of 40
+		if (secondary == false)
+			for (ChartAnnotation annotation : annotations) {
+				final double y = annotation.getYPosition();
+				min = Math.min(min, y);
+				max = Math.max(max, y);
+				if (annotation.isShowArrow() && orientation == Orientation.VERTICAL)
+					max = Math.max(max, y + 0.25 * (y - Math.min(0, min)));
+			}
+
+		return axis.withNiceRange(min, max);
+	}
+
+	// An interpolated line is a natural spline, which overshoots its points: 38 between 12
+	// and 10 peaks near 41. Its extent is sampled so that the curve stays inside the axis.
+	// The spline is computed on values rather than pixels: it does not change under an
+	// affine change of x or y, so it is the same curve as the one LineRenderer draws
+	private static final int CURVE_SAMPLES = 32;
+
+	// The points of a series in value space (x = explicit x, or index), missing values left out
+	private static List<XPoint2D> valuePoints(ChartSeries s) {
+		final List<XPoint2D> result = new ArrayList<>();
+		final List<Double> values = s.getValues();
+		for (int i = 0; i < values.size(); i++)
+			if (values.get(i) != null)
+				result.add(new XPoint2D(s.hasExplicitXValues() ? s.getXValues().get(i) : i, values.get(i)));
+		return result;
+	}
+
+	private static double bezierY(XCubicCurve2D c, double t) {
+		final double u = 1 - t;
+		return u * u * u * c.getY1() + 3 * u * u * t * c.getCtrlY1() + 3 * u * t * t * c.getCtrlY2()
+				+ t * t * t * c.getY2();
 	}
 
 	// When no labels are given for the category axis (h-axis, or v-axis for a horizontal
-	// chart), index-based data is drawn against the categories 1, 2, ..., n, n being the
-	// number of values in the longest series, as if "h-axis [1, 2, ..., n]" had been written
+	// chart), the categories are the keys of the first series with keys, then the keys of the
+	// next ones not seen yet, as for a radar. Index-based data is drawn against them, then
+	// against 2, 3, ..., n, n being the number of values in the longest series without keys:
+	// with no keys at all, as if "h-axis [1, 2, ..., n]" had been written
 	private List<String> getCategories(List<String> labels) {
 		if (!labels.isEmpty() || series.isEmpty() || series.get(0).hasExplicitXValues())
 			return labels;
 
+		final List<String> categories = new ArrayList<>();
+		for (ChartSeries s : series)
+			if (s.hasKeys())
+				for (String key : s.getKeys())
+					if (categories.contains(key) == false)
+						categories.add(key);
+
 		int count = 0;
 		for (ChartSeries s : series)
-			count = Math.max(count, s.getValues().size());
+			if (s.hasKeys() == false)
+				count = Math.max(count, s.getValues().size());
 
-		final List<String> categories = new ArrayList<>();
-		for (int i = 1; i <= count; i++)
+		for (int i = categories.size() + 1; i <= count; i++)
 			categories.add(Integer.toString(i));
 
 		return categories;
+	}
+
+	// The series with their keyed values put in the order of the categories, a category
+	// missing from a series being a missing value: [Feb: 20, Jan: 10] on h-axis [Jan, Feb, Mar]
+	// is drawn as [10, 20, ]. The other series are kept as they are
+	private List<ChartSeries> alignKeys(List<String> categories) {
+		final List<ChartSeries> result = new ArrayList<>();
+		for (ChartSeries s : series) {
+			if (s.hasKeys() == false) {
+				result.add(s);
+				continue;
+			}
+			final List<Double> values = new ArrayList<>();
+			for (int i = 0; i < categories.size(); i++)
+				values.add(null);
+			for (int i = 0; i < s.getValues().size(); i++) {
+				final int index = categories.indexOf(s.getKeys().get(i));
+				if (index >= 0)
+					values.set(index, s.getValues().get(i));
+			}
+			result.add(s.withValues(values));
+		}
+		return result;
+	}
+
+	// The key of a bar, line, area or scatter value written as a list item, checked as the
+	// keys of a series written with its data (see checkCartesianKeys)
+	private CommandExecutionResult checkCartesianKey(String key) {
+		if (orientation == Orientation.VERTICAL && xAxis.isAutoScale() == false)
+			return CommandExecutionResult
+					.error("Keyed values (key: value) need h-axis categories, not an h-axis range");
+		final List<String> labels = getCategoryLabels();
+		if (labels.isEmpty() == false && labels.contains(key) == false)
+			return CommandExecutionResult.error(
+					"\"" + key + "\" is not in " + (orientation == Orientation.HORIZONTAL ? "v-axis" : "h-axis"));
+		return null;
+	}
+
+	// The labels of the category axis: the h-axis, or the v-axis for a horizontal chart
+	private List<String> getCategoryLabels() {
+		return orientation == Orientation.HORIZONTAL ? yAxisLabels : xAxisLabels;
+	}
+
+	// The keys of a bar, line, area or scatter must be categories of the category axis, when
+	// its labels are given, and there must be categories: a vertical chart with an h-axis range
+	// has none. Returns an error, or null
+	private CommandExecutionResult checkCartesianKeys(ChartSeries s, List<String> labels) {
+		if (s.hasKeys() == false)
+			return null;
+		if (orientation == Orientation.VERTICAL && xAxis.isAutoScale() == false)
+			return CommandExecutionResult
+					.error("Keyed values (key: value) need h-axis categories, not an h-axis range");
+		if (labels.isEmpty() == false)
+			for (String key : s.getKeys())
+				if (labels.contains(key) == false)
+					return CommandExecutionResult.error("\"" + key + "\" is not in "
+							+ (orientation == Orientation.HORIZONTAL ? "v-axis" : "h-axis"));
+		return null;
 	}
 
 	// When no h-axis range is given, coordinate-pair data is drawn against a numeric h-axis
@@ -169,7 +456,7 @@ public class ChartDiagram extends TitledDiagram {
 	// across the range, the first at the start and the last at the end, as if they had been
 	// written as coordinate pairs. The i-th value of every series is at the same x, n being the
 	// number of values in the longest series. A single value is drawn in the middle of the range
-	private List<ChartSeries> getPlottedSeries() {
+	private List<ChartSeries> getPlottedSeries(List<ChartSeries> series) {
 		if (xAxis.isAutoScale() || xAxisLabels.isEmpty() == false || series.isEmpty() || hasCoordinatePairs())
 			return series;
 
@@ -195,10 +482,179 @@ public class ChartDiagram extends TitledDiagram {
 
 	// Command methods
 
+	/**
+	 * Checks that a keyword can be used with the ones already written: a pie, a radar and the
+	 * cartesian keywords (bar, h-axis, orientation...) cannot be mixed. Returns an error, or
+	 * null when the keyword is accepted.
+	 */
+	public CommandExecutionResult checkKind(String keyword, Kind wanted) {
+		if (kind == null || kind == wanted || wanted == Kind.POLAR && (kind == Kind.PIE || kind == Kind.RADAR)) {
+			if (kind == null)
+				kindKeyword = keyword;
+			if (kind == null || kind == Kind.POLAR)
+				kind = wanted;
+			return null;
+		}
+		if (kind == Kind.POLAR && (wanted == Kind.PIE || wanted == Kind.RADAR)) {
+			kind = wanted;
+			kindKeyword = keyword;
+			return null;
+		}
+		return CommandExecutionResult.error("\"" + keyword + "\" cannot be used with \"" + kindKeyword + "\"");
+	}
+
+	public CommandExecutionResult setAngularLabels(List<String> labels) {
+		final CommandExecutionResult error = checkKind("a-axis", Kind.POLAR);
+		if (error != null)
+			return error;
+		for (ChartSeries s : series) {
+			final CommandExecutionResult unknown = checkKeys(s, labels);
+			if (unknown != null)
+				return unknown;
+		}
+		this.angularLabels.clear();
+		this.angularLabels.addAll(labels);
+		return CommandExecutionResult.ok();
+	}
+
+	// The keys of a radar series must be categories of the a-axis, when it is given
+	private static CommandExecutionResult checkKeys(ChartSeries s, List<String> labels) {
+		if (s.getType() != ChartSeries.SeriesType.RADAR || s.hasKeys() == false || labels.isEmpty())
+			return null;
+		for (String key : s.getKeys())
+			if (labels.contains(key) == false)
+				return CommandExecutionResult.error("\"" + key + "\" is not in a-axis");
+		return null;
+	}
+
+	public CommandExecutionResult setRadialAxis(Double min, Double max, Map<Double, String> customTicks,
+			Double tickSpacing, Boolean circleGrid) {
+		final CommandExecutionResult error = checkKind("r-axis", Kind.RADAR);
+		if (error != null)
+			return error;
+		if (min != null && max != null && min >= max)
+			return CommandExecutionResult.error("r-axis range must go from a lower to a higher value");
+		if (min != null)
+			radialAxis.setMin(min);
+		if (max != null)
+			radialAxis.setMax(max);
+		if (customTicks != null)
+			radialAxis.setCustomTicks(customTicks);
+		if (tickSpacing != null)
+			radialAxis.setTickSpacing(tickSpacing);
+		if (circleGrid != null)
+			radarCircleGrid = circleGrid;
+		return CommandExecutionResult.ok();
+	}
+
+	private CommandExecutionResult addPolarSeries(ChartSeries s) {
+		if (s.getType() == ChartSeries.SeriesType.PIE) {
+			if (series.isEmpty() == false)
+				return CommandExecutionResult.error("Only one pie is allowed in a chart");
+			final String error = checkPieValues(s);
+			if (error != null)
+				return CommandExecutionResult.error(error);
+		} else {
+			final CommandExecutionResult unknown = checkKeys(s, angularLabels);
+			if (unknown != null)
+				return unknown;
+		}
+		series.add(s);
+		return CommandExecutionResult.ok();
+	}
+
+	// The values of a pie cannot be negative, and one at least must be greater than 0.
+	// Returns an error message, or null
+	private static String checkPieValues(ChartSeries s) {
+		boolean positive = false;
+		for (Double value : s.getValues())
+			if (value != null) {
+				if (value < 0)
+					return "A pie cannot have a negative value: " + value;
+				if (value > 0)
+					positive = true;
+			}
+		if (positive == false)
+			return "A pie needs at least one value greater than 0";
+		return null;
+	}
+
+	/**
+	 * Adds a series written without data: its values are given by the list items that follow
+	 * it (see {@link #addItem}), until another series is written. A pie is checked once every
+	 * line is read (see {@link #checkFinalError}).
+	 */
+	public CommandExecutionResult openSeries(ChartSeries s) {
+		final Kind seriesKind = s.getType() == ChartSeries.SeriesType.PIE ? Kind.PIE
+				: s.getType() == ChartSeries.SeriesType.RADAR ? Kind.RADAR : Kind.CARTESIAN;
+		final CommandExecutionResult error = checkKind(s.getType().name().toLowerCase(Locale.ROOT), seriesKind);
+		if (error != null)
+			return error;
+		if (s.getType() == ChartSeries.SeriesType.PIE && series.isEmpty() == false)
+			return CommandExecutionResult.error("Only one pie is allowed in a chart");
+		// A list gives values, which cannot be drawn with coordinate pairs
+		if (seriesKind == Kind.CARTESIAN && hasCoordinatePairs())
+			return CommandExecutionResult.error(
+					"All series must use the same data format (either all coordinate pairs or all index-based)");
+		series.add(s);
+		openSeries = s;
+		return CommandExecutionResult.ok();
+	}
+
+	/**
+	 * Adds a value, written on a line of a list such as "* Nitrogen : 78", to the series
+	 * written without data before it.
+	 */
+	public CommandExecutionResult addItem(String key, Double value, HColor color) {
+		if (openSeries == null)
+			return CommandExecutionResult
+					.error("A list item must follow a series written without data, as in: pie \"Air\"");
+		if (openSeries.getValues().isEmpty() == false && openSeries.hasKeys() != (key != null))
+			return CommandExecutionResult.error("Either every value has a key (key: value), or none has");
+		if (openSeries.getType() == ChartSeries.SeriesType.PIE && value != null && value < 0)
+			return CommandExecutionResult.error("A pie cannot have a negative value: " + value);
+		if (openSeries.getType() == ChartSeries.SeriesType.RADAR && key != null && angularLabels.isEmpty() == false
+				&& angularLabels.contains(key) == false)
+			return CommandExecutionResult.error("\"" + key + "\" is not in a-axis");
+		if (openSeries.getType() != ChartSeries.SeriesType.PIE
+				&& openSeries.getType() != ChartSeries.SeriesType.RADAR) {
+			if (color != null)
+				return CommandExecutionResult
+						.error("A value of a " + openSeries.getType().name().toLowerCase(Locale.ROOT)
+								+ " cannot have a color of its own");
+			if (key != null) {
+				final CommandExecutionResult unknown = checkCartesianKey(key);
+				if (unknown != null)
+					return unknown;
+			}
+		}
+		openSeries.addItem(key, value, color);
+		return CommandExecutionResult.ok();
+	}
+
+	// A pie written as a list is checked once all its items are read
+	@Override
+	public String checkFinalError() {
+		for (ChartSeries s : series)
+			if (s.getType() == ChartSeries.SeriesType.PIE) {
+				final String error = checkPieValues(s);
+				if (error != null)
+					return error;
+			}
+		return super.checkFinalError();
+	}
+
 	public CommandExecutionResult setXAxisLabels(List<String> labels) {
 		if (labels.isEmpty() == false && xAxis.isAutoScale() && hasCoordinatePairs())
 			return CommandExecutionResult.error(
 					"Coordinate pair notation requires numeric h-axis (e.g., h-axis \"x\" -5 --> 5), not categorical labels");
+
+		if (orientation == Orientation.VERTICAL)
+			for (ChartSeries s : series) {
+				final CommandExecutionResult unknown = checkCartesianKeys(s, labels);
+				if (unknown != null)
+					return unknown;
+			}
 
 		this.xAxisLabels.clear();
 		this.xAxisLabels.addAll(labels);
@@ -229,6 +685,12 @@ public class ChartDiagram extends TitledDiagram {
 		// Coordinate pairs given without a range have not been checked against one
 		if ((min != null || max != null) && xAxis.isAutoScale() && hasCoordinatePairs())
 			return CommandExecutionResult.error("h-axis range must be given before coordinate pair data");
+		if ((min != null || max != null) && orientation == Orientation.VERTICAL)
+			for (ChartSeries s : series)
+				if (s.hasKeys() && s.getType() != ChartSeries.SeriesType.PIE
+						&& s.getType() != ChartSeries.SeriesType.RADAR)
+					return CommandExecutionResult
+							.error("Keyed values (key: value) need h-axis categories, not an h-axis range");
 
 		if (title != null)
 			xAxis.setTitle(title);
@@ -254,6 +716,12 @@ public class ChartDiagram extends TitledDiagram {
 	}
 
 	public CommandExecutionResult setYAxisLabels(List<String> labels) {
+		if (orientation == Orientation.HORIZONTAL)
+			for (ChartSeries s : series) {
+				final CommandExecutionResult unknown = checkCartesianKeys(s, labels);
+				if (unknown != null)
+					return unknown;
+			}
 		this.yAxisLabels.clear();
 		this.yAxisLabels.addAll(labels);
 		return CommandExecutionResult.ok();
@@ -272,6 +740,17 @@ public class ChartDiagram extends TitledDiagram {
 	}
 
 	public CommandExecutionResult addSeries(ChartSeries series) {
+		openSeries = null;
+		final boolean polar = series.getType() == ChartSeries.SeriesType.PIE
+				|| series.getType() == ChartSeries.SeriesType.RADAR;
+		final Kind seriesKind = series.getType() == ChartSeries.SeriesType.PIE ? Kind.PIE
+				: series.getType() == ChartSeries.SeriesType.RADAR ? Kind.RADAR : Kind.CARTESIAN;
+		final CommandExecutionResult error = checkKind(series.getType().name().toLowerCase(Locale.ROOT), seriesKind);
+		if (error != null)
+			return error;
+		if (polar)
+			return addPolarSeries(series);
+
 		// Validation for coordinate-pair notation
 		if (series.hasExplicitXValues()) {
 			// Coordinate pairs only allowed for line and scatter charts
@@ -308,12 +787,10 @@ public class ChartDiagram extends TitledDiagram {
 							+ xAxis.getMin() + ", " + xAxis.getMax() + "]");
 				}
 			}
-
-			// Auto-scale x-axis to include all x-values
-			for (double x : series.getXValues()) {
-				xAxis.includeValue(x);
-			}
 		} else {
+			final CommandExecutionResult unknown = checkCartesianKeys(series, getCategoryLabels());
+			if (unknown != null)
+				return unknown;
 			// Index-based mode: ensure consistency
 			if (!this.series.isEmpty()) {
 				final boolean firstHasX = this.series.get(0).hasExplicitXValues();
@@ -325,13 +802,6 @@ public class ChartDiagram extends TitledDiagram {
 		}
 
 		this.series.add(series);
-
-		// Auto-scale y-axes if needed
-		final ChartAxis axis = series.isUseSecondaryAxis() && y2Axis != null ? y2Axis : yAxis;
-		for (Double value : series.getValues()) {
-			if (value != null)
-				axis.includeValue(value);
-		}
 
 		return CommandExecutionResult.ok();
 	}
@@ -412,6 +882,16 @@ public class ChartDiagram extends TitledDiagram {
 		return annotations;
 	}
 
+	// ATXT and UTXT: see ChartTxt
+	@Override
+	protected ImageData exportTxt(OutputStream os, int index, FileFormat fileFormat) throws IOException {
+		final PrintStream ps = SecurityUtils.createPrintStream(os, true, StandardCharsets.UTF_8);
+		for (String line : ChartTxt.getLines(this, fileFormat == FileFormat.UTXT))
+			ps.println(line);
+		ps.flush();
+		return ImageDataSimple.ok();
+	}
+
 	@Override
 	public TextBlock getTextBlock(int num, FileFormatOption fileFormatOption) {
 		return new TextBlock() {
@@ -421,7 +901,7 @@ public class ChartDiagram extends TitledDiagram {
 			}
 
 			public XDimension2D calculateDimension(StringBounder stringBounder) {
-				return getRenderer().calculateDimension(stringBounder);
+				return ChartDiagram.this.calculateDimension(stringBounder);
 			}
 		};
 	}

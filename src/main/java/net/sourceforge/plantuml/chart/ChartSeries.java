@@ -43,7 +43,7 @@ import net.sourceforge.plantuml.stereo.Stereotype;
 public class ChartSeries {
 
 	public enum SeriesType {
-		BAR, LINE, AREA, SCATTER
+		BAR, LINE, AREA, SCATTER, PIE, RADAR
 	}
 
 	public enum MarkerShape {
@@ -61,6 +61,13 @@ public class ChartSeries {
 	private boolean connect;
 	private MarkerShape markerShape;
 	private Stereotype stereotype;
+	// Data written as [key: value, ...]: the key of each value, else null
+	private List<String> keys;
+	// Color written after a value, as in [Dogs: 386 #3366CC]: one entry per value, null if none
+	private List<HColor> itemColors;
+	// Pie only: show percentages, and size of the hole of a donut (0 for a plain pie)
+	private boolean showPercent;
+	private double donutHole;
 
 	public ChartSeries(String name, SeriesType type, List<Double> values) {
 		this.name = name;
@@ -88,7 +95,18 @@ public class ChartSeries {
 
 	// The same series with the given x values, as if its values had been written as coordinate pairs
 	public ChartSeries withXValues(List<Double> xValues) {
-		final ChartSeries result = new ChartSeries(name, type, xValues, values);
+		return copyAttributesTo(new ChartSeries(name, type, xValues, values));
+	}
+
+	// The same series with other values and no keys: the values of a keyed series put in the
+	// order of the categories, a missing one being null
+	public ChartSeries withValues(List<Double> newValues) {
+		final ChartSeries result = copyAttributesTo(new ChartSeries(name, type, newValues));
+		result.keys = null;
+		return result;
+	}
+
+	private ChartSeries copyAttributesTo(ChartSeries result) {
 		result.color = color;
 		result.useSecondaryAxis = useSecondaryAxis;
 		result.showLabels = showLabels;
@@ -96,6 +114,10 @@ public class ChartSeries {
 		result.connect = connect;
 		result.markerShape = markerShape;
 		result.stereotype = stereotype;
+		result.keys = keys;
+		result.itemColors = itemColors;
+		result.showPercent = showPercent;
+		result.donutHole = donutHole;
 		return result;
 	}
 
@@ -173,5 +195,65 @@ public class ChartSeries {
 
 	public void setStereotype(Stereotype stereotype) {
 		this.stereotype = stereotype;
+	}
+
+	public List<String> getKeys() {
+		return keys;
+	}
+
+	public boolean hasKeys() {
+		return keys != null;
+	}
+
+	public void setKeys(List<String> keys) {
+		this.keys = keys == null ? null : new ArrayList<>(keys);
+	}
+
+	/**
+	 * Adds a value at the end, as written on a line of a list after a pie or a radar given
+	 * without data. The key is null for a value without key: the caller checks that either
+	 * every value has a key, or none has.
+	 */
+	public void addItem(String key, Double value, HColor itemColor) {
+		values.add(value);
+		if (key != null) {
+			if (keys == null)
+				keys = new ArrayList<>();
+			keys.add(key);
+		}
+		if (itemColor != null && itemColors == null) {
+			itemColors = new ArrayList<>();
+			for (int i = 0; i < values.size() - 1; i++)
+				itemColors.add(null);
+		}
+		if (itemColors != null)
+			itemColors.add(itemColor);
+	}
+
+	// The color written after the i-th value, or null
+	public HColor getItemColor(int i) {
+		if (itemColors == null || i >= itemColors.size())
+			return null;
+		return itemColors.get(i);
+	}
+
+	public void setItemColors(List<HColor> itemColors) {
+		this.itemColors = itemColors == null ? null : new ArrayList<>(itemColors);
+	}
+
+	public boolean isShowPercent() {
+		return showPercent;
+	}
+
+	public void setShowPercent(boolean showPercent) {
+		this.showPercent = showPercent;
+	}
+
+	public double getDonutHole() {
+		return donutHole;
+	}
+
+	public void setDonutHole(double donutHole) {
+		this.donutHole = donutHole;
 	}
 }

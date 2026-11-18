@@ -221,6 +221,24 @@ classDiagram {
   }
 }
 
+objectDiagram {
+  object {
+    stereotype {
+      FontSize 12
+    }
+  }
+  map {
+    stereotype {
+      FontSize 12
+    }
+  }
+  json {
+    stereotype {
+      FontSize 12
+    }
+  }
+}
+
 visibilityIcon {
   public {
     LineColor #038048
@@ -564,6 +582,29 @@ chartDiagram {
 	line {
 		LineThickness 2
 	}
+	pie {
+		LineColor #FFFFFF
+		LineThickness 1.5
+	}
+	radar {
+		LineThickness 2
+	}
+}
+
+filesDiagram {
+  LineColor #A0A0A0
+  LineThickness 1
+  folder, file {
+    BackGroundColor transparent
+  }
+  description {
+    FontColor #6A9955
+    FontStyle italic
+  }
+  .highlight {
+    BackGroundColor #FFF3CD
+    LineColor #FFC107
+  }
 }
 
 /*
@@ -767,6 +808,14 @@ ganttDiagram {
 	}
 }
 
+
+filesDiagram {
+  LineColor #707070
+  .highlight {
+    BackGroundColor #4D3D00
+    LineColor #FFC107
+  }
+}
 
 yamlDiagram,jsonDiagram {
   FontColor white

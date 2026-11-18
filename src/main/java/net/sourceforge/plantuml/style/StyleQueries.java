@@ -105,6 +105,10 @@ public final class StyleQueries {
 
 	public static final StyleQuery CHARTDIAG_LINE = CHARTDIAG.add(SName.line);
 
+	public static final StyleQuery CHARTDIAG_PIE = CHARTDIAG.add(SName.pie);
+
+	public static final StyleQuery CHARTDIAG_RADAR = CHARTDIAG.add(SName.radar);
+
 	public static final StyleQuery CHARTDIAG_SCATTER = CHARTDIAG.add(SName.scatter);
 
 	public static final StyleQuery CHENEER_ATTRIBUTE = ELEMENT.add(SName.chenEerDiagram, SName.chenAttribute);
@@ -158,6 +162,12 @@ public final class StyleQueries {
 	public static final StyleQuery FILESDIAG = ELEMENT.add(SName.filesDiagram);
 
 	public static final StyleQuery FILESDIAG_NOTE = ELEMENT.add(SName.filesDiagram, SName.note);
+
+	public static final StyleQuery FILESDIAG_FOLDER = ELEMENT.add(SName.filesDiagram, SName.folder);
+
+	public static final StyleQuery FILESDIAG_FILE = ELEMENT.add(SName.filesDiagram, SName.file);
+
+	public static final StyleQuery FILESDIAG_DESCRIPTION = ELEMENT.add(SName.filesDiagram, SName.description);
 
 	public static final StyleQuery GANTTDIAG = ELEMENT.add(SName.ganttDiagram);
 
