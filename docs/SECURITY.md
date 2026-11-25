@@ -1,6 +1,9 @@
-# Security Policy
+# 🛡️ Security Policy
 
-
+> [!NOTE]
+> - Is PlantUML affected by a recent CVE? 
+>
+> See [CVE.md](https://github.com/plantuml/plantuml/blob/master/CVE.md) for the advisories we have checked and why PlantUML is not impacted.
 
 ## Reporting a Vulnerability
 

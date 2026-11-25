@@ -527,13 +527,27 @@ public class ChartDiagram extends TitledDiagram {
 		return null;
 	}
 
+	// Every renderer places a value at (value - min) / (max - min): an empty range
+	// (min == max) gives NaN coordinates and crashes, and a reversed one (min > max)
+	// is drawn inconsistently (upside-down lines, missing bars and grid, mirrored
+	// horizontal bars). Both are refused on the axis line itself. See #3031.
+	private static CommandExecutionResult checkRange(String axis, Double min, Double max) {
+		if (min != null && max != null && min >= max)
+			return CommandExecutionResult.error(axis + " range must go from a lower to a higher value");
+		// -1.7e308 --> 1.7e308: each bound is a double, the distance between them is not
+		if (min != null && max != null && Double.isInfinite(max - min))
+			return CommandExecutionResult.error(axis + " range is too large to be drawn");
+		return null;
+	}
+
 	public CommandExecutionResult setRadialAxis(Double min, Double max, Map<Double, String> customTicks,
 			Double tickSpacing, Boolean circleGrid) {
 		final CommandExecutionResult error = checkKind("r-axis", Kind.RADAR);
 		if (error != null)
 			return error;
-		if (min != null && max != null && min >= max)
-			return CommandExecutionResult.error("r-axis range must go from a lower to a higher value");
+		final CommandExecutionResult range = checkRange("r-axis", min, max);
+		if (range != null)
+			return range;
 		if (min != null)
 			radialAxis.setMin(min);
 		if (max != null)
@@ -641,8 +655,58 @@ public class ChartDiagram extends TitledDiagram {
 				if (error != null)
 					return error;
 			}
+		final String range = checkAutomaticRanges();
+		if (range != null)
+			return range;
 		return super.checkFinalError();
 	}
+
+	// An automatic range is fitted to the values (see ChartAxis.withNiceRange). Values
+	// near the limits of a double can make it infinite, a stack of 1e308 + 1e308 or a
+	// spread from -1.7e308 to 1.7e308, and every renderer would then place its values at
+	// NaN. Such a chart is refused here, once every value is known. A range written on
+	// the axis line is checked there (see checkRange), but a stack can still overflow
+	// against it: StackLayout gives the renderers an infinite top, which crashed
+	private String checkAutomaticRanges() {
+		if (kind == Kind.PIE)
+			return null;
+		if (kind == Kind.RADAR)
+			return resolveRadar().getAxis().isDrawable() ? null : TOO_LARGE;
+		if (hasFiniteStacks(false) == false || hasFiniteStacks(true) == false)
+			return TOO_LARGE;
+		final CartesianChart chart = resolveCartesian();
+		if (chart.getNumericAxis().isDrawable() == false || chart.getValueAxis().isDrawable() == false)
+			return TOO_LARGE;
+		if (chart.getValueAxis2() != null && chart.getValueAxis2().isDrawable() == false)
+			return TOO_LARGE;
+		return null;
+	}
+
+	// Whether every stack drawn against the primary (or secondary) value axis has a finite
+	// top. Areas are always stacked, bars only in stacked mode, as in getValueAxis
+	private boolean hasFiniteStacks(boolean secondary) {
+		final List<ChartSeries> bars = new ArrayList<>();
+		final List<ChartSeries> areas = new ArrayList<>();
+		for (ChartSeries s : series)
+			if ((s.isUseSecondaryAxis() && y2Axis != null) == secondary)
+				if (s.getType() == ChartSeries.SeriesType.BAR)
+					bars.add(s);
+				else if (s.getType() == ChartSeries.SeriesType.AREA)
+					areas.add(s);
+		if (stackMode == StackMode.STACKED && hasFiniteTops(StackLayout.bars(bars), bars) == false)
+			return false;
+		return hasFiniteTops(StackLayout.areas(areas), areas);
+	}
+
+	private static boolean hasFiniteTops(StackLayout stack, List<ChartSeries> series) {
+		for (int s = 0; s < series.size(); s++)
+			for (int i = 0; i < series.get(s).getValues().size(); i++)
+				if (stack.has(s, i) && Double.isInfinite(stack.getTop(s, i)))
+					return false;
+		return true;
+	}
+
+	private static final String TOO_LARGE = "The values are too large to be drawn";
 
 	public CommandExecutionResult setXAxisLabels(List<String> labels) {
 		if (labels.isEmpty() == false && xAxis.isAutoScale() && hasCoordinatePairs())
@@ -682,6 +746,9 @@ public class ChartDiagram extends TitledDiagram {
 	}
 
 	public CommandExecutionResult setXAxis(String title, Double min, Double max) {
+		final CommandExecutionResult range = checkRange("h-axis", min, max);
+		if (range != null)
+			return range;
 		// Coordinate pairs given without a range have not been checked against one
 		if ((min != null || max != null) && xAxis.isAutoScale() && hasCoordinatePairs())
 			return CommandExecutionResult.error("h-axis range must be given before coordinate pair data");
@@ -706,6 +773,9 @@ public class ChartDiagram extends TitledDiagram {
 	}
 
 	public CommandExecutionResult setYAxis(String title, Double min, Double max) {
+		final CommandExecutionResult range = checkRange("v-axis", min, max);
+		if (range != null)
+			return range;
 		if (title != null)
 			yAxis.setTitle(title);
 		if (min != null)
@@ -728,6 +798,9 @@ public class ChartDiagram extends TitledDiagram {
 	}
 
 	public CommandExecutionResult setY2Axis(String title, Double min, Double max) {
+		final CommandExecutionResult range = checkRange("v2-axis", min, max);
+		if (range != null)
+			return range;
 		if (y2Axis == null)
 			y2Axis = new ChartAxis();
 		if (title != null)
